@@ -1,0 +1,30 @@
+name: pinatubo_fair
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.11
+  - numpy
+  - pandas
+  - matplotlib
+  - obspy
+  - jupyterlab
+  - ipython
+  - notebook
+
+  # For writing/reading MSEED, QUAKEML, etc.
+  #- lxml
+  #- h5py
+
+  # Optional but recommended for speeding up ObsPy I/O
+  #- numba
+
+  # For tests (later)
+  - pytest
+
+  # Allow installing small helper packages via pip if needed
+  - pip
+  - pip:
+      # (Keep this empty unless you later need pip-installed packages)
+      - ""

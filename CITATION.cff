@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software or pipeline, please cite it as follows:"
+title: "Pinatubo1991SeismicData: A Python Pipeline for Recovering, Converting, and Harmonizing the 1991 Mount Pinatubo Seismic Dataset"
+version: "0.1.0"
+authors:
+  - family-names: "Thompson"
+    given-names: "Glenn"
+    orcid: "https://orcid.org/0000-0002-9173-0097"
+    affiliation: "University of South Florida, School of Geosciences, Tampa, FL, USA"
+abstract: >
+  A modular, reproducible Python pipeline for rescuing and harmonizing the
+  1991 Mount Pinatubo seismic dataset. The workflow converts legacy SUDS/DMX
+  waveform files to MiniSEED, reconstructs phase and hypocenter catalogs, 
+  resolves metadata inconsistencies, and produces a unified SEISAN/QuakeML
+  archive compliant with FAIR data principles.
+keywords:
+  - seismology
+  - volcano seismology
+  - legacy data recovery
+  - SUDS
+  - DMX
+  - HYPO71
+  - FAIR data
+  - MiniSEED
+  - ObsPy
+  - Pinatubo
+  - VDAP
+repository-code: "https://github.com/gthompson/Pinatubo1991SeismicData"
+license: "MIT"
+type: software

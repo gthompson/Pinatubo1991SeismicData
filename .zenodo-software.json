@@ -1,0 +1,73 @@
+{
+  "title": "Pinatubo1991SeismicData: A Python Pipeline for Recovering and FAIR-Converting the 1991 Mount Pinatubo Seismic Dataset",
+  "upload_type": "software",
+  "publication_type": "software",
+  "description": "<p>This repository contains the open-source Python pipeline used to recover, convert, harmonize, and FAIR-ify the 1991 Mount Pinatubo seismic dataset. The software provides modular ObsPy-based tools for reading legacy SUDS/DMX files, parsing monthly phase-arrival files, parsing HYPO71 summary catalogs, associating waveforms, picks, and hypocenters, constructing unified QuakeML and SEISAN catalogs, and generating reproducible FAIR-compliant archives. The pipeline is fully documented, version-controlled, and includes Jupyter notebooks for end-to-end provenance.</p><p>Originally built to rescue the 1991 Pinatubo dataset, the pipeline is designed to be generalizable to other Volcano Disaster Assistance Program (VDAP) monitoring deployments, including Montserrat (1995–2010), Redoubt (1989–90), and other early-digital volcano-seismic networks. The codebase is written entirely in Python, with no dependencies beyond ObsPy, NumPy, and pandas.</p>",
+  "creators": [
+    {
+      "name": "Thompson, Glenn",
+      "affiliation": "University of South Florida, School of Geosciences",
+      "orcid": "0000-0002-9173-0097"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Power, John A.",
+      "type": "DataCurator",
+      "affiliation": "USGS Volcano Science Center (ret.)",
+      "description": "Recovered original Pinatubo data and provided metadata support"
+    },
+    {
+      "name": "White, Randall A.",
+      "type": "DataCurator",
+      "affiliation": "USGS Volcano Science Center (ret.)",
+      "description": "Provided phase-pick files, notes, and eruption chronology"
+    },
+    {
+      "name": "Murray, Thomas L.",
+      "type": "DataCurator",
+      "affiliation": "USGS Volcano Science Center (ret.)",
+      "description": "Provided RSAM/SSAM notes, station metadata, and timing insights"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "Python",
+    "ObsPy",
+    "volcano seismology",
+    "legacy data",
+    "DMX",
+    "SUDS",
+    "HYPO71",
+    "phase parsing",
+    "waveform conversion",
+    "catalog reconstruction",
+    "FAIR data",
+    "Pinatubo",
+    "seismic processing",
+    "reproducible research"
+  ],
+  "notes": "This Zenodo record corresponds to the software-only component of the project, intended for the Journal of Open Source Software (JOSS). The dataset itself has a separate Zenodo DOI. Users should cite both the software DOI and the dataset DOI when reusing the code and the reconstructed Pinatubo seismic archive.",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/gthompson/Pinatubo1991SeismicData",
+      "relation": "isSupplementTo",
+      "resource_type": "software",
+      "description": "GitHub source code for the Pinatubo pipeline"
+    },
+    {
+      "identifier": "https://doi.org/10.XXXX/zenodo.dataset-doi",
+      "relation": "isSupplementedBy",
+      "resource_type": "dataset",
+      "description": "FAIR reconstructed Pinatubo 1991 dataset DOI (replace once known)"
+    }
+  ],
+  "access_right": "open",
+  "version": "0.9.0",
+  "language": "eng",
+  "communities": [
+    { "identifier": "open-science" },
+    { "identifier": "seismology" },
+    { "identifier": "volcanology" }
+  ]
+}
