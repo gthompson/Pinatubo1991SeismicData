@@ -187,7 +187,7 @@ def discover_dmx_files(rawtop: Path, pattern: str):
 def main():
     ap = argparse.ArgumentParser(description="Convert DMX to SEISAN WAV MiniSEED")
     ap.add_argument("--rawtop", required=True)
-    ap.add_argument("--seisan-top", required=True)
+    ap.add_argument("--seisan-wav", required=True)
     ap.add_argument("--db", default="PNTBO")
     ap.add_argument("--net", default="XB")
     ap.add_argument("--fix-fs", type=float, default=None)
@@ -197,7 +197,7 @@ def main():
     args = ap.parse_args()
 
     rawtop = Path(args.rawtop)
-    outroot = Path(args.seisan_top)
+    outroot = Path(args.seisan_wav)
 
     dmx_files = discover_dmx_files(rawtop, args.glob)
     if args.max_files:

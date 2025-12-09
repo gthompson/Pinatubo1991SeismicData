@@ -22,7 +22,7 @@ import argparse
 from pathlib import Path
 import pandas as pd
 from obspy import read, UTCDateTime
-from obspy.core.event import Catalog, Event, Origin
+from obspy.core.event import Catalog, Event, Origin, Comment
 
 
 def discover_mseed_files(wav_root: Path, db: str):
@@ -31,8 +31,9 @@ def discover_mseed_files(wav_root: Path, db: str):
     Pattern:
         WAV/<DB>/<YYYY>/<MM>/*M.<DB>_*
     """
-    pattern = wav_root / db / "*" / "*" / f"*M.{db}_*"
-    return sorted(Path().glob(str(pattern)))
+    #pattern = wav_root / db / "*" / "*" / f"*M.{db}_*" # 01 process did not create db subdir
+    pattern = f"*/*/*M.{db}_*"
+    return sorted(wav_root.glob(pattern))
 
 
 def extract_metadata_from_mseed(path: Path):
@@ -76,21 +77,22 @@ def main():
                         help="Root directory containing WAV/<DB>/<YYYY>/<MM>")
     parser.add_argument("--db", required=True,
                         help="SEISAN database name (e.g., PNTBO)")
+    parser.add_argument("--metadata-path", required=True,
+                        help="output directory for event metadata")      
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
+    csv_path = Path(args.metadata_path) / "wfdisc_catalog.csv"
+    xml_path = Path(args.metadata_path) / "wfdisc_catalog.xml"
 
     wav_root = Path(args.seisan_top) / "WAV"
     db = args.db
 
     # Output paths
-    out_dir = Path("metadata")
+    out_dir = Path(args.metadata_path)
     out_dir.mkdir(exist_ok=True)
 
-    csv_path = out_dir / "wfdisc_catalog.csv"
-    xml_path = out_dir / "wfdisc_catalog.xml"
-
     # ----------------------------------------------------------------------
-    # Locate files
+    # Locate MiniSEED files
     # ----------------------------------------------------------------------
     files = discover_mseed_files(wav_root, db)
     print(f"Found {len(files)} MiniSEED WAV files")
@@ -119,7 +121,7 @@ def main():
             ev = Event()
             ori = Origin(time=row["starttime"])
             ev.origins.append(ori)
-            ev.comments.append(f"mseed_file: {row['file']}")
+            ev.comments.append(Comment(text=f"mseed_file: {row['file']}"))
             catalog.append(ev)
         except Exception as e:
             print(f"⚠️ Error creating event for {row['file']}: {e}")
