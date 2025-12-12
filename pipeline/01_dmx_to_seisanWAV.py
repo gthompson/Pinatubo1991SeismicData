@@ -95,7 +95,7 @@ def remove_IRIG_channel(st: Stream) -> None:
         st.remove(tr)
 
 
-def write_wavfile(st: Stream, out_root: str, dbstring: str,
+def write_wavfile(st: Stream, seisan_wav_db: str, dbstring: str,
                   numchans: int, year_month_dirs=True, fmt="MSEED") -> str:
     """
     Writes a SEISAN-style MiniSEED file using year/month directory layout.
@@ -104,6 +104,11 @@ def write_wavfile(st: Stream, out_root: str, dbstring: str,
     """
     if not st or len(st) == 0:
         raise ValueError("Cannot write empty stream to WAV output.")
+    
+    # Merge and sort traces - added after upload of MiniSEED to EarthScope   
+    st.sort(keys=['station', 'channel'])
+    st.merge(method=1, fill_value=0)
+    st.trim(st[0].stats.starttime, st[0].stats.endtime, pad=True, fill_value=0)
 
     t = st[0].stats.starttime   # UTCDateTime
     basename = "%4d-%02d-%02d-%02d%02d-%02dM.%s_%03d" % (
@@ -113,17 +118,17 @@ def write_wavfile(st: Stream, out_root: str, dbstring: str,
     )
 
     if year_month_dirs:
-        out_dir = Path(out_root) / f"{t.year:04d}" / f"{t.month:02d}"
+        out_dir = Path(seisan_wav_db) / f"{t.year:04d}" / f"{t.month:02d}"
     else:
-        out_dir = Path(out_root)
+        out_dir = Path(seisan_wav_db)
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / basename
+    seisan_wavfile_path = out_dir / basename
 
     # Write MiniSEED file
-    st.write(str(out_path), format="MSEED")
+    st.write(str(seisan_wavfile_path), format="MSEED")
 
-    return str(out_path)
+    return str(seisan_wavfile_path)
 
 
 # ============================================================================
@@ -187,7 +192,7 @@ def discover_dmx_files(rawtop: Path, pattern: str):
 def main():
     ap = argparse.ArgumentParser(description="Convert DMX to SEISAN WAV MiniSEED")
     ap.add_argument("--rawtop", required=True)
-    ap.add_argument("--seisan-wav", required=True)
+    ap.add_argument("--seisan-wav-db", required=True)
     ap.add_argument("--db", default="PNTBO")
     ap.add_argument("--net", default="XB")
     ap.add_argument("--fix-fs", type=float, default=None)
@@ -197,7 +202,7 @@ def main():
     args = ap.parse_args()
 
     rawtop = Path(args.rawtop)
-    outroot = Path(args.seisan_wav)
+    seisan_wav_db = Path(args.seisan_wav_db)
 
     dmx_files = discover_dmx_files(rawtop, args.glob)
     if args.max_files:
@@ -253,9 +258,9 @@ def main():
 
         # ---- write MiniSEED file ----
         try:
-            out_path = write_wavfile(
+            seisan_wavfile_path = write_wavfile(
                 st=st,
-                out_root=str(outroot),
+                seisan_wav_db=str(seisan_wav_db),
                 dbstring=args.db,
                 numchans=len(st),
                 year_month_dirs=True,
@@ -270,15 +275,15 @@ def main():
     # =========================================================================
     # Write mapping tables
     # =========================================================================
-    outroot.mkdir(parents=True, exist_ok=True)
+    seisan_wav_db.mkdir(parents=True, exist_ok=True)
 
     df = pd.DataFrame(
         [(k, v) for k, v in trace_map.items()],
         columns=["original_id", "fixed_id"]
     ).sort_values("original_id")
 
-    csv_path = outroot / "metadata_trace_id_mapping.csv"
-    tex_path = outroot / "metadata_trace_id_mapping.tex"
+    csv_path = seisan_wav_db / "metadata_trace_id_mapping.csv"
+    tex_path = seisan_wav_db / "metadata_trace_id_mapping.tex"
 
     df.to_csv(csv_path, index=False)
     df.to_latex(

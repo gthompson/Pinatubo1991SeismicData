@@ -19,10 +19,11 @@ SUDS_TOP="$LEGACY_TOP/WAVEFORM_DATA/SUDS"
 FAIR_TOP="$DATA_TOP/FAIR"
 
 # SEISAN database output
-SEISAN_TOP="${FAIR_TOP}/SEISAN"
-SEISAN_WAV="${SEISAN_TOP}/WAV"
 DB="PNTBO"
 NET="XB"
+SEISAN_TOP="${FAIR_TOP}/SEISAN"
+SEISAN_WAV="${SEISAN_TOP}/WAV"
+SEISAN_WAV_DB="${SEISAN_TOP}/WAV/${DB}"
 
 # Sampling rate fix (metadata only)
 FIX_FS=100.0
@@ -37,11 +38,14 @@ LEGACY_STATIONMETA_DIR="${LEGACY_TOP}/STATION_METADATA" # input directory
 LEGACY_PHA_DIR="${LEGACY_EVENTMETA_DIR}/MONTHLY_PHA"
 LEGACY_HYPO_DIR="${LEGACY_EVENTMETA_DIR}/HYPOCENTERS"
 
+SUMMARY_FILE_04="${LEGACY_HYPO_DIR}/Pinatubo_all.sum"
+
 FAIR_META_DIR="${FAIR_TOP}/metadata" # output directory
 FAIR_ASSOC_DIR="$FAIR_META_DIR}/association"
 FAIR_HYPO_DIR="$FAIR_META_DIR}/hypo71"
 FAIR_PHA_DIR="$FAIR_META_DIR}/pha"
 QC_DIR="${FAIR_META_DIR}/qc"
+
 
 mkdir -p "${FAIR_ASSOC_DIR}" "${FAIR_HYPO_DIR}" "${FAIR_PHA_DIR}"  "${QC_DIR}"
 
@@ -51,7 +55,7 @@ mkdir -p "${FAIR_ASSOC_DIR}" "${FAIR_HYPO_DIR}" "${FAIR_PHA_DIR}"  "${QC_DIR}"
 ENABLE_STEP_01=false      # Convert DMX→MiniSEED (disable if already done)
 ENABLE_STEP_02=false       # Index MiniSEED into wfdisc-like catalog
 ENABLE_STEP_03=true       # Parse PHA monthly pick files
-ENABLE_STEP_04=false       # Parse HYPO71 / SUM files
+ENABLE_STEP_04=true       # Parse HYPO71 / SUM files
 ENABLE_STEP_05=false       # Associate PHA + HYPO71 + WAV
 ENABLE_STEP_06=false       # Build unified event catalog (QuakeML + optional SEISAN)
 ENABLE_STEP_07=false      # QC and FAIR exports
@@ -63,7 +67,7 @@ if [ "$ENABLE_STEP_01" = true ]; then
     echo "=== STEP 01: Converting DMX → SEISAN/WAV MiniSEED ==="
     python "${CODE_TOP}/01_dmx_to_seisanWAV.py" \
         --rawtop "${SUDS_TOP}" \
-        --seisan-top "${SEISAN_WAV}" \
+        --seisan-wav-db "${SEISAN_WAV_DB}" \
         --db "${DB}" \
         --net "${NET}" \
         --fix-fs "${FIX_FS}" \
@@ -76,48 +80,52 @@ fi
 ###############################################################################
 # STEP 02 — Build wfdisc-like index from SEISAN WAV MiniSEED
 ###############################################################################
-WF_DISC_CSV="${META_DIR}/wfdisc_catalog.csv"
-WF_DISC_QML="${META_DIR}/wfdisc_catalog.xml"
-
 if [ "$ENABLE_STEP_02" = true ]; then
     echo "=== STEP 02: Indexing MiniSEED files into wfdisc catalog ==="
     python "${CODE_TOP}/02_index_waveforms.py" \
-        --seisan-top "${SEISAN_TOP}" \
+        --seisan-wav-db "${SEISAN_WAV_DB}" \
         --db "${DB}" \
         --metadata-path "${FAIR_META_DIR}" 
 else
     echo "=== STEP 02: SKIPPED ==="
 fi
 
+# files written out
+WFDISC_CSV="${META_DIR}/02_wfdisc_catalog.csv"
+WFDISC_QML="${META_DIR}/02_wfdisc_catalog.xml"
+
 ###############################################################################
 # STEP 03 — Parse PHA monthly phase pick files
 ###############################################################################
-#PHA_XML="${FAIR_PHA_DIR}/pha_catalog.xml"
-
 if [ "$ENABLE_STEP_03" = true ]; then
     echo "=== STEP 03: Parsing PHA phase files ==="
-    python "${CODE_TOP}/03_parse_phase.py" \
+    python "${CODE_TOP}/03_parse_monthly_phase_files.py" \
         --pha-dir "${LEGACY_PHA_DIR}" \
         --out-dir "${FAIR_PHA_DIR}" 
 else
     echo "=== STEP 03: SKIPPED ==="
 fi
 
+# files written out
+#PHA_XML="${FAIR_PHA_DIR}/03_pha_catalog.xml"
+
 ###############################################################################
 # STEP 04 — Parse HYPO71/SUM catalogs
 ###############################################################################
-HYPO_XML="${HYPO_DIR}/hypo71_catalog.xml"
-HYPO_UNPARSED="${HYPO_DIR}/unparsed_lines.txt"
+HYPO_XML="${FAIR_HYPO_DIR}/04_hypo71_catalog.xml"
+HYPO_UNPARSED="${FAIR_HYPO_DIR}/04_unparsed_lines.txt"
 
 if [ "$ENABLE_STEP_04" = true ]; then
     echo "=== STEP 04: Parsing HYPO71 location files ==="
     python "${CODE_TOP}/04_parse_hypo71.py" \
-        --sum-dir "/data/Pinatubo/SUM" \
+        --sum-file "${SUMMARY_FILE_04}" \
         --out-xml "${HYPO_XML}" \
         --unparsed "${HYPO_UNPARSED}"
 else
     echo "=== STEP 04: SKIPPED ==="
 fi
+
+
 
 ###############################################################################
 # STEP 05 — Associate PHA + HYPO71 + WAV

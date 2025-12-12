@@ -25,15 +25,15 @@ from obspy import read, UTCDateTime
 from obspy.core.event import Catalog, Event, Origin, Comment
 
 
-def discover_mseed_files(wav_root: Path, db: str):
+def discover_mseed_files(seisan_wav_db: Path, db: str):
     """
     Return sorted list of all MiniSEED WAV files in the SEISAN WAV database.
     Pattern:
         WAV/<DB>/<YYYY>/<MM>/*M.<DB>_*
     """
-    #pattern = wav_root / db / "*" / "*" / f"*M.{db}_*" # 01 process did not create db subdir
+    #pattern = seisan_wav_db / db / "*" / "*" / f"*M.{db}_*" # 01 process did not create db subdir
     pattern = f"*/*/*M.{db}_*"
-    return sorted(wav_root.glob(pattern))
+    return sorted(seisan_wav_db.glob(pattern))
 
 
 def extract_metadata_from_mseed(path: Path):
@@ -73,28 +73,28 @@ def extract_metadata_from_mseed(path: Path):
 
 def main():
     parser = argparse.ArgumentParser(description="Index SEISAN WAV MiniSEED files")
-    parser.add_argument("--seisan-top", required=True,
-                        help="Root directory containing WAV/<DB>/<YYYY>/<MM>")
+    parser.add_argument("--seisan-wav-db", required=True,
+                        help="WAV/DB directory containing <YYYY>/<MM>")
     parser.add_argument("--db", required=True,
                         help="SEISAN database name (e.g., PNTBO)")
     parser.add_argument("--metadata-path", required=True,
                         help="output directory for event metadata")      
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
-    csv_path = Path(args.metadata_path) / "wfdisc_catalog.csv"
-    xml_path = Path(args.metadata_path) / "wfdisc_catalog.xml"
 
-    wav_root = Path(args.seisan_top) / "WAV"
+    seisan_wav_db = Path(args.seisan_wav_db) 
     db = args.db
 
     # Output paths
     out_dir = Path(args.metadata_path)
     out_dir.mkdir(exist_ok=True)
+    csv_path = Path(args.metadata_path) / "02_wfdisc_catalog.csv"
+    xml_path = Path(args.metadata_path) / "02_wfdisc_catalog.xml"
 
     # ----------------------------------------------------------------------
     # Locate MiniSEED files
     # ----------------------------------------------------------------------
-    files = discover_mseed_files(wav_root, db)
+    files = discover_mseed_files(seisan_wav_db, db)
     print(f"Found {len(files)} MiniSEED WAV files")
 
     rows = []
@@ -113,7 +113,7 @@ def main():
     print(f"Saved CSV → {csv_path}")
 
     # ----------------------------------------------------------------------
-    # Build simple QuakeML catalog for downstream use
+    # Build simple QuakeML catalog for downstream use - REMOVE?
     # ----------------------------------------------------------------------
     catalog = Catalog()
     for _, row in df.iterrows():
