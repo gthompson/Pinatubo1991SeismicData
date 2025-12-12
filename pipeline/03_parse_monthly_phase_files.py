@@ -2,130 +2,110 @@
 """
 03_parse_monthly_phase_files.py
 
-STEP 03 of the Pinatubo FAIR pipeline:
-Parse PHIVOLCS/VDAP monthly PHA files into:
-    • 03_pha_events.csv
-    • 03_pha_catalog.xml
-    • 03_pha_parse_errors.log
+STEP 03 of the Pinatubo FAIR pipeline.
 
-Input:
-    --pha-dir   Directory containing *.PHA files (LEGACY)
-Output:
-    --out-dir   FAIR/pha directory (all outputs live here)
+Parse PHIVOLCS / VDAP *monthly* PHA files into a flat pick index CSV.
 
-This version does NOT write anything into LEGACY.
+This step is intentionally simple and tolerant:
+• NO QuakeML is written
+• NO attempt is made to define event identity
+• Picks are reconciled later against individual PHA files (Step 04)
+
+Inputs (LEGACY, read-only):
+---------------------------
+--pha-dir     Directory containing monthly *.PHA files
+
+Outputs (FAIR only):
+--------------------
+--out-csv     Flat pick index CSV
+--error-log   Lines that could not be parsed
 """
 
 import argparse
-import re
 from pathlib import Path
 import pandas as pd
-from obspy import UTCDateTime
-from obspy.core.event import (
-    Catalog, Event, Origin, Pick, WaveformStreamID, Arrival
-)
 
-# Import shared parsing logic
-from pha_parser import parse_pha_file as parse_pha_file_from_module
+# shared parser
+from pha_parser import parse_pha_file
 
-# ----------------------------------------------------------------------
-# Convert parsed dict structures → ObsPy Catalog + flattened CSV
-# ----------------------------------------------------------------------
-
-def build_quakeml_and_table(all_events):
-    catalog = Catalog()
-    rows = []
-
-    for ev in all_events:
-        origin = Origin(time=ev["origin_time"])
-        event = Event(origins=[origin])
-
-        for pick_dict in ev["picks"]:
-            pick = Pick(
-                time=pick_dict["time"],
-                waveform_id=WaveformStreamID(
-                    network_code="XB",
-                    station_code=pick_dict["station"],
-                    location_code="",
-                    channel_code=pick_dict["channel"]
-                ),
-                phase_hint=pick_dict["phase"]
-            )
-            event.picks.append(pick)
-
-            arrival = Arrival(
-                pick_id=pick.resource_id,
-                phase=pick_dict["phase"],
-                time_weight=pick_dict.get("weight", 1)
-            )
-            origin.arrivals.append(arrival)
-
-            rows.append({
-                "event_origin": str(origin.time),
-                "station": pick_dict["station"],
-                "channel": pick_dict["channel"],
-                "phase": pick_dict["phase"],
-                "pick_time": str(pick_dict["time"]),
-                "pick_offset_from_origin": (pick_dict["time"] - origin.time),
-                "onset": pick_dict.get("onset"),
-                "first_motion": pick_dict.get("first_motion"),
-                "weight": pick_dict.get("weight")
-            })
-
-        catalog.append(event)
-
-    return catalog, pd.DataFrame(rows)
-
-
-# ----------------------------------------------------------------------
-# MAIN
-# ----------------------------------------------------------------------
 
 def main():
-    ap = argparse.ArgumentParser(description="Parse Pinatubo PHA monthly files.")
-    ap.add_argument("--pha-dir", required=True, help="Directory containing *.PHA input files")
-    ap.add_argument("--out-dir", required=True, help="Output directory under FAIR")
+    ap = argparse.ArgumentParser(
+        description="Parse monthly PHA files into flat pick index CSV"
+    )
+    ap.add_argument(
+        "--pha-dir",
+        required=True,
+        help="Directory containing monthly *.PHA files (LEGACY)",
+    )
+    ap.add_argument(
+        "--out-csv",
+        required=True,
+        help="Output CSV file (FAIR)",
+    )
+    ap.add_argument(
+        "--error-log",
+        required=True,
+        help="Output parse error log (FAIR)",
+    )
     args = ap.parse_args()
 
     pha_dir = Path(args.pha_dir)
-    outdir = Path(args.out_dir)
-    outdir.mkdir(parents=True, exist_ok=True)
+    out_csv = Path(args.out_csv)
+    error_log = Path(args.error_log)
+
+    if not pha_dir.exists():
+        raise SystemExit(f"PHA directory does not exist: {pha_dir}")
+
+    out_csv.parent.mkdir(parents=True, exist_ok=True)
+    error_log.parent.mkdir(parents=True, exist_ok=True)
 
     pha_files = sorted(pha_dir.glob("*.PHA"))
     if not pha_files:
         raise SystemExit(f"No .PHA files found in {pha_dir}")
 
+    rows = []
     errors = []
-    all_events = []
 
-    print(f"Found {len(pha_files)} PHA files. Parsing…")
+    print(f"Found {len(pha_files)} monthly PHA files")
 
-    for fpath in pha_files:
-        events = parse_pha_file_from_module(fpath, errors)
-        all_events.extend(events)
-        print(f"  {fpath.name}: {len(events)} events")
+    for pha_file in pha_files:
+        events = parse_pha_file(pha_file, errors)
+        print(f"  {pha_file.name}: {len(events)} event blocks")
 
-    # Build catalog + CSV
-    catalog, df = build_quakeml_and_table(all_events)
+        for event_idx, ev in enumerate(events):
+            for pick in ev["picks"]:
+                rows.append({
+                    "source": "monthly",
+                    "pha_file": pha_file.name,
+                    "event_seq": event_idx,
+                    "seed_id": pick.get("seed_id"),
+                    "station": pick.get("station"),
+                    "channel": pick.get("channel"),
+                    "phase": pick.get("phase"),
+                    "pick_time": str(pick.get("time")),
+                    "onset": pick.get("onset"),
+                    "first_motion": pick.get("first_motion"),
+                    "weight": pick.get("weight"),
+                })
 
-    # File outputs with step prefix
-    csv_path = outdir / "03_pha_events.csv"
-    qml_path = outdir / "03_pha_catalog.xml"
-    log_path = outdir / "03_pha_parse_errors.log"
+    if not rows:
+        print("No picks parsed from monthly PHA files.")
+        return
 
-    df.to_csv(csv_path, index=False)
-    catalog.write(qml_path, format="QUAKEML")
+    df = pd.DataFrame(rows)
 
-    with open(log_path, "w") as f:
-        for err in errors:
-            f.write(err + "\n")
+    df.to_csv(out_csv, index=False)
+
+    with open(error_log, "w") as f:
+        for e in errors:
+            f.write(e + "\n")
 
     print("\n=== STEP 03 SUMMARY ===")
-    print(f"Total events parsed:   {len(all_events)}")
-    print(f"Total picks:           {len(df)}")
-    print(f"CSV:                   {csv_path}")
-    print(f"QuakeML catalog:       {qml_path}")
-    print(f"Errors logged:         {log_path}")
+    print(f"Monthly PHA files: {len(pha_files)}")
+    print(f"Total picks:       {len(df)}")
+    print(f"CSV written:       {out_csv}")
+    print(f"Errors logged:     {error_log}")
 
 
 if __name__ == "__main__":

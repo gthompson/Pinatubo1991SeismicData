@@ -2,69 +2,60 @@
 set -e
 
 ###############################################################################
-# CONFIGURATION (edit these paths as needed)
+# CONFIGURATION
 ###############################################################################
 
-# Data top
 DATA_TOP="$HOME/Dropbox/PROFESSIONAL/DATA/Pinatubo/ASSEMBLED-25-028-THOMPSON-PINATUBO1991"
-
-# Code top
 CODE_TOP="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
-# Legacy DMX input
 LEGACY_TOP="$DATA_TOP/LEGACY"
 SUDS_TOP="$LEGACY_TOP/WAVEFORM_DATA/SUDS"
 
-# FAIR output root
 FAIR_TOP="$DATA_TOP/FAIR"
 
-# SEISAN database output
 DB="PNTBO"
 NET="XB"
+
 SEISAN_TOP="${FAIR_TOP}/SEISAN"
-SEISAN_WAV="${SEISAN_TOP}/WAV"
 SEISAN_WAV_DB="${SEISAN_TOP}/WAV/${DB}"
 
-# Sampling rate fix (metadata only)
 FIX_FS=100.0
-
-# DMX filename pattern
 DMX_GLOB="**/*.DMX"
 
-# Metadata paths
-
-LEGACY_EVENTMETA_DIR="${LEGACY_TOP}/EVENT_METADATA" # input directory
-LEGACY_STATIONMETA_DIR="${LEGACY_TOP}/STATION_METADATA" # input directory
-LEGACY_PHA_DIR="${LEGACY_EVENTMETA_DIR}/MONTHLY_PHA"
+LEGACY_EVENTMETA_DIR="${LEGACY_TOP}/EVENT_METADATA"
+LEGACY_PHA_MONTHLY_DIR="${LEGACY_EVENTMETA_DIR}/MONTHLY_PHA"
+LEGACY_PHA_INDIVIDUAL_DIR="${LEGACY_EVENTMETA_DIR}/PHA"
 LEGACY_HYPO_DIR="${LEGACY_EVENTMETA_DIR}/HYPOCENTERS"
 
-SUMMARY_FILE_04="${LEGACY_HYPO_DIR}/Pinatubo_all.sum"
+SUMMARY_FILE_05="${LEGACY_HYPO_DIR}/Pinatubo_all.sum"
+PINAALL_DAT_FILE_06="${LEGACY_HYPO_DIR}/PINAALL.DAT"
 
-FAIR_META_DIR="${FAIR_TOP}/metadata" # output directory
-FAIR_ASSOC_DIR="$FAIR_META_DIR}/association"
-FAIR_HYPO_DIR="$FAIR_META_DIR}/hypo71"
-FAIR_PHA_DIR="$FAIR_META_DIR}/pha"
+FAIR_META_DIR="${FAIR_TOP}/metadata"
+FAIR_PHA_DIR="${FAIR_META_DIR}/pha"
+FAIR_HYPO_DIR="${FAIR_META_DIR}/hypo71"
+FAIR_ASSOC_DIR="${FAIR_META_DIR}/association"
 QC_DIR="${FAIR_META_DIR}/qc"
 
-
-mkdir -p "${FAIR_ASSOC_DIR}" "${FAIR_HYPO_DIR}" "${FAIR_PHA_DIR}"  "${QC_DIR}"
-
-###############################################################################
-# STEP SWITCHES — enable/disable each stage easily
-###############################################################################
-ENABLE_STEP_01=false      # Convert DMX→MiniSEED (disable if already done)
-ENABLE_STEP_02=false       # Index MiniSEED into wfdisc-like catalog
-ENABLE_STEP_03=true       # Parse PHA monthly pick files
-ENABLE_STEP_04=true       # Parse HYPO71 / SUM files
-ENABLE_STEP_05=false       # Associate PHA + HYPO71 + WAV
-ENABLE_STEP_06=false       # Build unified event catalog (QuakeML + optional SEISAN)
-ENABLE_STEP_07=false      # QC and FAIR exports
+mkdir -p "${FAIR_PHA_DIR}" "${FAIR_HYPO_DIR}" "${FAIR_ASSOC_DIR}" "${QC_DIR}"
 
 ###############################################################################
-# STEP 01 — Convert legacy DMX → SEISAN-format MiniSEED
+# STEP SWITCHES
+###############################################################################
+ENABLE_STEP_01=false   # DMX → MiniSEED
+ENABLE_STEP_02=false    # Individual PHA → CSV
+ENABLE_STEP_03=false    # Monthly PHA → CSV
+ENABLE_STEP_04=false    # Merge picks
+ENABLE_STEP_05=false   # HYPO71 summary
+ENABLE_STEP_06=false
+ENABLE_STEP_07=false
+ENABLE_STEP_08=true
+ENABLE_STEP_09=true
+
+###############################################################################
+# STEP 01 — DMX → SEISAN WAV (+ index)
 ###############################################################################
 if [ "$ENABLE_STEP_01" = true ]; then
-    echo "=== STEP 01: Converting DMX → SEISAN/WAV MiniSEED ==="
+    echo "=== STEP 01: DMX → MiniSEED ==="
     python "${CODE_TOP}/01_dmx_to_seisanWAV.py" \
         --rawtop "${SUDS_TOP}" \
         --seisan-wav-db "${SEISAN_WAV_DB}" \
@@ -78,100 +69,154 @@ else
 fi
 
 ###############################################################################
-# STEP 02 — Build wfdisc-like index from SEISAN WAV MiniSEED
+# STEP 02 — Individual PHA files → pick index
 ###############################################################################
+INDIV_PHA_CSV="${FAIR_PHA_DIR}/02_individual_pha_picks.csv"
+INDIV_LOGFILE="${FAIR_PHA_DIR}/02_individual_pha_parse_errors.log"
+
 if [ "$ENABLE_STEP_02" = true ]; then
-    echo "=== STEP 02: Indexing MiniSEED files into wfdisc catalog ==="
-    python "${CODE_TOP}/02_index_waveforms.py" \
-        --seisan-wav-db "${SEISAN_WAV_DB}" \
-        --db "${DB}" \
-        --metadata-path "${FAIR_META_DIR}" 
+    echo "=== STEP 02: Parsing individual PHA files ==="
+    python "${CODE_TOP}/02_parse_individual_phase_files.py" \
+        --pha-root "${LEGACY_PHA_INDIVIDUAL_DIR}" \
+        --out-csv "${INDIV_PHA_CSV}" \
+        --error-log "${INDIV_LOGFILE}"
 else
     echo "=== STEP 02: SKIPPED ==="
 fi
 
-# files written out
-WFDISC_CSV="${META_DIR}/02_wfdisc_catalog.csv"
-WFDISC_QML="${META_DIR}/02_wfdisc_catalog.xml"
+###############################################################################
+# STEP 03 — Monthly PHA files → pick index
+###############################################################################
+MONTHLY_PHA_CSV="${FAIR_PHA_DIR}/03_monthly_pha_picks.csv"
+MONTHLY_PHA_ERR="${FAIR_PHA_DIR}/03_monthly_pha_parse_errors.log"
 
-###############################################################################
-# STEP 03 — Parse PHA monthly phase pick files
-###############################################################################
 if [ "$ENABLE_STEP_03" = true ]; then
-    echo "=== STEP 03: Parsing PHA phase files ==="
+    echo "=== STEP 03: Parsing monthly PHA files ==="
     python "${CODE_TOP}/03_parse_monthly_phase_files.py" \
-        --pha-dir "${LEGACY_PHA_DIR}" \
-        --out-dir "${FAIR_PHA_DIR}" 
+        --pha-dir "${LEGACY_PHA_MONTHLY_DIR}" \
+        --out-csv "${MONTHLY_PHA_CSV}" \
+        --error-log "${MONTHLY_PHA_ERR}"
 else
     echo "=== STEP 03: SKIPPED ==="
 fi
 
-# files written out
-#PHA_XML="${FAIR_PHA_DIR}/03_pha_catalog.xml"
-
 ###############################################################################
-# STEP 04 — Parse HYPO71/SUM catalogs
+# STEP 04 — Merge individual + monthly picks
 ###############################################################################
-HYPO_XML="${FAIR_HYPO_DIR}/04_hypo71_catalog.xml"
-HYPO_UNPARSED="${FAIR_HYPO_DIR}/04_unparsed_lines.txt"
+MERGED_PHA_CSV="${FAIR_PHA_DIR}/04_merged_pha_picks.csv"
 
 if [ "$ENABLE_STEP_04" = true ]; then
-    echo "=== STEP 04: Parsing HYPO71 location files ==="
-    python "${CODE_TOP}/04_parse_hypo71.py" \
-        --sum-file "${SUMMARY_FILE_04}" \
-        --out-xml "${HYPO_XML}" \
-        --unparsed "${HYPO_UNPARSED}"
+    echo "=== STEP 04: Merging phase picks ==="
+    python "${CODE_TOP}/04_merge_picks.py" \
+        --primary "${INDIV_PHA_CSV}" \
+        --secondary "${MONTHLY_PHA_CSV}" \
+        --out "${MERGED_PHA_CSV}" \
+        --time-tolerance 0.5
 else
     echo "=== STEP 04: SKIPPED ==="
 fi
 
-
-
 ###############################################################################
-# STEP 05 — Associate PHA + HYPO71 + WAV
+# STEP 05 — HYPO71 summary → hypocenter index
 ###############################################################################
-MASTER_TABLE_CSV="${ASSOC_DIR}/master_event_table.csv"
-MASTER_TABLE_PKL="${ASSOC_DIR}/master_event_table.pkl"
+HYPO_CSV="${FAIR_HYPO_DIR}/05_hypocenter_index.csv"
+HYPO_ERR="${FAIR_HYPO_DIR}/05_hypocenter_unparsed_lines.txt"
 
 if [ "$ENABLE_STEP_05" = true ]; then
-    echo "=== STEP 05: Associating PHA + HYPO71 + WAV ==="
-    python "${CODE_TOP}/05_associate_phase_hypo71_waveforms.py" \
-        --wfdisc "${WF_DISC_CSV}" \
-        --pha-catalog "${PHA_XML}" \
-        --hypo71-catalog "${HYPO_XML}" \
-        --outcsv "${MASTER_TABLE_CSV}" \
-        --outpkl "${MASTER_TABLE_PKL}" \
-        --time-window 2.0
+    echo "=== STEP 05: Building hypocenter index from HYPO71 summary ==="
+    python "${CODE_TOP}/05_build_hypocenter_index.py" \
+        --summary-file "${SUMMARY_FILE_05}" \
+        --out-csv "${HYPO_CSV}" \
+        --error-log "${HYPO_ERR}"
 else
     echo "=== STEP 05: SKIPPED ==="
 fi
 
 ###############################################################################
-# STEP 06 — Build unified QuakeML catalog + optional SEISAN REA
+# STEP 06 — PINAALL.DAT → hypocenter index
 ###############################################################################
-UNIFIED_QML="${META_DIR}/unified_catalog.xml"
+PINAALL_CSV="${FAIR_HYPO_DIR}/06_pinaall_hypocenter_index.csv"
+PINAALL_ERR="${FAIR_HYPO_DIR}/06_pinaall_unparsed_lines.txt"
 
 if [ "$ENABLE_STEP_06" = true ]; then
-    echo "=== STEP 06: Building unified QuakeML catalog ==="
-    python "${CODE_TOP}/06_build_unified_catalog.py" \
-        --master "${MASTER_TABLE_PKL}" \
-        --outxml "${UNIFIED_QML}" \
-        --write-seisan \
-        --seisan-top "${SEISAN_TOP}/REA/${DB}"
+    echo "=== STEP 06: Parsing PINAALL.DAT hypocenter file ==="
+    python "${CODE_TOP}/06_build_hypocenter_index_pinaall.py" \
+        --pinaall-file "${PINAALL_DAT_FILE_06}" \
+        --out-csv "${PINAALL_CSV}" \
+        --error-log "${PINAALL_ERR}"
 else
     echo "=== STEP 06: SKIPPED ==="
 fi
 
 ###############################################################################
-# STEP 07 — QC diagnostics
+# STEP 07 — Compare hypocenter indexes (exact match test)
 ###############################################################################
+COMPARE_DIR="${FAIR_HYPO_DIR}/comparisons"
+COMPARE_PREFIX="${COMPARE_DIR}/07_pinaall_vs_hypo71"
+
+mkdir -p "${COMPARE_DIR}"
+
 if [ "$ENABLE_STEP_07" = true ]; then
-    echo "=== STEP 07: Running QC diagnostics ==="
-    python "${CODE_TOP}/07_quality_control_and_exports.py" \
-        --master "${MASTER_TABLE_PKL}" \
-        --outdir "${QC_DIR}"
+    echo "=== STEP 07: Comparing PINAALL vs HYPO71 hypocenter indexes ==="
+    python "${CODE_TOP}/07_compare_hypocenter_indexes.py" \
+        --hypo05 "${HYPO_CSV}" \
+        --hypo06 "${PINAALL_CSV}" \
+        --out-prefix "${COMPARE_PREFIX}"
 else
     echo "=== STEP 07: SKIPPED ==="
 fi
 
-echo "=== Pipeline complete ==="
+###############################################################################
+# STEP 08 — Associate hypocenters into unified events
+###############################################################################
+
+EVENT_DIR="${FAIR_HYPO_DIR}/events"
+EVENT_CSV="${EVENT_DIR}/08_event_index.csv"
+ORIGIN_CSV="${EVENT_DIR}/08_event_origins.csv"
+
+TIME_TOL_S=5.0        # seconds
+DIST_TOL_KM=2.0       # kilometers
+
+# Preferred source for primary origin
+PREFERRED_SOURCE="hypo05"  # options: hypo05 | pinaall
+
+if [ "$ENABLE_STEP_08" = true ]; then
+    echo "=== STEP 08: Associating hypocenters into events ==="
+
+    python "${CODE_TOP}/08_associate_hypocenters.py" \
+        --hypo05 "${HYPO_CSV}" \
+        --hypo06 "${PINAALL_CSV}" \
+        --time-tol "${TIME_TOL_S}" \
+        --dist-tol "${DIST_TOL_KM}" \
+        --preferred-source "${PREFERRED_SOURCE}" \
+        --out-event-csv "${EVENT_CSV}" \
+        --out-origin-csv "${ORIGIN_CSV}"
+
+else
+    echo "=== STEP 08: SKIPPED ==="
+fi
+
+###############################################################################
+# STEP 09 — Build ObsPy Catalog (QuakeML)
+###############################################################################
+
+QUAKEML_DIR="${FAIR_TOP}/quakeml"
+QUAKEML_OUT="${QUAKEML_DIR}/09_pin_catalog.xml"
+UNASSIGNED_PICKS="${FAIR_ASSOC_DIR}/09_unassigned_picks.csv"
+
+PICK_TIME_TOL_S=10.0
+
+mkdir -p "${QUAKEML_DIR}"
+
+if [ "$ENABLE_STEP_09" = true ]; then
+    echo "=== STEP 09: Building ObsPy Catalog ==="
+    python "${CODE_TOP}/09_build_obspy_catalog.py" \
+        --event-index "${EVENT_CSV}" \
+        --origin-index "${ORIGIN_CSV}" \
+        --pick-index "${MERGED_PHA_CSV}" \
+        --pick-time-tol "${PICK_TIME_TOL_S}" \
+        --out-quakeml "${QUAKEML_OUT}" \
+        --out-unassigned-picks "${UNASSIGNED_PICKS}"
+else
+    echo "=== STEP 09: SKIPPED ==="
+fi
