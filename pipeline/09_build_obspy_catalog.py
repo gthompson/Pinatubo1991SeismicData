@@ -130,13 +130,23 @@ def main():
     # -------------------------------------------------------------------------
     # Load inputs
     # -------------------------------------------------------------------------
+    print('reading waveform-event-index')
     df_wfe = pd.read_csv(args.waveform_event_index)
+    print('reading waveform-pick-map')
     df_pickmap = pd.read_csv(args.waveform_pick_map)
-    df_picks = pd.read_csv(args.pick_index, low_memory=False)
+    print('reading pick-index')
+    df_picks = pd.read_csv(
+        args.pick_index,
+        low_memory=False,
+        dtype={"station": str, "phase": str}
+    )
+    print('reading hypo-event-index')
     df_hyp_evt = pd.read_csv(args.hypo_event_index)
+    print('reading hypo-origin-index')
     df_hyp_org = pd.read_csv(args.hypo_origin_index)
 
     # Times (robust ISO handling)
+    print('converting times')
     df_wfe["event_time"] = pd.to_datetime(df_wfe["origin_time_estimate"], format="mixed", utc=True, errors="coerce")
 
     if "pick_time" in df_picks.columns:
@@ -148,15 +158,18 @@ def main():
     df_hyp_org["origin_time"] = pd.to_datetime(df_hyp_org["origin_time"], format="mixed", utc=True, errors="coerce")
 
     # Ensure pick_id exists
+    print("Ensuring pick_id exists in pick-index")
     if "pick_id" not in df_picks.columns:
         df_picks["pick_id"] = df_picks.index.map(lambda i: f"pick_{i}")
 
     # Pick lookup by pick_id
+    print("Indexing pick-index by pick_id")
     picks_by_id = df_picks.set_index("pick_id", drop=False)
 
     # -------------------------------------------------------------------------
     # Hypocenter lookup table (time-sorted)
     # -------------------------------------------------------------------------
+    print("Building hypocenter lookup table (time-sorted)")
     hypo_times = (
         df_hyp_evt[["event_id", "preferred_origin_time"]]
         .dropna(subset=["preferred_origin_time"])
@@ -168,6 +181,7 @@ def main():
     # TRUE OUTER JOIN EVENT SPINE:
     #   include all event_ids from waveform-event-index AND from pick-map
     # -------------------------------------------------------------------------
+    print("Building TRUE OUTER JOIN EVENT SPINE")
     wfe_event_ids = set(df_wfe["event_id"].dropna().astype(str))
     pm_event_ids = set(df_pickmap["event_id"].dropna().astype(str)) if "event_id" in df_pickmap.columns else set()
 
@@ -201,7 +215,9 @@ def main():
     # -------------------------------------------------------------------------
     # Build events for the union spine
     # -------------------------------------------------------------------------
+    print("Building events for the union spine")
     for eid in all_event_ids:
+        print(f"Building event: {eid}: number {len(catalog)+1}/{len(all_event_ids)}")
         # Get waveform-event row if present
         wfe_row = wfe_by_event.loc[eid] if eid in wfe_by_event.index else None
 
@@ -292,6 +308,7 @@ def main():
     # -------------------------------------------------------------------------
     # Add hypocenter-only events (not used above)
     # -------------------------------------------------------------------------
+    print("Adding hypocenter-only events (not used above)")
     all_hypo_ids = set(df_hyp_evt["event_id"].dropna().astype(int))
     orphan_ids = all_hypo_ids - used_hypo_ids
 
