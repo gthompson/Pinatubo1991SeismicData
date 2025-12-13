@@ -43,13 +43,13 @@ mkdir -p "${FAIR_PHA_DIR}" "${FAIR_HYPO_DIR}" "${FAIR_ASSOC_DIR}" "${QC_DIR}"
 # STEP SWITCHES
 ###############################################################################
 ENABLE_STEP_01=false   # DMX → MiniSEED
-ENABLE_STEP_02=true    # Individual PHA → CSV
-ENABLE_STEP_02b=true   # Individual PHA CSV & waveform event index association
-ENABLE_STEP_03=true   # Monthly PHA → CSV
+ENABLE_STEP_02=false    # Individual PHA → CSV
+ENABLE_STEP_02b=false   # Individual PHA CSV & waveform event index association
+ENABLE_STEP_03=false   # Monthly PHA → CSV
 ENABLE_STEP_04=false    # Merge picks
 ENABLE_STEP_05=false   # HYPO71 summary
 ENABLE_STEP_05b=false   # Waveforms ↔ pick events
-ENABLE_STEP_05c=true   # Waveforms ↔ pick events
+ENABLE_STEP_05c=false   # Waveforms ↔ pick events
 ENABLE_STEP_06=false
 ENABLE_STEP_07=false
 ENABLE_STEP_08=false
@@ -191,11 +191,15 @@ else
 fi
 
 ###############################################################################
+###############################################################################
 # STEP 05c — Build waveform-centered event catalog
 ###############################################################################
 
 WAVEFORM_INDEX="${SEISAN_WAV_DB}/01_waveform_index.csv"
-INDIV_PICKS_WAV="${FAIR_ASSOC_DIR}/02b_individual_pick_waveform_map.csv"
+
+INDIV_PICK_INDEX="${FAIR_PHA_DIR}/02_individual_pha_picks.csv"
+INDIV_PICK_WAV_MAP="${FAIR_ASSOC_DIR}/02b_individual_pick_waveform_map.csv"
+
 MONTHLY_PICKS="${FAIR_PHA_DIR}/03_monthly_pha_picks.csv"
 
 EVENT_DIR="${FAIR_ASSOC_DIR}/waveform_events"
@@ -210,7 +214,8 @@ if [ "$ENABLE_STEP_05c" = true ]; then
 
     python "${CODE_TOP}/05d_build_waveform_pick_events.py" \
         --waveform-index "${WAVEFORM_INDEX}" \
-        --individual-picks "${INDIV_PICKS_WAV}" \
+        --individual-pick-index "${INDIV_PICK_INDEX}" \
+        --individual-pick-waveform-map "${INDIV_PICK_WAV_MAP}" \
         --monthly-picks "${MONTHLY_PICKS}" \
         --out-event-csv "${EVENT_CSV}" \
         --out-pick-map-csv "${PICK_MAP_CSV}" \

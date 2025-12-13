@@ -100,8 +100,8 @@ def build_pick(row: pd.Series, default_net: str = "XB") -> Pick:
     )
 
     pid = safe_series_get(row, "pick_id", None)
-    if pid is None:
-        pid = f"pick_{int(row.name)}"
+    if pid is None or pd.isna(pid):
+        return None
 
     return Pick(
         time=UTCDateTime(row["pick_time"]),
@@ -227,8 +227,13 @@ def main():
         if eid in pickmap_by_event.groups:
             pm = pickmap_by_event.get_group(eid)
             for pid in pm["pick_id"].tolist():
-                if pid in picks_by_id.index and pd.notna(picks_by_id.loc[pid]["pick_time"]):
-                    ev.picks.append(build_pick(picks_by_id.loc[pid], default_net=args.default_net))
+                if pid not in picks_by_id.index:
+                    continue
+
+                rows = picks_by_id.loc[[pid]]  # ALWAYS a DataFrame
+                for _, prow in rows.iterrows():
+                    if pd.notna(prow.get("pick_time")):
+                        ev.picks.append(build_pick(prow, default_net=args.default_net))
 
         # -----------------------------
         # Hypocenter association (nearest time)
