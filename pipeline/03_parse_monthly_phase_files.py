@@ -4,58 +4,47 @@
 
 STEP 03 of the Pinatubo FAIR pipeline.
 
-Parse PHIVOLCS / VDAP *monthly* PHA files into a flat pick index CSV.
+Parse monthly PHA files into a flat pick index while preserving
+block-level grouping defined by separator lines, with internal
+sanity checks on pick timing.
 
-This step is intentionally simple and tolerant:
-• NO QuakeML is written
-• NO attempt is made to define event identity
-• Picks are reconciled later against individual PHA files (Step 04)
-
-Inputs (LEGACY, read-only):
----------------------------
---pha-dir     Directory containing monthly *.PHA files
-
-Outputs (FAIR only):
---------------------
---out-csv     Flat pick index CSV
---error-log   Lines that could not be parsed
+Outlier picks within a block are removed using logic adapted
+from the legacy 2021–2023 pipeline.
 """
 
 import argparse
 from pathlib import Path
 import pandas as pd
 
-# shared parser
-from pha_parser import parse_pha_file
+from pha_parser import (
+    parse_pha_file,
+    filter_pick_group,   # NEW — imported from refactored pha_parser.py
+)
 
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
 
 def main():
     ap = argparse.ArgumentParser(
         description="Parse monthly PHA files into flat pick index CSV"
     )
+    ap.add_argument("--pha-dir", required=True)
+    ap.add_argument("--out-csv", required=True)
+    ap.add_argument("--error-log", required=True)
     ap.add_argument(
-        "--pha-dir",
-        required=True,
-        help="Directory containing monthly *.PHA files (LEGACY)",
+        "--max-pick-span",
+        type=float,
+        default=30.0,
+        help="Maximum allowed time span (s) within a pick block",
     )
-    ap.add_argument(
-        "--out-csv",
-        required=True,
-        help="Output CSV file (FAIR)",
-    )
-    ap.add_argument(
-        "--error-log",
-        required=True,
-        help="Output parse error log (FAIR)",
-    )
+
     args = ap.parse_args()
 
     pha_dir = Path(args.pha_dir)
     out_csv = Path(args.out_csv)
     error_log = Path(args.error_log)
-
-    if not pha_dir.exists():
-        raise SystemExit(f"PHA directory does not exist: {pha_dir}")
 
     out_csv.parent.mkdir(parents=True, exist_ok=True)
     error_log.parent.mkdir(parents=True, exist_ok=True)
@@ -69,31 +58,72 @@ def main():
 
     print(f"Found {len(pha_files)} monthly PHA files")
 
+    kept_blocks = 0
+    dropped_blocks = 0
+    trimmed_blocks = 0
+
     for pha_file in pha_files:
         events = parse_pha_file(pha_file, errors)
-        print(f"  {pha_file.name}: {len(events)} event blocks")
 
-        for event_idx, ev in enumerate(events):
-            for pick in ev["picks"]:
+        for block_idx, ev in enumerate(events):
+            monthly_block_id = f"{pha_file.stem}_block{block_idx:04d}"
+
+            raw_picks = ev.get("picks", [])
+            if not raw_picks:
+                dropped_blocks += 1
+                continue
+
+            # -------------------------------------------------------------
+            # Sanity filter picks within the block
+            # -------------------------------------------------------------
+            filtered_picks = filter_pick_group(
+                raw_picks,
+                max_span_seconds=args.max_pick_span,
+            )
+
+            if not filtered_picks:
+                dropped_blocks += 1
+                errors.append(
+                    f"{pha_file.name}:{monthly_block_id}: all picks rejected as outliers"
+                )
+                continue
+
+            if len(filtered_picks) < len(raw_picks):
+                trimmed_blocks += 1
+
+            kept_blocks += 1
+
+            # -------------------------------------------------------------
+            # Emit rows
+            # -------------------------------------------------------------
+            for p in filtered_picks:
                 rows.append({
-                    "source": "monthly",
-                    "pha_file": pha_file.name,
-                    "event_seq": event_idx,
-                    "seed_id": pick.get("seed_id"),
-                    "station": pick.get("station"),
-                    "channel": pick.get("channel"),
-                    "phase": pick.get("phase"),
-                    "pick_time": str(pick.get("time")),
-                    "onset": pick.get("onset"),
-                    "first_motion": pick.get("first_motion"),
-                    "weight": pick.get("weight"),
+                    # --- event provenance ---
+                    "event_source": "monthly",
+                    "monthly_file": pha_file.name,
+                    "monthly_block_id": monthly_block_id,
+
+                    # --- pick info ---
+                    "seed_id": p.get("seed_id"),
+                    "station": p.get("station"),
+                    "channel": p.get("channel"),
+                    "phase": p.get("phase"),
+                    "pick_time": str(p.get("time")),
+
+                    # --- attributes ---
+                    "onset": p.get("onset"),
+                    "first_motion": p.get("first_motion"),
+                    "weight": p.get("weight"),
                 })
 
     if not rows:
-        print("No picks parsed from monthly PHA files.")
-        return
+        raise SystemExit("No valid monthly picks produced")
 
     df = pd.DataFrame(rows)
+    df.sort_values(
+        ["monthly_block_id", "station", "pick_time"],
+        inplace=True,
+    )
 
     df.to_csv(out_csv, index=False)
 
@@ -102,10 +132,13 @@ def main():
             f.write(e + "\n")
 
     print("\n=== STEP 03 SUMMARY ===")
-    print(f"Monthly PHA files: {len(pha_files)}")
-    print(f"Total picks:       {len(df)}")
-    print(f"CSV written:       {out_csv}")
-    print(f"Errors logged:     {error_log}")
+    print(f"Monthly PHA files:      {len(pha_files)}")
+    print(f"Blocks kept:            {kept_blocks}")
+    print(f"Blocks trimmed:         {trimmed_blocks}")
+    print(f"Blocks dropped:         {dropped_blocks}")
+    print(f"Total picks written:    {len(df)}")
+    print(f"CSV written:            {out_csv}")
+    print(f"Errors logged:          {error_log}")
 
 
 if __name__ == "__main__":

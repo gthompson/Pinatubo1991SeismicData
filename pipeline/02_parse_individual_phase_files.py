@@ -72,6 +72,7 @@ def main():
 
         try:
             picks = parse_individual_pha_file(pha_file)
+            picks = filter_pick_outliers(picks, max_span_seconds=60)
         except Exception as e:
             errors.append(f"{pha_file}: {e}")
             continue

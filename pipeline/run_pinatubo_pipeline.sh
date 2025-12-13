@@ -42,13 +42,14 @@ mkdir -p "${FAIR_PHA_DIR}" "${FAIR_HYPO_DIR}" "${FAIR_ASSOC_DIR}" "${QC_DIR}"
 # STEP SWITCHES
 ###############################################################################
 ENABLE_STEP_01=false   # DMX → MiniSEED
-ENABLE_STEP_02=false    # Individual PHA → CSV
-ENABLE_STEP_03=false    # Monthly PHA → CSV
-ENABLE_STEP_04=false    # Merge picks
+ENABLE_STEP_02=true    # Individual PHA → CSV
+ENABLE_STEP_03=true   # Monthly PHA → CSV
+ENABLE_STEP_04=true    # Merge picks
 ENABLE_STEP_05=false   # HYPO71 summary
+ENABLE_STEP_05b=true   # Waveforms ↔ pick events
 ENABLE_STEP_06=false
 ENABLE_STEP_07=false
-ENABLE_STEP_08=true
+ENABLE_STEP_08=false
 ENABLE_STEP_09=true
 
 ###############################################################################
@@ -133,6 +134,36 @@ else
 fi
 
 ###############################################################################
+# STEP 05b — Associate waveform files with pick events
+###############################################################################
+
+WAVEFORM_INDEX="${SEISAN_WAV_DB}/01_waveform_index.csv"
+PICK_INDEX="${MERGED_PHA_CSV}"
+
+WFP_EVENT_DIR="${FAIR_ASSOC_DIR}/waveform_pick_events"
+WFP_EVENT_CSV="${WFP_EVENT_DIR}/05b_waveform_pick_event_index.csv"
+WFP_PICK_MAP_CSV="${WFP_EVENT_DIR}/05b_waveform_pick_map.csv"
+WFP_UNMATCHED_PICKS="${WFP_EVENT_DIR}/05b_unmatched_picks.csv"
+WFP_UNMATCHED_WAVES="${WFP_EVENT_DIR}/05b_unmatched_waveforms.csv"
+
+mkdir -p "${WFP_EVENT_DIR}"
+
+if [ "$ENABLE_STEP_05b" = true ]; then
+    echo "=== STEP 05b: Building waveform↔pick-event association ==="
+
+    python "${CODE_TOP}/05b_build_waveform_pick_events.py" \
+        --waveform-index "${WAVEFORM_INDEX}" \
+        --pick-index "${PICK_INDEX}" \
+        --out-event-csv "${WFP_EVENT_CSV}" \
+        --out-pick-map-csv "${WFP_PICK_MAP_CSV}" \
+        --out-unmatched-picks "${WFP_UNMATCHED_PICKS}" \
+        --out-unmatched-waveforms "${WFP_UNMATCHED_WAVES}"
+
+else
+    echo "=== STEP 05b: SKIPPED ==="
+fi
+
+###############################################################################
 # STEP 06 — PINAALL.DAT → hypocenter index
 ###############################################################################
 PINAALL_CSV="${FAIR_HYPO_DIR}/06_pinaall_hypocenter_index.csv"
@@ -202,21 +233,24 @@ fi
 
 QUAKEML_DIR="${FAIR_TOP}/quakeml"
 QUAKEML_OUT="${QUAKEML_DIR}/09_pin_catalog.xml"
-UNASSIGNED_PICKS="${FAIR_ASSOC_DIR}/09_unassigned_picks.csv"
 
-PICK_TIME_TOL_S=10.0
+ORIGIN_TIME_TOL_S=10.0
 
 mkdir -p "${QUAKEML_DIR}"
 
 if [ "$ENABLE_STEP_09" = true ]; then
     echo "=== STEP 09: Building ObsPy Catalog ==="
+
     python "${CODE_TOP}/09_build_obspy_catalog.py" \
-        --event-index "${EVENT_CSV}" \
-        --origin-index "${ORIGIN_CSV}" \
+        --waveform-event-index "${WFP_EVENT_CSV}" \
+        --waveform-pick-map "${WFP_PICK_MAP_CSV}" \
         --pick-index "${MERGED_PHA_CSV}" \
-        --pick-time-tol "${PICK_TIME_TOL_S}" \
-        --out-quakeml "${QUAKEML_OUT}" \
-        --out-unassigned-picks "${UNASSIGNED_PICKS}"
+        --hypo-event-index "${EVENT_CSV}" \
+        --hypo-origin-index "${ORIGIN_CSV}" \
+        --origin-time-tol "${ORIGIN_TIME_TOL_S}" \
+        --out-quakeml "${QUAKEML_OUT}"
+
 else
     echo "=== STEP 09: SKIPPED ==="
 fi
+
