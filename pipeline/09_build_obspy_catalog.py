@@ -132,7 +132,7 @@ def main():
     # -------------------------------------------------------------------------
     df_wfe = pd.read_csv(args.waveform_event_index)
     df_pickmap = pd.read_csv(args.waveform_pick_map)
-    df_picks = pd.read_csv(args.pick_index)
+    df_picks = pd.read_csv(args.pick_index, low_memory=False)
     df_hyp_evt = pd.read_csv(args.hypo_event_index)
     df_hyp_org = pd.read_csv(args.hypo_origin_index)
 
@@ -233,8 +233,10 @@ def main():
                 rows = picks_by_id.loc[[pid]]  # ALWAYS a DataFrame
                 for _, prow in rows.iterrows():
                     if pd.notna(prow.get("pick_time")):
-                        ev.picks.append(build_pick(prow, default_net=args.default_net))
-
+                        #ev.picks.append(build_pick(prow, default_net=args.default_net))
+                        p = build_pick(prow, default_net=args.default_net)
+                        if p is not None:
+                            ev.picks.append(p)
         # -----------------------------
         # Hypocenter association (nearest time)
         # -----------------------------
