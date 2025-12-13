@@ -46,9 +46,10 @@ ENABLE_STEP_01=false   # DMX → MiniSEED
 ENABLE_STEP_02=true    # Individual PHA → CSV
 ENABLE_STEP_02b=true   # Individual PHA CSV & waveform event index association
 ENABLE_STEP_03=true   # Monthly PHA → CSV
-ENABLE_STEP_04=true    # Merge picks
+ENABLE_STEP_04=false    # Merge picks
 ENABLE_STEP_05=false   # HYPO71 summary
-ENABLE_STEP_05b=true   # Waveforms ↔ pick events
+ENABLE_STEP_05b=false   # Waveforms ↔ pick events
+ENABLE_STEP_05c=true   # Waveforms ↔ pick events
 ENABLE_STEP_06=false
 ENABLE_STEP_07=false
 ENABLE_STEP_08=false
@@ -134,11 +135,11 @@ MERGED_PHA_CSV="${FAIR_PHA_DIR}/04_merged_pha_picks.csv"
 
 if [ "$ENABLE_STEP_04" = true ]; then
     echo "=== STEP 04: Merging phase picks ==="
-    python "${CODE_TOP}/04_merge_picks_alt.py" \
-        --primary "${INDIV_PHA_CSV}" \
-        --secondary "${MONTHLY_PHA_CSV}" \
-        --out "${MERGED_PHA_CSV}" \
-        --time-tolerance 0.5
+    #python "${CODE_TOP}/04_merge_picks_alt.py" \
+    #    --primary "${INDIV_PHA_CSV}" \
+    #    --secondary "${MONTHLY_PHA_CSV}" \
+    #    --out "${MERGED_PHA_CSV}" \
+    #    --time-tolerance 0.5
 else
     echo "=== STEP 04: SKIPPED ==="
 fi
@@ -177,16 +178,46 @@ mkdir -p "${WFP_EVENT_DIR}"
 if [ "$ENABLE_STEP_05b" = true ]; then
     echo "=== STEP 05b: Building waveform↔pick-event association ==="
 
-    python "${CODE_TOP}/05b_build_waveform_pick_events.py" \
-        --waveform-index "${WAVEFORM_INDEX}" \
-        --pick-index "${PICK_INDEX}" \
-        --out-event-csv "${WFP_EVENT_CSV}" \
-        --out-pick-map-csv "${WFP_PICK_MAP_CSV}" \
-        --out-unmatched-picks "${WFP_UNMATCHED_PICKS}" \
-        --out-unmatched-waveforms "${WFP_UNMATCHED_WAVES}"
+    #python "${CODE_TOP}/05b_build_waveform_pick_events.py" \
+    #    --waveform-index "${WAVEFORM_INDEX}" \
+    #    --pick-index "${PICK_INDEX}" \
+    #    --out-event-csv "${WFP_EVENT_CSV}" \
+    #    --out-pick-map-csv "${WFP_PICK_MAP_CSV}" \
+    #    --out-unmatched-picks "${WFP_UNMATCHED_PICKS}" \
+    #    --out-unmatched-waveforms "${WFP_UNMATCHED_WAVES}"
 
 else
     echo "=== STEP 05b: SKIPPED ==="
+fi
+
+###############################################################################
+# STEP 05c — Build waveform-centered event catalog
+###############################################################################
+
+WAVEFORM_INDEX="${SEISAN_WAV_DB}/01_waveform_index.csv"
+INDIV_PICKS_WAV="${FAIR_ASSOC_DIR}/02b_individual_pick_waveform_map.csv"
+MONTHLY_PICKS="${FAIR_PHA_DIR}/03_monthly_pha_picks.csv"
+
+EVENT_DIR="${FAIR_ASSOC_DIR}/waveform_events"
+EVENT_CSV="${EVENT_DIR}/05c_waveform_event_index.csv"
+PICK_MAP_CSV="${EVENT_DIR}/05c_waveform_pick_map.csv"
+QC_CSV="${QC_DIR}/05c_waveform_event_qc.csv"
+
+mkdir -p "${EVENT_DIR}" "${QC_DIR}"
+
+if [ "$ENABLE_STEP_05c" = true ]; then
+    echo "=== STEP 05c: Building waveform-centered events ==="
+
+    python "${CODE_TOP}/05d_build_waveform_pick_events.py" \
+        --waveform-index "${WAVEFORM_INDEX}" \
+        --individual-picks "${INDIV_PICKS_WAV}" \
+        --monthly-picks "${MONTHLY_PICKS}" \
+        --out-event-csv "${EVENT_CSV}" \
+        --out-pick-map-csv "${PICK_MAP_CSV}" \
+        --out-qc-csv "${QC_CSV}"
+
+else
+    echo "=== STEP 05c: SKIPPED ==="
 fi
 
 ###############################################################################
