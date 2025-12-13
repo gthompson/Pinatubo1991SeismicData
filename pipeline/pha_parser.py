@@ -4,301 +4,439 @@ pha_parser.py
 
 Shared parsing utilities for PHA files (monthly and individual formats).
 
-This version incorporates critical logic from the legacy (2023) Pinatubo
-pipeline:
-  • duplicate-pick removal
-  • time-based pick grouping
-  • outlier rejection within pick groups
-  • robust event construction from monthly PHA blocks
+Public API (expected by pipeline):
+  - parse_phase_line(line) -> list[dict] | None
+  - parse_pha_file(path, errors=None) -> list[{"origin_time": UTCDateTime, "picks": list[dict]}]
+  - parse_individual_pha_file(path) -> list[dict]
 
-PUBLIC API (unchanged):
-  - parse_phase_line
-  - parse_pha_file
-  - parse_individual_pha_file
+Additional utilities used by pipeline steps:
+  - filter_pick_outliers(picks, max_span_seconds=60.0) -> list[dict]
+  - filter_pick_group(picks, max_span_seconds=60.0, ...) -> list[dict]
 """
 
+from __future__ import annotations
+
+from dataclasses import dataclass
 from datetime import datetime
-from typing import List
-from obspy import UTCDateTime
+from pathlib import Path
+from typing import Iterable, List, Optional, Sequence, Tuple
+
 import numpy as np
+from obspy import UTCDateTime
 
 
-# -----------------------------------------------------------------------------
-# Basic utilities
-# -----------------------------------------------------------------------------
+# =============================================================================
+# Helpers
+# =============================================================================
 
-def picks_are_equal(p1, p2):
-    return (
-        p1["seed_id"] == p2["seed_id"]
-        and p1["phase"] == p2["phase"]
-        and abs(p1["time"] - p2["time"]) < 0.001
-    )
-
-
-def remove_duplicate_picks(picks: List[dict]) -> List[dict]:
-    unique = {}
-    for p in picks:
-        key = (p["seed_id"], p["phase"], float(p["time"]))
-        if key not in unique:
-            unique[key] = p
-    return list(unique.values())
+def _utc_median(times: Sequence[UTCDateTime]) -> Optional[UTCDateTime]:
+    if not times:
+        return None
+    vals = [t.timestamp for t in times]
+    return UTCDateTime(float(np.median(vals)))
 
 
-# -----------------------------------------------------------------------------
-# Pick grouping + sanity logic (CRITICAL)
-# -----------------------------------------------------------------------------
+def _safe_float(s: str) -> Optional[float]:
+    try:
+        return float(s)
+    except Exception:
+        return None
 
-def group_picks_by_time(picks: List[dict], seconds=4.0) -> List[List[dict]]:
+
+def _parse_yyMMddHHMMSS_frac(ts: str) -> Optional[UTCDateTime]:
     """
-    Group picks into clusters where each pick is within `seconds`
-    of the first pick in the group.
+    Parse YYMMDDHHMMSS(.ffffff) or YYMMDDHHMMSSffffff-ish strings.
+    """
+    ts = ts.strip()
+    if not ts:
+        return None
+
+    # common: YYMMDDHHMMSS(.ff...)
+    if "." in ts:
+        base, frac = ts.split(".", 1)
+        try:
+            dt = datetime.strptime(base[:12], "%y%m%d%H%M%S")
+            frac_val = float("0." + "".join([c for c in frac if c.isdigit()]))
+            return UTCDateTime(dt) + frac_val
+        except Exception:
+            return None
+
+    # no dot: just YYMMDDHHMMSS
+    try:
+        dt = datetime.strptime(ts[:12], "%y%m%d%H%M%S")
+        return UTCDateTime(dt)
+    except Exception:
+        return None
+
+
+def _dedupe_picks(picks: List[dict], time_eps_s: float = 1e-3) -> List[dict]:
+    """
+    Remove duplicates by (seed_id, phase, time within eps).
+    Keeps first occurrence.
     """
     if not picks:
         return []
 
-    picks = sorted(picks, key=lambda p: p["time"])
-    groups = []
-    current = [picks[0]]
+    # sort for stable behavior
+    picks_sorted = sorted(picks, key=lambda p: (p.get("seed_id", ""), p.get("phase", ""), float(p["time"])))
+    out: List[dict] = []
+    last_by_key: dict[Tuple[str, str], UTCDateTime] = {}
 
-    for p in picks[1:]:
-        if (p["time"] - current[0]["time"]) <= seconds:
-            current.append(p)
-        else:
-            groups.append(current)
-            current = [p]
+    for p in picks_sorted:
+        sid = p.get("seed_id") or ""
+        ph = p.get("phase") or ""
+        key = (sid, ph)
+        t = p["time"]
+        if key in last_by_key and abs(t - last_by_key[key]) <= time_eps_s:
+            continue
+        out.append(p)
+        last_by_key[key] = t
 
-    groups.append(current)
-    return groups
+    return out
 
 
-def reject_outlier_groups(groups, max_span=30.0):
+# =============================================================================
+# Filtering / sanity (used by steps 02 and 03)
+# =============================================================================
+
+def filter_pick_outliers(picks: List[dict], max_span_seconds: float = 60.0) -> List[dict]:
     """
-    Remove pathological groups:
-      • single-pick groups far from median
-      • groups with excessive internal span
+    Median-based outlier filter for a *single event/group* of picks.
+    Keeps picks within ±max_span_seconds of the median pick time.
+
+    If <3 picks, returns unchanged (not enough support to call outliers).
     """
-    if not groups:
+    if not picks or len(picks) < 3:
+        return picks
+
+    times = [p["time"] for p in picks if p.get("time") is not None]
+    if len(times) < 3:
+        return picks
+
+    tmed = _utc_median(times)
+    if tmed is None:
+        return picks
+
+    return [p for p in picks if abs(p["time"] - tmed) <= max_span_seconds]
+
+
+def filter_pick_group(
+    picks: List[dict],
+    *,
+    max_span_seconds: float = 60.0,
+    max_gap_seconds: float = 4.0,
+    min_picks: int = 1,
+    drop_singletons_far_from_median: bool = False,
+) -> List[dict]:
+    """
+    A more general "group sanity" function (Step 03 uses this).
+
+    What it does:
+      1) dedupe picks
+      2) optional median outlier removal
+      3) optional: drop singleton groups far from median (if enabled)
+      4) enforce internal span constraint
+
+    NOTE: This function returns a *filtered list* of picks for the group.
+    Splitting into multiple events is handled elsewhere (monthly parsing).
+    """
+    if not picks:
         return []
 
-    all_times = [p["time"].timestamp for g in groups for p in g]
-    medtime = UTCDateTime(np.median(all_times))
+    picks = _dedupe_picks(picks)
 
-    good = []
-    for g in groups:
-        times = [p["time"] for p in g]
-        span = max(times) - min(times)
+    # median-based outliers (always)
+    picks = filter_pick_outliers(picks, max_span_seconds=max_span_seconds)
 
-        if len(g) == 1 and abs(times[0] - medtime) > max_span:
-            continue
+    if not picks:
+        return []
 
-        if span > max_span:
-            continue
+    # internal span sanity
+    times = sorted([p["time"] for p in picks])
+    span = float(times[-1] - times[0])
+    if span > max_span_seconds:
+        # too wide -> keep only those within median window
+        picks = filter_pick_outliers(picks, max_span_seconds=max_span_seconds)
 
-        good.append(g)
+    if not picks or len(picks) < min_picks:
+        return []
 
-    return good
+    if drop_singletons_far_from_median and len(picks) == 1:
+        # (rarely used; provided for completeness)
+        # if you enable this, it can drop isolated garbage groups
+        return []
+
+    return picks
 
 
-# -----------------------------------------------------------------------------
-# Phase-line parsing (UNCHANGED except formatting)
-# -----------------------------------------------------------------------------
+# =============================================================================
+# Parsing
+# =============================================================================
 
-def parse_phase_line(line):
+def parse_phase_line(line: str):
+    """
+    Parse a single PHA line (fixed-width monthly style, or tokenized style).
+
+    Returns:
+      - list of pick dicts (0, 1, or 2 picks) OR
+      - None if not a pick line
+    """
     if not line:
         return None
     s = line.rstrip("\n\r")
+    if not s.strip():
+        return None
 
-    # --- Fixed-width legacy format ---
+    # -------------------------------------------------------------------------
+    # Fixed-width / monthly style
+    # -------------------------------------------------------------------------
     try:
         station = s[0:3].strip()
         if station and station.lower() != "xxx" and len(station) >= 2:
-            orientation = s[3:4].strip()
-            p_code = s[4:8].replace(" ", "?")
+            orientation = s[3:4].strip() if len(s) > 3 else ""
+            p_arrival_code = s[4:8].replace(" ", "?") if len(s) > 4 else ""
 
             timestamp_str = None
             if len(s) > 8:
-                timestamp_str = (
-                    s[9:24].strip().replace(" ", "0")
-                    if s[8] == " "
-                    else s[8:23].strip().replace(" ", "0")
-                )
+                if s[8] == " ":
+                    timestamp_str = s[9:24].strip().replace(" ", "0") if len(s) >= 24 else None
+                else:
+                    timestamp_str = s[8:23].strip().replace(" ", "0") if len(s) >= 23 else None
 
-            if not timestamp_str:
-                return None
+            if timestamp_str:
+                # normalize occasional 60s weirdness
+                add_secs = 0
+                if timestamp_str.endswith("60.00"):
+                    timestamp_str = timestamp_str.replace("60.00", "00.00")
+                    add_secs += 60
 
-            add_secs = 0
-            if timestamp_str.endswith("60.00"):
-                timestamp_str = timestamp_str.replace("60.00", "00.00")
-                add_secs = 60
+                # support fraction if present
+                t0 = _parse_yyMMddHHMMSS_frac(timestamp_str)
+                if t0 is None:
+                    # last resort: try first 12 chars
+                    try:
+                        dt = datetime.strptime(timestamp_str[:12], "%y%m%d%H%M%S")
+                        t0 = UTCDateTime(dt)
+                    except Exception:
+                        t0 = None
 
-            dt = datetime.strptime(
-                timestamp_str[:12], "%y%m%d%H%M%S"
-            )
-            t0 = UTCDateTime(dt) + add_secs
+                if t0 is None:
+                    return None
+                t0 = t0 + add_secs
 
-            channel = (
-                f"EH{orientation}"
-                if orientation in "ZNE"
-                else "EHZ"
-            )
-            seed_id = f"XB.{station}..{channel}"
+                if orientation in "ZNE":
+                    channel = f"EH{orientation}"
+                elif orientation == "L":
+                    channel = "ELZ"
+                else:
+                    channel = "EHZ"
 
-            picks = []
+                seed_id = f"XB.{station}..{channel}"
 
-            if len(p_code) >= 2 and p_code[1] == "P":
-                picks.append({
-                    "station": station,
-                    "channel": channel,
-                    "seed_id": seed_id,
-                    "phase": "P",
-                    "time": t0,
-                    "onset": p_code[0] if p_code[0] in ("I", "E") else None,
-                    "first_motion": p_code[2] if p_code[2] in ("U", "D") else None,
-                    "weight": int(p_code[3]) if p_code[3].isdigit() else None,
-                })
+                results = []
 
-            # crude S-detection
-            if "S" in s[35:41]:
-                try:
-                    delay = float(s[28:34])
-                    picks.append({
+                has_p = len(p_arrival_code) >= 2 and p_arrival_code[1] == "P"
+                if has_p:
+                    p_clean = p_arrival_code.replace("?", " ")
+                    results.append({
                         "station": station,
                         "channel": channel,
                         "seed_id": seed_id,
-                        "phase": "S",
-                        "time": t0 + delay,
-                        "onset": None,
-                        "first_motion": None,
-                        "weight": None,
+                        "phase": "P",
+                        "time": t0,
+                        "onset": p_clean[0] if len(p_clean) > 0 and p_clean[0] in ("I", "E") else None,
+                        "first_motion": p_clean[2] if len(p_clean) > 2 and p_clean[2] in ("U", "D") else None,
+                        "weight": int(p_clean[3]) if len(p_clean) > 3 and p_clean[3].isdigit() else None,
                     })
-                except Exception:
-                    pass
 
-            return picks if picks else None
+                # detect an S marker roughly in 35-40 like your older parser
+                s_positions = [i for i, c in enumerate(s) if c == "S"]
+                s_positions = [pos for pos in s_positions if 35 <= pos <= 40]
+                s_pos = s_positions[0] if len(s_positions) == 1 else 0
+
+                if s_pos > 0:
+                    # delay is typically left of the 'S'
+                    s_wave_delay = ""
+                    if len(s) > s_pos - 7:
+                        s_wave_delay = s[s_pos - 7:s_pos - 1].strip()
+
+                    delay = _safe_float(s_wave_delay) if s_wave_delay else None
+                    if delay is not None:
+                        results.append({
+                            "station": station,
+                            "channel": channel,
+                            "seed_id": seed_id,
+                            "phase": "S",
+                            "time": t0 + float(delay),
+                            "onset": None,
+                            "first_motion": None,
+                            "weight": None,
+                        })
+
+                return results if results else None
     except Exception:
         pass
 
-    # --- Tokenized fallback ---
+    # -------------------------------------------------------------------------
+    # Tokenized / individual style
+    # -------------------------------------------------------------------------
     toks = s.split()
     if len(toks) >= 4:
-        try:
-            station = toks[0]
-            phase = toks[1]
-            t = UTCDateTime(
-                datetime.strptime(toks[3][:12], "%y%m%d%H%M%S")
-            )
-            seed_id = f"XB.{station[:3]}..EHZ"
-            return [{
-                "station": station[:3],
-                "channel": "EHZ",
-                "seed_id": seed_id,
-                "phase": phase,
-                "time": t,
-                "onset": None,
-                "first_motion": None,
-                "weight": None,
-            }]
-        except Exception:
+        station = toks[0].strip()
+        if station.lower() in ("xxxx", "xxx") or len(station) < 2:
             return None
+
+        phase = toks[1].strip().upper()
+
+        # toks[2] often weight, but keep optional
+        try:
+            weight = int(toks[2])
+        except Exception:
+            weight = None
+
+        t = _parse_yyMMddHHMMSS_frac(toks[3])
+        if t is None:
+            return None
+
+        base_station = station[:3] if len(station) >= 3 else station
+        channel = "EHZ"
+        seed_id = f"XB.{base_station}..{channel}"
+
+        return [{
+            "station": base_station,
+            "channel": channel,
+            "seed_id": seed_id,
+            "phase": phase,
+            "time": t,
+            "onset": None,
+            "first_motion": None,
+            "weight": weight,
+        }]
 
     return None
 
 
-# -----------------------------------------------------------------------------
-# Monthly PHA parsing (THIS IS THE BIG FIX)
-# -----------------------------------------------------------------------------
+# =============================================================================
+# Monthly parsing: "10" blocks → events (with time-splitting)
+# =============================================================================
 
-def parse_pha_file(path, errors=None):
+def _split_into_time_clusters(picks: List[dict], max_gap_s: float = 4.0) -> List[List[dict]]:
     """
-    Parse monthly PHA file into a list of *true events*.
+    Given picks from a single monthly block, split into clusters by time gaps.
 
-    Separator lines define candidate blocks, but each block is:
-      • deduplicated
-      • grouped by time
-      • split or merged as required
+    Rule: sort by time; start a new cluster when time gap between consecutive
+    picks exceeds max_gap_s.
     """
-    events = []
-    block_picks = []
-
-    try:
-        with open(path, "r", errors="ignore") as fh:
-            for lineno, raw in enumerate(fh, 1):
-                line = raw.strip()
-
-                if not line:
-                    continue
-
-                if line in ("10", "100"):
-                    events.extend(_finalize_block(block_picks))
-                    block_picks = []
-                    continue
-
-                parsed = parse_phase_line(line)
-                if parsed:
-                    block_picks.extend(parsed)
-                elif errors is not None:
-                    errors.append(f"{path.name}:{lineno}: {line}")
-
-        events.extend(_finalize_block(block_picks))
-
-    except Exception as e:
-        if errors is not None:
-            errors.append(f"{path}: {e}")
-
-    return events
-
-
-def _finalize_block(picks):
     if not picks:
         return []
+    picks = sorted(picks, key=lambda p: p["time"])
+    clusters = [[picks[0]]]
+    for p in picks[1:]:
+        if float(p["time"] - clusters[-1][-1]["time"]) > max_gap_s:
+            clusters.append([p])
+        else:
+            clusters[-1].append(p)
+    return clusters
 
-    picks = remove_duplicate_picks(picks)
-    groups = group_picks_by_time(picks, seconds=4.0)
-    groups = reject_outlier_groups(groups)
 
+def _finalize_monthly_block(
+    block_picks: List[dict],
+    *,
+    max_gap_s: float = 4.0,
+    outlier_window_s: float = 60.0,
+) -> List[dict]:
+    """
+    Convert a monthly "10" candidate block into one or more event dicts.
+
+    Steps:
+      - dedupe
+      - split by time gaps
+      - per-cluster outlier filter
+      - compute origin_time (min P else min all)
+    """
+    if not block_picks:
+        return []
+
+    block_picks = _dedupe_picks(block_picks)
+
+    clusters = _split_into_time_clusters(block_picks, max_gap_s=max_gap_s)
     events = []
-    for g in groups:
-        p_times = [p["time"] for p in g if p["phase"] == "P"]
-        origin_time = min(p_times) if p_times else min(p["time"] for p in g)
+
+    for cl in clusters:
+        cl = filter_pick_group(cl, max_span_seconds=outlier_window_s, max_gap_seconds=max_gap_s, min_picks=1)
+        if not cl:
+            continue
+
+        p_times = [p["time"] for p in cl if p.get("phase") == "P"]
+        origin_time = min(p_times) if p_times else min(p["time"] for p in cl)
+
         events.append({
             "origin_time": origin_time,
-            "picks": g,
+            "picks": cl,
         })
 
     return events
 
 
-# -----------------------------------------------------------------------------
-# Individual PHA parsing (simple but deduped)
-# -----------------------------------------------------------------------------
+def parse_pha_file(path, errors=None):
+    """
+    Parse monthly PHA file into list of events (origin_time + picks).
+    Candidate blocks separated by '10' or '100'.
+    Each candidate block may become multiple events via time clustering.
+    """
+    events: List[dict] = []
+    block_picks: List[dict] = []
+
+    path = Path(path)
+
+    try:
+        with open(path, "r", errors="ignore") as fh:
+            for lineno, raw in enumerate(fh, 1):
+                line = raw.rstrip("\n\r")
+                if not line.strip():
+                    continue
+
+                if line.strip() in ("10", "100"):
+                    events.extend(_finalize_monthly_block(block_picks))
+                    block_picks = []
+                    continue
+
+                parsed = parse_phase_line(line)
+                if parsed:
+                    block_picks.extend(parsed if isinstance(parsed, list) else [parsed])
+                else:
+                    if errors is not None:
+                        errors.append(f"{path.name}:{lineno}: {line.strip()}")
+
+        # final block
+        events.extend(_finalize_monthly_block(block_picks))
+
+    except Exception as e:
+        if errors is not None:
+            errors.append(f"Error reading {path}: {e}")
+
+    return events
+
+
+# =============================================================================
+# Individual parsing
+# =============================================================================
 
 def parse_individual_pha_file(path):
-    picks = []
+    """
+    Parse an individual-event PHA file and return a flat list of picks.
+    Deduped; NO grouping/splitting here.
+    """
+    picks: List[dict] = []
+    path = Path(path)
+
     try:
         with open(path, "r", errors="ignore") as fh:
             for raw in fh:
-                parsed = parse_phase_line(raw)
+                parsed = parse_phase_line(raw.rstrip("\n\r"))
                 if parsed:
-                    picks.extend(parsed)
+                    picks.extend(parsed if isinstance(parsed, list) else [parsed])
     except Exception:
         pass
 
-    return remove_duplicate_picks(picks)
-
-def filter_pick_outliers(picks, max_span_seconds=60):
-    """
-    Remove picks that are wildly inconsistent with the rest of the group.
-    Uses median time as a reference.
-    """
-    if len(picks) < 3:
-        return picks
-
-    times = [p["time"] for p in picks]
-    tmed = sorted(times)[len(times) // 2]
-
-    filtered = [
-        p for p in picks
-        if abs(p["time"] - tmed) <= max_span_seconds
-    ]
-
-    return filtered
+    return _dedupe_picks(picks)

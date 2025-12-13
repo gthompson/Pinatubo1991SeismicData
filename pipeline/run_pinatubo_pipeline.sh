@@ -34,6 +34,7 @@ FAIR_META_DIR="${FAIR_TOP}/metadata"
 FAIR_PHA_DIR="${FAIR_META_DIR}/pha"
 FAIR_HYPO_DIR="${FAIR_META_DIR}/hypo71"
 FAIR_ASSOC_DIR="${FAIR_META_DIR}/association"
+WAVEFORM_INDEX="${SEISAN_WAV_DB}/01_waveform_index.csv"
 QC_DIR="${FAIR_META_DIR}/qc"
 
 mkdir -p "${FAIR_PHA_DIR}" "${FAIR_HYPO_DIR}" "${FAIR_ASSOC_DIR}" "${QC_DIR}"
@@ -43,6 +44,7 @@ mkdir -p "${FAIR_PHA_DIR}" "${FAIR_HYPO_DIR}" "${FAIR_ASSOC_DIR}" "${QC_DIR}"
 ###############################################################################
 ENABLE_STEP_01=false   # DMX → MiniSEED
 ENABLE_STEP_02=true    # Individual PHA → CSV
+ENABLE_STEP_02b=true   # Individual PHA CSV & waveform event index association
 ENABLE_STEP_03=true   # Monthly PHA → CSV
 ENABLE_STEP_04=true    # Merge picks
 ENABLE_STEP_05=false   # HYPO71 summary
@@ -86,6 +88,30 @@ else
 fi
 
 ###############################################################################
+# STEP 02b — Associate individual PHA events with waveform files
+###############################################################################
+
+INDIV_WAVEFORM_EVENT_CSV="${FAIR_ASSOC_DIR}/02b_individual_waveform_event_index.csv"
+INDIV_PICK_WAVEFORM_MAP="${FAIR_ASSOC_DIR}/02b_individual_pick_waveform_map.csv"
+INDIV_WAVEFORM_QC="${QC_DIR}/02b_individual_waveform_qc.csv"
+
+mkdir -p "${FAIR_ASSOC_DIR}" "${QC_DIR}"
+
+if [ "$ENABLE_STEP_02b" = true ]; then
+    echo "=== STEP 02b: Associating individual PHA events with waveform files ==="
+
+    python "${CODE_TOP}/02b_associate_individual_picks_with_waveforms.py" \
+        --individual-picks "${INDIV_PHA_CSV}" \
+        --waveform-index "${WAVEFORM_INDEX}" \
+        --out-event-csv "${INDIV_WAVEFORM_EVENT_CSV}" \
+        --out-pick-map-csv "${INDIV_PICK_WAVEFORM_MAP}" \
+        --out-qc-csv "${INDIV_WAVEFORM_QC}"
+
+else
+    echo "=== STEP 02b: SKIPPED ==="
+fi
+
+###############################################################################
 # STEP 03 — Monthly PHA files → pick index
 ###############################################################################
 MONTHLY_PHA_CSV="${FAIR_PHA_DIR}/03_monthly_pha_picks.csv"
@@ -108,7 +134,7 @@ MERGED_PHA_CSV="${FAIR_PHA_DIR}/04_merged_pha_picks.csv"
 
 if [ "$ENABLE_STEP_04" = true ]; then
     echo "=== STEP 04: Merging phase picks ==="
-    python "${CODE_TOP}/04_merge_picks.py" \
+    python "${CODE_TOP}/04_merge_picks_alt.py" \
         --primary "${INDIV_PHA_CSV}" \
         --secondary "${MONTHLY_PHA_CSV}" \
         --out "${MERGED_PHA_CSV}" \
@@ -137,7 +163,7 @@ fi
 # STEP 05b — Associate waveform files with pick events
 ###############################################################################
 
-WAVEFORM_INDEX="${SEISAN_WAV_DB}/01_waveform_index.csv"
+
 PICK_INDEX="${MERGED_PHA_CSV}"
 
 WFP_EVENT_DIR="${FAIR_ASSOC_DIR}/waveform_pick_events"
