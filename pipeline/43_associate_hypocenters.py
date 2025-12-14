@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-08_associate_hypocenters.py
+43_associate_hypocenters.py
 
-STEP 08 of the Pinatubo FAIR pipeline
+STEP 43 of the Pinatubo FAIR pipeline
 
 Associate hypocenters from multiple sources into seismic events
 based on time and spatial proximity.
 
-Uses exact origin values from STEP 05 and STEP 06 and links them
+Uses exact origin values from STEP 40 and STEP 41 and links them
 into event groups using:
   • time tolerance (seconds)
   • distance tolerance (kilometers)
@@ -43,17 +43,17 @@ def km_distance(lat1, lon1, lat2, lon2) -> float:
 
 def main():
     ap = argparse.ArgumentParser(
-        description="STEP 08: Associate hypocenters into events"
+        description="STEP 43: Associate hypocenters into events"
     )
-    ap.add_argument("--hypo05", required=True, help="STEP 05 hypocenter CSV")
-    ap.add_argument("--hypo06", required=True, help="STEP 06 hypocenter CSV")
+    ap.add_argument("--hypo40", required=True, help="STEP 40 hypocenter CSV")
+    ap.add_argument("--hypo41", required=True, help="STEP 41 hypocenter CSV")
     ap.add_argument("--time-tol", type=float, required=True,
                     help="Time tolerance in seconds")
     ap.add_argument("--dist-tol", type=float, required=True,
                     help="Distance tolerance in kilometers")
     ap.add_argument("--preferred-source",
-                    choices=["hypo05", "pinaall"],
-                    default="hypo05",
+                    choices=["hypo40", "pinaall"],
+                    default="hypo40",
                     help="Preferred origin source")
     ap.add_argument("--out-event-csv", required=True)
     ap.add_argument("--out-origin-csv", required=True)
@@ -64,35 +64,35 @@ def main():
     # Load + normalize inputs
     # ------------------------------------------------------------------
 
-    df05 = pd.read_csv(args.hypo05)
-    df06 = pd.read_csv(args.hypo06)
+    df40 = pd.read_csv(args.hypo40)
+    df41 = pd.read_csv(args.hypo41)
 
-    df05_norm = pd.DataFrame({
-        "origin_id": df05.index.map(lambda i: f"hypo05_{i}"),
-        "origin_time": pd.to_datetime(df05["origin_time"], format="mixed", utc=True),
-        "latitude": df05["latitude"].astype(float),
-        "longitude": df05["longitude"].astype(float),
-        "depth_km": df05["depth_km"].astype(float),
-        "magnitude": df05["magnitude"].astype(float),
-        "source": "hypo05",
-        "source_file": df05["source_file"],
-        "source_line": df05["source_line"],
+    df40_norm = pd.DataFrame({
+        "origin_id": df40.index.map(lambda i: f"hypo40_{i}"),
+        "origin_time": pd.to_datetime(df40["origin_time"], format="mixed", utc=True),
+        "latitude": df40["latitude"].astype(float),
+        "longitude": df40["longitude"].astype(float),
+        "depth_km": df40["depth_km"].astype(float),
+        "magnitude": df40["magnitude"].astype(float),
+        "source": "hypo40",
+        "source_file": df40["source_file"],
+        "source_line": df40["source_line"],
     })
 
-    df06_norm = pd.DataFrame({
-        "origin_id": df06.index.map(lambda i: f"pinaall_{i}"),
-        "origin_time": pd.to_datetime(df06["origin_time"], format="mixed", utc=True),
-        "latitude": df06["latitude"].astype(float),
-        "longitude": df06["longitude"].astype(float),
-        "depth_km": df06["depth_km"].astype(float),
-        "magnitude": df06["magnitude"].astype(float),
+    df41_norm = pd.DataFrame({
+        "origin_id": df41.index.map(lambda i: f"pinaall_{i}"),
+        "origin_time": pd.to_datetime(df41["origin_time"], format="mixed", utc=True),
+        "latitude": df41["latitude"].astype(float),
+        "longitude": df41["longitude"].astype(float),
+        "depth_km": df41["depth_km"].astype(float),
+        "magnitude": df41["magnitude"].astype(float),
         "source": "pinaall",
-        "source_file": df06["source_file"],
-        "source_line": df06["source_line"],
+        "source_file": df41["source_file"],
+        "source_line": df41["source_line"],
     })
 
     all_origins = (
-        pd.concat([df05_norm, df06_norm], ignore_index=True)
+        pd.concat([df40_norm, df41_norm], ignore_index=True)
         .sort_values("origin_time")
         .reset_index(drop=True)
     )
@@ -186,7 +186,7 @@ def main():
     # Report
     # ------------------------------------------------------------------
 
-    print("\nSTEP 08 — HYPOCENTER ASSOCIATION COMPLETE")
+    print("\nSTEP 43 — HYPOCENTER ASSOCIATION COMPLETE")
     print("----------------------------------------")
     print(f"Total events:   {len(events)}")
     print(f"Total origins:  {len(origins_out)}")

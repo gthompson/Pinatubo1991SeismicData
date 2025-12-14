@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-06_build_hypocenter_index_pinaall.py
+41_build_hypocenter_index_pinaall.py
 
-STEP 06 of the Pinatubo FAIR pipeline
+STEP 41 of the Pinatubo FAIR pipeline
 
 Build a tolerant hypocenter index from PINAALL.DAT,
 emitting the SAME core columns as STEP 05 so exact
@@ -232,7 +232,7 @@ def parse_pinaall_line(line: str) -> Tuple[Optional[Dict[str, object]], Optional
 
 def main() -> None:
     ap = argparse.ArgumentParser(
-        description="STEP 06: Build hypocenter index from PINAALL.DAT"
+        description="STEP 41: Build hypocenter index from PINAALL.DAT"
     )
     ap.add_argument("--pinaall-file", required=True)
     ap.add_argument("--out-csv", required=True)
@@ -270,7 +270,7 @@ def main() -> None:
     err_path.parent.mkdir(parents=True, exist_ok=True)
     err_path.write_text("\n".join(unparsed))
 
-    print("\nSTEP 06 — PINAALL.DAT HYPOCENTER INDEX BUILT")
+    print("\nSTEP 41 — PINAALL.DAT HYPOCENTER INDEX BUILT")
     print("-------------------------------------------")
     print(f"Source file:     {src}")
     print(f"Parsed rows:     {len(rows)}")

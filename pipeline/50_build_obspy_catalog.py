@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-09_build_obspy_catalog.py
+50_build_obspy_catalog.py
 
-STEP 09 — Build ObsPy Catalog from:
-  • Step 05b waveform event index (event spine)
-  • Step 05b waveform ↔ pick map (event↔pick linkage)
-  • Step 04 merged pick index (authoritative pick metadata)
-  • Step 08 hypocenter event + origin indexes
+STEP 50 — Build ObsPy Catalog from:
+  • Step 31 waveform event index (event spine)
+  • Step 31 waveform ↔ pick map (event↔pick linkage)
+  • Step 22 merged pick index (authoritative pick metadata)
+  • Step 43 hypocenter event + origin indexes
 
 This is a TRUE OUTER JOIN:
   • waveform-only events → kept
@@ -116,7 +116,7 @@ def build_pick(row: pd.Series, default_net: str = "XB") -> Pick:
 # -----------------------------------------------------------------------------
 
 def main():
-    ap = argparse.ArgumentParser(description="STEP 09: Build ObsPy Catalog")
+    ap = argparse.ArgumentParser(description="STEP 50: Build ObsPy Catalog")
     ap.add_argument("--waveform-event-index", required=True)
     ap.add_argument("--waveform-pick-map", required=True)
     ap.add_argument("--pick-index", required=True)
@@ -332,7 +332,7 @@ def main():
     out.parent.mkdir(parents=True, exist_ok=True)
     catalog.write(str(out), format="QUAKEML")
 
-    print("\nSTEP 09 COMPLETE")
+    print("\nSTEP 50 COMPLETE")
     print("----------------")
     print(f"Total ObsPy Events: {len(catalog)}")
     print("")

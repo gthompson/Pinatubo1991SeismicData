@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-02b_associate_individual_picks_with_waveforms.py
+30_associate_individual_picks_with_waveforms.py
 
-STEP 02b of the Pinatubo FAIR pipeline.
+STEP 30 of the Pinatubo FAIR pipeline.
 
 Associate individual-event PHA pick groups with their corresponding
 waveform event files.
@@ -19,7 +19,7 @@ import pandas as pd
 
 def main():
     ap = argparse.ArgumentParser(
-        description="STEP 02b: Associate individual PHA events with waveform files"
+        description="STEP 30: Associate individual PHA events with waveform files"
     )
 
     ap.add_argument("--individual-picks", required=True)
@@ -31,7 +31,7 @@ def main():
 
     args = ap.parse_args()
 
-    print("=== STEP 02b: Associating individual PHA events with waveform files ===")
+    print("=== STEP 30: Associating individual PHA events with waveform files ===")
 
     # ------------------------------------------------------------------
     # Load inputs
@@ -125,7 +125,7 @@ def main():
     pd.DataFrame(pick_map_rows).to_csv(out_pick_map, index=False)
     pd.DataFrame(qc_rows).to_csv(out_qc, index=False)
 
-    print("\nSTEP 02b COMPLETE")
+    print("\nSTEP 30 COMPLETE")
     print("-----------------")
     print(f"Individual events processed: {len(grouped)}")
     print(f"Associated events:           {len(event_rows)}")

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-03_parse_monthly_phase_files.py
+21_parse_monthly_phase_files.py
 
-STEP 03 of the Pinatubo FAIR pipeline.
+STEP 21 of the Pinatubo FAIR pipeline.
 
 Parse monthly PHA files into a flat pick index while preserving
 block-level grouping defined by separator lines, with internal
@@ -131,7 +131,7 @@ def main():
         for e in errors:
             f.write(e + "\n")
 
-    print("\n=== STEP 03 SUMMARY ===")
+    print("\n=== STEP 21 SUMMARY ===")
     print(f"Monthly PHA files:      {len(pha_files)}")
     print(f"Blocks kept:            {kept_blocks}")
     print(f"Blocks trimmed:         {trimmed_blocks}")

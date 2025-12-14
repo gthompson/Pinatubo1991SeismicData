@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-04_merge_picks.py
+22_merge_picks.py
 
-STEP 04 of the Pinatubo FAIR pipeline.
+STEP 22 of the Pinatubo FAIR pipeline (logical STEP 04: merge picks).
 
 Merge pick indices from:
-  - STEP 02: individual-event PHA picks (authoritative / primary)
-  - STEP 03: monthly PHA picks (secondary)
+  - STEP 20: individual-event PHA picks (authoritative / primary)
+  - STEP 21: monthly PHA picks (secondary)
 
 Primary picks:
 • deduplicated within each event (seed+phase+time within tolerance)

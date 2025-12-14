@@ -1,34 +1,21 @@
 #!/usr/bin/env python3
 """
-01_dmx_to_seisanWAV.py
+10_dmx_to_seisanWAV.py
 
 Convert legacy VDAP / PHIVOLCS SUDS/DMX triggered waveform files
 from the 1991 Pinatubo seismic network into organized SEISAN-style
 MiniSEED WAV archives AND build a waveform index in one pass.
 
-Outputs
--------
-SEISAN WAV files:
-    WAV/<DB>/<YYYY>/<MM>/YYYY-MM-DD-HHMM-SSM.<DB>_<NCHAN>
-
-Metadata (written to seisan-wav-db root):
-    01_waveform_index.csv
-    01_trace_id_mapping.csv
-    01_trace_id_mapping.tex
-
-Key concepts
-------------
-• event_id = YYMMDDNN derived from DMX filename
-• original DMX file path preserved for provenance
-• MiniSEED is written once; metadata captured in memory
+ALL output paths are provided explicitly by the wrapper.
 """
 
 import argparse
 from pathlib import Path
 import pandas as pd
 import numpy as np
-from obspy import read, Stream, UTCDateTime
+from obspy import read, Stream
 import re
+
 
 # ============================================================================
 # Helpers
@@ -65,11 +52,7 @@ def remove_empty_traces(st):
 
 
 def remove_IRIG_channel(st):
-    to_remove = []
-    for tr in st:
-        sta = getattr(tr.stats, "station", "")
-        if sta and sta.upper().startswith("IRIG"):
-            to_remove.append(tr)
+    to_remove = [tr for tr in st if (tr.stats.station or "").upper().startswith("IRIG")]
     for tr in to_remove:
         st.remove(tr)
 
@@ -104,8 +87,12 @@ def fix_pinatubo_trace_id(trace, netcode="XB"):
 def write_wavfile(st, seisan_wav_db, db, nchan):
     st.sort(keys=["station", "channel"])
     st.merge(method=1, fill_value=0)
-    st.trim(st[0].stats.starttime, st[0].stats.endtime,
-            pad=True, fill_value=0)
+    st.trim(
+        st[0].stats.starttime,
+        st[0].stats.endtime,
+        pad=True,
+        fill_value=0,
+    )
 
     t = st[0].stats.starttime
     fname = (
@@ -140,15 +127,18 @@ def extract_event_id(dmx_path: Path):
 
 def main():
     ap = argparse.ArgumentParser(
-        description="Convert DMX to SEISAN WAV and build waveform index"
+        description="STEP 10: Convert DMX to SEISAN WAV and build waveform index"
     )
     ap.add_argument("--rawtop", required=True)
     ap.add_argument("--seisan-wav-db", required=True)
-    ap.add_argument("--db", default="PNTBO")
-    ap.add_argument("--net", default="XB")
-    ap.add_argument("--fix-fs", type=float, default=None)
+    ap.add_argument("--db", required=True)
+    ap.add_argument("--net", required=True)
+    ap.add_argument("--fix-fs", type=float)
     ap.add_argument("--glob", default="**/*.DMX")
     ap.add_argument("--max-files", type=int)
+    ap.add_argument("--out-waveform-index", required=True)
+    ap.add_argument("--out-trace-id-map", required=True)
+    ap.add_argument("--out-trace-id-map-tex", required=True)
     ap.add_argument("--verbose", action="store_true")
     args = ap.parse_args()
 
@@ -158,7 +148,7 @@ def main():
 
     dmx_files = discover_dmx_files(rawtop, args.glob)
     if args.max_files:
-        dmx_files = dmx_files[:args.max_files]
+        dmx_files = dmx_files[: args.max_files]
 
     if not dmx_files:
         raise SystemExit("No DMX files found")
@@ -197,9 +187,7 @@ def main():
             trace_map.setdefault(before, after)
 
         try:
-            wavpath = write_wavfile(
-                st, seisan_wav_db, args.db, len(st)
-            )
+            wavpath = write_wavfile(st, seisan_wav_db, args.db, len(st))
         except Exception as e:
             print(f"❌ Write failed for {event_id}: {e}")
             n_fail += 1
@@ -208,55 +196,62 @@ def main():
         start = min(tr.stats.starttime for tr in st)
         end = max(tr.stats.endtime for tr in st)
 
-        waveform_rows.append({
-            "event_id": event_id,
-            "dmx_file": str(dmx),
-            "wav_file": str(wavpath),
-            "starttime": start.isoformat(),
-            "endtime": end.isoformat(),
-            "stations": ",".join(sorted({tr.stats.station for tr in st})),
-            "channels": ",".join(sorted({tr.stats.channel for tr in st})),
-            "ntraces": len(st)
-        })
+        waveform_rows.append(
+            {
+                "event_id": event_id,
+                "dmx_file": str(dmx),
+                "wav_file": str(wavpath),
+                "starttime": start.isoformat(),
+                "endtime": end.isoformat(),
+                "stations": ",".join(sorted({tr.stats.station for tr in st})),
+                "channels": ",".join(sorted({tr.stats.channel for tr in st})),
+                "ntraces": len(st),
+            }
+        )
 
         n_ok += 1
 
     # =========================================================================
-    # Write outputs
+    # Write outputs (explicit paths)
     # =========================================================================
 
+    out_index = Path(args.out_waveform_index)
+    out_map = Path(args.out_trace_id_map)
+    out_tex = Path(args.out_trace_id_map_tex)
+
+    out_index.parent.mkdir(parents=True, exist_ok=True)
+    out_map.parent.mkdir(parents=True, exist_ok=True)
+    out_tex.parent.mkdir(parents=True, exist_ok=True)
+
     df_index = pd.DataFrame(waveform_rows)
-    index_csv = seisan_wav_db / "01_waveform_index.csv"
-    df_index.to_csv(index_csv, index=False)
+    df_index.to_csv(out_index, index=False)
 
-    df_map = pd.DataFrame(
-        [(k, v) for k, v in trace_map.items()],
-        columns=["original_id", "fixed_id"]
-    ).sort_values("original_id")
-
-    map_csv = seisan_wav_db / "01_trace_id_mapping.csv"
-    map_tex = seisan_wav_db / "01_trace_id_mapping.tex"
-
-    df_map.to_csv(map_csv, index=False)
+    df_map = (
+        pd.DataFrame([(k, v) for k, v in trace_map.items()],
+                     columns=["original_id", "fixed_id"])
+        .sort_values("original_id")
+    )
+    df_map.to_csv(out_map, index=False)
     df_map.to_latex(
-        map_tex,
+        out_tex,
         index=False,
         caption="Mapping from original DMX trace IDs to SEED-compliant IDs.",
         label="tab:trace_id_mapping",
-        escape=False
+        escape=False,
     )
 
     # =========================================================================
     # Summary
     # =========================================================================
-    print("\nStep 01 summary")
-    print("--------------")
+    print("\nSTEP 10 SUMMARY")
+    print("---------------")
     print(f"DMX files processed:   {len(dmx_files)}")
     print(f"Written WAV files:    {n_ok}")
     print(f"Empty skipped:        {n_empty}")
     print(f"Failures:             {n_fail}")
-    print(f"Waveform index:       {index_csv}")
-    print(f"Trace ID map:         {map_csv}")
+    print(f"Waveform index:       {out_index}")
+    print(f"Trace ID map CSV:     {out_map}")
+    print(f"Trace ID map TeX:     {out_tex}")
 
 
 if __name__ == "__main__":

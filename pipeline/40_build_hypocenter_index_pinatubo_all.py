@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-05_build_hypocenter_index.py
+40_build_hypocenter_index.py
 
-STEP 05 of the Pinatubo FAIR pipeline
+STEP 40 of the Pinatubo FAIR pipeline
 
 Build a tolerant hypocenter index from a HYPO71-style summary file.
 
@@ -113,7 +113,7 @@ def parse_hypo71_line(line: str) -> Optional[Dict]:
 
 def main():
     ap = argparse.ArgumentParser(
-        description="STEP 05: Build hypocenter index from HYPO71-style summary file"
+        description="STEP 40: Build hypocenter index from HYPO71-style summary file"
     )
     ap.add_argument("--summary-file", required=True,
                     help="Input HYPO71-style summary file")
@@ -162,7 +162,7 @@ def main():
             f.write(l if l.endswith("\n") else l + "\n")
 
     # --- Summary ---
-    print("\nSTEP 05 — HYPOCENTER INDEX BUILT")
+    print("\nSTEP 40 — HYPOCENTER INDEX BUILT")
     print("--------------------------------")
     print(f"Source file:     {src}")
     print(f"Parsed rows:     {len(rows)}")

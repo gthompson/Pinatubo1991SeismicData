@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-02_parse_individual_phase_files.py
+20_parse_individual_phase_files.py
 
-STEP 02 of the Pinatubo FAIR pipeline.
+STEP 20 of the Pinatubo FAIR pipeline.
 
 Parse individual-event PHA files (authoritative picks) and build a
 flat pick index with explicit event grouping metadata.
@@ -24,7 +24,7 @@ def extract_event_id(pha_path: Path) -> str:
 
 def main():
     ap = argparse.ArgumentParser(
-        description="STEP 02: Parse individual-event PHA files"
+        description="STEP 20: Parse individual-event PHA files"
     )
     ap.add_argument("--pha-root", required=True)
     ap.add_argument("--out-csv", required=True)
@@ -82,7 +82,7 @@ def main():
             })
 
     if not rows:
-        raise SystemExit("STEP 02 FAILED: no picks parsed")
+        raise SystemExit("STEP 20 FAILED: no picks parsed")
 
     df = (
         pd.DataFrame(rows)
@@ -96,7 +96,7 @@ def main():
         for line in errors:
             f.write(line + "\n")
 
-    print("\n=== STEP 02 SUMMARY ===")
+    print("\n=== STEP 20 SUMMARY ===")
     print(f"Legacy events: {df['event_id'].nunique()}")
     print(f"Total picks:   {len(df)}")
     print(f"CSV written:   {out_csv}")
