@@ -180,9 +180,14 @@ def parse_phase_line(line: str):
     Returns:
       - list of pick dicts (0, 1, or 2 picks) OR
       - None if not a pick line
+
+    IMPORTANT:
+    - Trailing numeric fields are preserved only in raw_line
+    - S delays are interpreted with minute rollover logic
     """
     if not line:
         return None
+
     s = line.rstrip("\n\r")
     if not s.strip():
         return None
@@ -192,88 +197,83 @@ def parse_phase_line(line: str):
     # -------------------------------------------------------------------------
     try:
         station = s[0:3].strip()
-        if station and station.lower() != "xxx" and len(station) >= 2:
-            orientation = s[3:4].strip() if len(s) > 3 else ""
-            p_arrival_code = s[4:8].replace(" ", "?") if len(s) > 4 else ""
+        if not station or station.lower() == "xxx":
+            return None
 
-            timestamp_str = None
-            if len(s) > 8:
-                if s[8] == " ":
-                    timestamp_str = s[9:24].strip().replace(" ", "0") if len(s) >= 24 else None
-                else:
-                    timestamp_str = s[8:23].strip().replace(" ", "0") if len(s) >= 23 else None
+        orientation = s[3:4].strip() if len(s) > 3 else ""
+        p_arrival_code = s[4:8].replace(" ", "?") if len(s) > 4 else ""
 
-            if timestamp_str:
-                # normalize occasional 60s weirdness
-                add_secs = 0
-                if timestamp_str.endswith("60.00"):
-                    timestamp_str = timestamp_str.replace("60.00", "00.00")
-                    add_secs += 60
+        # --- timestamp field ---
+        timestamp_str = None
+        if len(s) >= 24:
+            if s[8] == " ":
+                timestamp_str = s[9:24].strip().replace(" ", "0")
+            else:
+                timestamp_str = s[8:23].strip().replace(" ", "0")
 
-                # support fraction if present
-                t0 = _parse_yyMMddHHMMSS_frac(timestamp_str)
-                if t0 is None:
-                    # last resort: try first 12 chars
-                    try:
-                        dt = datetime.strptime(timestamp_str[:12], "%y%m%d%H%M%S")
-                        t0 = UTCDateTime(dt)
-                    except Exception:
-                        t0 = None
+        if not timestamp_str:
+            return None
 
-                if t0 is None:
-                    return None
-                t0 = t0 + add_secs
+        t0 = _parse_yyMMddHHMMSS_frac(timestamp_str)
+        if t0 is None:
+            return None
 
-                if orientation in "ZNE":
-                    channel = f"EH{orientation}"
-                elif orientation == "L":
-                    channel = "ELZ"
-                else:
-                    channel = "EHZ"
+        # channel logic
+        if orientation in "ZNE":
+            channel = f"EH{orientation}"
+        elif orientation == "L":
+            channel = "ELZ"
+        else:
+            channel = "EHZ"
 
-                seed_id = f"XB.{station}..{channel}"
+        seed_id = f"XB.{station}..{channel}"
+        results = []
 
-                results = []
+        # ------------------ P pick ------------------
+        has_p = len(p_arrival_code) >= 2 and p_arrival_code[1] == "P"
+        if has_p:
+            p_clean = p_arrival_code.replace("?", " ")
+            results.append({
+                "station": station,
+                "channel": channel,
+                "seed_id": seed_id,
+                "phase": "P",
+                "time": t0,
+                "onset": p_clean[0] if p_clean[0] in ("I", "E") else None,
+                "first_motion": p_clean[2] if len(p_clean) > 2 and p_clean[2] in ("U", "D") else None,
+                "weight": int(p_clean[3]) if len(p_clean) > 3 and p_clean[3].isdigit() else None,
+            })
 
-                has_p = len(p_arrival_code) >= 2 and p_arrival_code[1] == "P"
-                if has_p:
-                    p_clean = p_arrival_code.replace("?", " ")
-                    results.append({
-                        "station": station,
-                        "channel": channel,
-                        "seed_id": seed_id,
-                        "phase": "P",
-                        "time": t0,
-                        "onset": p_clean[0] if len(p_clean) > 0 and p_clean[0] in ("I", "E") else None,
-                        "first_motion": p_clean[2] if len(p_clean) > 2 and p_clean[2] in ("U", "D") else None,
-                        "weight": int(p_clean[3]) if len(p_clean) > 3 and p_clean[3].isdigit() else None,
-                    })
+        # ------------------ S pick ------------------
+        # Look for an S in the expected columns (legacy format)
+        s_positions = [i for i, c in enumerate(s) if c == "S" and 35 <= i <= 40]
+        if len(s_positions) == 1:
+            s_pos = s_positions[0]
+            delay_str = s[s_pos - 7:s_pos - 1].strip()
+            delay = _safe_float(delay_str)
 
-                # detect an S marker roughly in 35-40 like your older parser
-                s_positions = [i for i, c in enumerate(s) if c == "S"]
-                s_positions = [pos for pos in s_positions if 35 <= pos <= 40]
-                s_pos = s_positions[0] if len(s_positions) == 1 else 0
+            if delay is not None:
+                # Minute rollover handling
+                base = t0
+                sec0 = base.second + base.microsecond * 1e-6
+                if delay < sec0:
+                    base = base + 60.0  # advance minute
 
-                if s_pos > 0:
-                    # delay is typically left of the 'S'
-                    s_wave_delay = ""
-                    if len(s) > s_pos - 7:
-                        s_wave_delay = s[s_pos - 7:s_pos - 1].strip()
+                s_time = base.replace(second=0, microsecond=0) + delay
 
-                    delay = _safe_float(s_wave_delay) if s_wave_delay else None
-                    if delay is not None:
-                        results.append({
-                            "station": station,
-                            "channel": channel,
-                            "seed_id": seed_id,
-                            "phase": "S",
-                            "time": t0 + float(delay),
-                            "onset": None,
-                            "first_motion": None,
-                            "weight": None,
-                        })
+                results.append({
+                    "station": station,
+                    "channel": channel,
+                    "seed_id": seed_id,
+                    "phase": "S",
+                    "time": s_time,
+                    "onset": None,
+                    "first_motion": None,
+                    "weight": None,
+                })
 
-                return results if results else None
+        return results if results else None
+
     except Exception:
         pass
 
@@ -287,8 +287,6 @@ def parse_phase_line(line: str):
             return None
 
         phase = toks[1].strip().upper()
-
-        # toks[2] often weight, but keep optional
         try:
             weight = int(toks[2])
         except Exception:
@@ -298,7 +296,7 @@ def parse_phase_line(line: str):
         if t is None:
             return None
 
-        base_station = station[:3] if len(station) >= 3 else station
+        base_station = station[:3]
         channel = "EHZ"
         seed_id = f"XB.{base_station}..{channel}"
 
@@ -314,7 +312,6 @@ def parse_phase_line(line: str):
         }]
 
     return None
-
 
 # =============================================================================
 # Monthly parsing: "10" blocks → events (with time-splitting)
@@ -342,51 +339,46 @@ def _split_into_time_clusters(picks: List[dict], max_gap_s: float = 4.0) -> List
 def _finalize_monthly_block(
     block_picks: List[dict],
     *,
-    max_gap_s: float = 4.0,
     outlier_window_s: float = 60.0,
 ) -> List[dict]:
     """
-    Convert a monthly "10" candidate block into one or more event dicts.
+    Convert a monthly '10' block into EXACTLY ONE event.
 
-    Steps:
-      - dedupe
-      - split by time gaps
-      - per-cluster outlier filter
-      - compute origin_time (min P else min all)
+    Rules:
+      - '10' delimiters define events (authoritative)
+      - No time-based splitting
+      - Deduplicate and sanity-filter only
     """
     if not block_picks:
         return []
 
     block_picks = _dedupe_picks(block_picks)
+    block_picks = filter_pick_group(
+        block_picks,
+        max_span_seconds=outlier_window_s,
+        min_picks=1,
+    )
 
-    clusters = _split_into_time_clusters(block_picks, max_gap_s=max_gap_s)
-    events = []
+    if not block_picks:
+        return []
 
-    for cl in clusters:
-        cl = filter_pick_group(cl, max_span_seconds=outlier_window_s, max_gap_seconds=max_gap_s, min_picks=1)
-        if not cl:
-            continue
+    p_times = [p["time"] for p in block_picks if p.get("phase") == "P"]
+    origin_time = min(p_times) if p_times else min(p["time"] for p in block_picks)
 
-        p_times = [p["time"] for p in cl if p.get("phase") == "P"]
-        origin_time = min(p_times) if p_times else min(p["time"] for p in cl)
-
-        events.append({
-            "origin_time": origin_time,
-            "picks": cl,
-        })
-
-    return events
+    return [{
+        "origin_time": origin_time,
+        "picks": block_picks,
+    }]
 
 
 def parse_pha_file(path, errors=None):
     """
     Parse monthly PHA file into list of events (origin_time + picks).
-    Candidate blocks separated by '10' or '100'.
-    Each candidate block may become multiple events via time clustering.
+
+    Events are delimited STRICTLY by '10' or '100' markers.
     """
     events: List[dict] = []
     block_picks: List[dict] = []
-
     path = Path(path)
 
     try:
@@ -403,12 +395,16 @@ def parse_pha_file(path, errors=None):
 
                 parsed = parse_phase_line(line)
                 if parsed:
-                    block_picks.extend(parsed if isinstance(parsed, list) else [parsed])
+                    for p in (parsed if isinstance(parsed, list) else [parsed]):
+                        p = p.copy()
+                        p["raw_line"] = line
+                        p["raw_lineno"] = lineno
+                        p["raw_file"] = path.name
+                        block_picks.append(p)
                 else:
                     if errors is not None:
                         errors.append(f"{path.name}:{lineno}: {line.strip()}")
 
-        # final block
         events.extend(_finalize_monthly_block(block_picks))
 
     except Exception as e:
@@ -425,17 +421,28 @@ def parse_pha_file(path, errors=None):
 def parse_individual_pha_file(path):
     """
     Parse an individual-event PHA file and return a flat list of picks.
-    Deduped; NO grouping/splitting here.
+
+    Each pick dict includes raw provenance:
+      - raw_line
+      - raw_lineno
+      - raw_file
     """
     picks: List[dict] = []
     path = Path(path)
 
     try:
         with open(path, "r", errors="ignore") as fh:
-            for raw in fh:
-                parsed = parse_phase_line(raw.rstrip("\n\r"))
+            for lineno, raw in enumerate(fh, 1):
+                line = raw.rstrip("\n\r")
+                parsed = parse_phase_line(line)
                 if parsed:
-                    picks.extend(parsed if isinstance(parsed, list) else [parsed])
+                    parsed_list = parsed if isinstance(parsed, list) else [parsed]
+                    for p in parsed_list:
+                        p = p.copy()
+                        p["raw_line"] = line
+                        p["raw_lineno"] = lineno
+                        p["raw_file"] = path.name
+                        picks.append(p)
     except Exception:
         pass
 

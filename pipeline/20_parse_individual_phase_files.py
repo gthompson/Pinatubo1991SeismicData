@@ -65,10 +65,10 @@ def main():
         for p in picks:
             pick_counter += 1
             rows.append({
+                "raw_line": p.get("raw_line"),
+                "raw_lineno": p.get("raw_lineno"),
                 "event_id": event_id,
                 "event_id_source": "individual_pha_filename",
-                "pick_group_id": event_id,
-                "pick_group_type": "individual_pha",
                 "pick_id": f"indpha_{event_id}_{pick_counter}",
                 "pha_file": pha_file.name,
                 "station": p.get("station"),

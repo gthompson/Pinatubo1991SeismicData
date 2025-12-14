@@ -1,6 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
+#Step 10 ─┐
+#         ├─ Step 30 ─┐
+#Step 20 ─┘           │
+#                     ├─ Step 32 → Final Event Catalog
+#Step 21 ── Step 22 ──┘
+
 ###############################################################################
 # CONFIGURATION
 ###############################################################################
@@ -44,16 +50,19 @@ mkdir -p "${FAIR_PHA_DIR}" "${FAIR_HYPO_DIR}" "${FAIR_ASSOC_DIR}" "${QC_DIR}"
 # STEP SWITCHES (match script numbering)
 ###############################################################################
 ENABLE_STEP_10=false   # DMX → SEISAN WAV (+ index)
-ENABLE_STEP_20=false   # Individual PHA → CSV
-ENABLE_STEP_21=false   # Monthly PHA → CSV
-ENABLE_STEP_22=false   # Merge picks
-ENABLE_STEP_30=false   # Associate individual picks with waveforms
-ENABLE_STEP_31=false   # Build waveform-centered events (waveform↔pick events)
+ENABLE_STEP_11=false   # Waveform archive diagnostics
+ENABLE_STEP_20=true   # Individual PHA → CSV
+ENABLE_STEP_21=true   # Monthly PHA → CSV
+ENABLE_STEP_22=true   # Merge picks
+ENABLE_STEP_23=true   # Plot pick/event diagnostics for Step 20/21/22
+ENABLE_STEP_30=true   # Associate individual picks with waveforms
+ENABLE_STEP_32=true   # Build waveform-centered event catalog (waveforms ↔ pick events)
+ENABLE_STEP_33=true   # Plot waveform ↔ pick association diagnostics
 ENABLE_STEP_40=false   # HYPO71 summary (Pinatubo_all.sum) → hypocenter index
 ENABLE_STEP_41=false   # PINAALL.DAT → hypocenter index
 ENABLE_STEP_42=false   # Compare hypocenter indexes
 ENABLE_STEP_43=false   # Associate hypocenters into unified events
-ENABLE_STEP_50=true    # Build ObsPy Catalog (QuakeML)
+ENABLE_STEP_50=false    # Build ObsPy Catalog (QuakeML)
 
 ###############################################################################
 # STEP 10 — DMX → SEISAN WAV (+ index)
@@ -75,7 +84,22 @@ if [ "${ENABLE_STEP_10}" = true ]; then
 else
     echo "=== STEP 10: SKIPPED ==="
 fi
+###############################################################################
+# STEP 11 — Waveform archive diagnostics
+###############################################################################
+ENABLE_STEP_11=true
 
+WAVEFORM_QC_DIR="${FAIR_META_DIR}/waveform_qc"
+
+if [ "${ENABLE_STEP_11}" = true ]; then
+    echo "=== STEP 11: Waveform time-series diagnostics ==="
+    python "${CODE_TOP}/11_waveform_timeseries_diagnostics.py" \
+        --waveform-index "${SEISAN_WAV_DB}/10_waveform_index.csv" \
+        --outdir "${WAVEFORM_QC_DIR}" \
+        --net "${NET}"
+else
+    echo "=== STEP 11: SKIPPED ==="
+fi
 ###############################################################################
 # STEP 20 — Individual PHA files → pick index
 ###############################################################################
@@ -127,6 +151,31 @@ else
 fi
 
 ###############################################################################
+# STEP 23 — Plot pick/event diagnostics for Step 20/21/22
+###############################################################################
+STEP23_DIR="${QC_DIR}/step23_pick_event_diagnostics"
+STEP23_PLOTS="${STEP23_DIR}/plots"
+STEP23_CSV="${STEP23_DIR}/csv"
+STEP23_QC_JSON="${STEP23_DIR}/23_qc_flags.json"
+
+mkdir -p "${STEP23_DIR}"
+
+if [ "${ENABLE_STEP_23}" = true ]; then
+    echo "=== STEP 23: Plotting pick/event diagnostics ==="
+    python "${CODE_TOP}/23_plot_pick_event_diagnostics.py" \
+        --individual "${INDIV_PHA_CSV}" \
+        --monthly "${MONTHLY_PHA_CSV}" \
+        --merged "${MERGED_PICKS_CSV}" \
+        --outdir "${STEP23_DIR}" \
+        --top-stations 10 \
+        --ps-delay-max 60 \
+        --emit-csv \
+        --emit-qc
+else
+    echo "=== STEP 23: SKIPPED ==="
+fi
+
+###############################################################################
 # STEP 30 — Associate individual PHA events with waveform files
 ###############################################################################
 INDIV_WAVEFORM_EVENT_CSV="${FAIR_ASSOC_DIR}/30_individual_waveform_event_index.csv"
@@ -146,35 +195,51 @@ else
     echo "=== STEP 30: SKIPPED ==="
 fi
 
-###############################################################################
-# STEP 31 — Build waveform-centered event catalog (waveforms ↔ pick events)
-###############################################################################
-# Inputs
-INDIV_PICK_INDEX="${INDIV_PHA_CSV}"
-INDIV_PICK_WAV_MAP="${INDIV_PICK_WAVEFORM_MAP}"
-MONTHLY_PICKS="${MONTHLY_PHA_CSV}"
 
-# Outputs
-EVENT_DIR="${FAIR_ASSOC_DIR}/waveform_events"
-EVENT_CSV="${EVENT_DIR}/31_waveform_event_index.csv"
-PICK_MAP_CSV="${EVENT_DIR}/31_waveform_pick_map.csv"
-QC_CSV="${QC_DIR}/31_waveform_event_qc.csv"
+###############################################################################
+# STEP 32 — Build authoritative event catalog (waveforms + picks)
+###############################################################################
+
+EVENT_DIR="${FAIR_ASSOC_DIR}/event_catalog"
+EVENT_CSV="${EVENT_DIR}/32_event_catalog.csv"
+PICK_MAP_CSV="${EVENT_DIR}/32_event_pick_map.csv"
+QC_CSV="${QC_DIR}/32_event_catalog_qc.csv"
 
 mkdir -p "${EVENT_DIR}" "${QC_DIR}"
 
-if [ "${ENABLE_STEP_31}" = true ]; then
-    echo "=== STEP 31: Building waveform-centered events ==="
-    python "${CODE_TOP}/31_build_waveform_pick_events.py" \
+if [ "${ENABLE_STEP_32}" = true ]; then
+    echo "=== STEP 32: Building authoritative event catalog ==="
+    python "${CODE_TOP}/32_build_event_catalog.py" \
         --waveform-index "${WAVEFORM_INDEX}" \
-        --individual-pick-index "${INDIV_PICK_INDEX}" \
-        --individual-pick-waveform-map "${INDIV_PICK_WAV_MAP}" \
-        --monthly-picks "${MONTHLY_PICKS}" \
+        --merged-picks "${MERGED_PICKS_CSV}" \
+        --individual-pick-waveform-map "${INDIV_PICK_WAVEFORM_MAP}" \
         --out-event-csv "${EVENT_CSV}" \
         --out-pick-map-csv "${PICK_MAP_CSV}" \
-        --time-tolerance 0.5 \
-        --out-qc-csv "${QC_CSV}"
+        --out-qc-csv "${QC_CSV}" \
+        --time-tolerance 0.5
 else
-    echo "=== STEP 31: SKIPPED ==="
+    echo "=== STEP 32: SKIPPED ==="
+fi
+
+###############################################################################
+# STEP 33 — Plot waveform ↔ pick association diagnostics
+###############################################################################
+
+STEP33_DIR="${QC_DIR}/step33_event_association"
+STEP33_PLOTS="${STEP33_DIR}/plots"
+
+mkdir -p "${STEP33_DIR}"
+
+if [ "${ENABLE_STEP_33}" = true ]; then
+    echo "=== STEP 33: Plotting event association diagnostics ==="
+    python "${CODE_TOP}/33_plot_event_association_diagnostics.py" \
+        --waveform-index "${WAVEFORM_INDEX}" \
+        --step30-event-csv "${INDIV_WAVEFORM_EVENT_CSV}" \
+        --event-catalog "${EVENT_CSV}" \
+        --pick-map "${PICK_MAP_CSV}" \
+        --outdir "${STEP33_DIR}"
+else
+    echo "=== STEP 33: SKIPPED ==="
 fi
 
 ###############################################################################

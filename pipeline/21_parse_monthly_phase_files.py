@@ -62,11 +62,13 @@ def main():
     dropped_blocks = 0
     trimmed_blocks = 0
 
+    pick_counter = 0
+
     for pha_file in pha_files:
         events = parse_pha_file(pha_file, errors)
 
         for block_idx, ev in enumerate(events):
-            monthly_block_id = f"{pha_file.stem}_block{block_idx:04d}"
+            event_id = f"{pha_file.stem}_block{block_idx:04d}"
 
             raw_picks = ev.get("picks", [])
             if not raw_picks:
@@ -84,7 +86,7 @@ def main():
             if not filtered_picks:
                 dropped_blocks += 1
                 errors.append(
-                    f"{pha_file.name}:{monthly_block_id}: all picks rejected as outliers"
+                    f"{pha_file.name}:{event_id}: all picks rejected as outliers"
                 )
                 continue
 
@@ -97,31 +99,32 @@ def main():
             # Emit rows
             # -------------------------------------------------------------
             for p in filtered_picks:
-                rows.append({
-                    # --- event provenance ---
-                    "event_source": "monthly",
-                    "monthly_file": pha_file.name,
-                    "monthly_block_id": monthly_block_id,
+                pick_counter += 1
 
-                    # --- pick info ---
-                    "seed_id": p.get("seed_id"),
+                rows.append({
+                    "raw_line": p.get("raw_line"),
+                    "raw_lineno": p.get("raw_lineno"),                    
+                    "event_id": event_id,
+                    "event_id_source": "monthly_phase_block",
+                    "pick_id": f"monpha_{event_id}_{pick_counter}",
+                    "pha_file": pha_file.name,
                     "station": p.get("station"),
                     "channel": p.get("channel"),
+                    "seed_id": p.get("seed_id"),
                     "phase": p.get("phase"),
                     "pick_time": str(p.get("time")),
-
-                    # --- attributes ---
                     "onset": p.get("onset"),
                     "first_motion": p.get("first_motion"),
                     "weight": p.get("weight"),
                 })
+    
 
     if not rows:
         raise SystemExit("No valid monthly picks produced")
 
     df = pd.DataFrame(rows)
     df.sort_values(
-        ["monthly_block_id", "station", "pick_time"],
+        ["event_id", "station", "pick_time"],
         inplace=True,
     )
 

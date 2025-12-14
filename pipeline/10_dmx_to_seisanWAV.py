@@ -85,6 +85,18 @@ def fix_pinatubo_trace_id(trace, netcode="XB"):
 
 
 def write_wavfile(st, seisan_wav_db, db, nchan):
+    t = st[0].stats.starttime
+    outdir = Path(seisan_wav_db) / f"{t.year:04d}" / f"{t.month:02d}"
+    fname = (
+        f"{t.year:04d}-{t.month:02d}-{t.day:02d}-"
+        f"{t.hour:02d}{t.minute:02d}-{t.second:02d}M."
+        f"{db}_{nchan:03d}"
+    )
+    outpath = outdir / fname
+    if outpath.exists():
+        return outpath
+    outdir.mkdir(parents=True, exist_ok=True)
+
     st.sort(keys=["station", "channel"])
     st.merge(method=1, fill_value=0)
     st.trim(
@@ -93,18 +105,7 @@ def write_wavfile(st, seisan_wav_db, db, nchan):
         pad=True,
         fill_value=0,
     )
-
-    t = st[0].stats.starttime
-    fname = (
-        f"{t.year:04d}-{t.month:02d}-{t.day:02d}-"
-        f"{t.hour:02d}{t.minute:02d}-{t.second:02d}M."
-        f"{db}_{nchan:03d}"
-    )
-
-    outdir = Path(seisan_wav_db) / f"{t.year:04d}" / f"{t.month:02d}"
-    outdir.mkdir(parents=True, exist_ok=True)
-
-    outpath = outdir / fname
+    
     st.write(str(outpath), format="MSEED")
     return outpath
 
