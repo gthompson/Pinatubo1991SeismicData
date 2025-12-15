@@ -36,13 +36,12 @@ LEGACY_HYPO_DIR="${LEGACY_EVENTMETA_DIR}/HYPOCENTERS"
 SUMMARY_FILE_40="${LEGACY_HYPO_DIR}/Pinatubo_all.sum"
 PINAALL_DAT_FILE_41="${LEGACY_HYPO_DIR}/PINAALL.DAT"
 
+FAIR_WAVEFORM_INDEX="${SEISAN_WAV_DB}/10_waveform_index.csv" 
 FAIR_META_DIR="${FAIR_TOP}/metadata"
 FAIR_PHA_DIR="${FAIR_META_DIR}/pha"
 FAIR_HYPO_DIR="${FAIR_META_DIR}/hypo71"
 FAIR_ASSOC_DIR="${FAIR_META_DIR}/association"
 QC_DIR="${FAIR_META_DIR}/qc"
-
-WAVEFORM_INDEX="${SEISAN_WAV_DB}/01_waveform_index.csv"
 
 mkdir -p "${FAIR_PHA_DIR}" "${FAIR_HYPO_DIR}" "${FAIR_ASSOC_DIR}" "${QC_DIR}"
 
@@ -51,18 +50,21 @@ mkdir -p "${FAIR_PHA_DIR}" "${FAIR_HYPO_DIR}" "${FAIR_ASSOC_DIR}" "${QC_DIR}"
 ###############################################################################
 ENABLE_STEP_10=false   # DMX → SEISAN WAV (+ index)
 ENABLE_STEP_11=false   # Waveform archive diagnostics
-ENABLE_STEP_20=true   # Individual PHA → CSV
-ENABLE_STEP_21=true   # Monthly PHA → CSV
-ENABLE_STEP_22=true   # Merge picks
-ENABLE_STEP_23=true   # Plot pick/event diagnostics for Step 20/21/22
-ENABLE_STEP_30=true   # Associate individual picks with waveforms
-ENABLE_STEP_32=true   # Build waveform-centered event catalog (waveforms ↔ pick events)
-ENABLE_STEP_33=true   # Plot waveform ↔ pick association diagnostics
+ENABLE_STEP_20=false   # Individual PHA → CSV
+ENABLE_STEP_21=false   # Monthly PHA → CSV
+ENABLE_STEP_22=false   # Merge picks
+ENABLE_STEP_23=false   # Plot pick/event diagnostics for Step 20/21/22
+ENABLE_STEP_30=false   # Associate individual picks with waveforms
+ENABLE_STEP_32=false   # Build waveform-centered event catalog (waveforms ↔ pick events)
+ENABLE_STEP_33=false   # Plot waveform ↔ pick association diagnostics
 ENABLE_STEP_40=false   # HYPO71 summary (Pinatubo_all.sum) → hypocenter index
 ENABLE_STEP_41=false   # PINAALL.DAT → hypocenter index
 ENABLE_STEP_42=false   # Compare hypocenter indexes
 ENABLE_STEP_43=false   # Associate hypocenters into unified events
-ENABLE_STEP_50=false    # Build ObsPy Catalog (QuakeML)
+ENABLE_STEP_44=false   # Plot hypocenter diagnostics
+ENABLE_STEP_50=true    # Build ObsPy Catalog (QuakeML)
+ENABLE_STEP_52=true    # Build SEISAN REA catalog
+ENABLE_STEP_53=true
 
 ###############################################################################
 # STEP 10 — DMX → SEISAN WAV (+ index)
@@ -77,7 +79,7 @@ if [ "${ENABLE_STEP_10}" = true ]; then
         --net "${NET}" \
         --fix-fs "${FIX_FS}" \
         --glob "${DMX_GLOB}" \
-        --out-waveform-index "${SEISAN_WAV_DB}/10_waveform_index.csv" \
+        --out-waveform-index "${FAIR_WAVEFORM_INDEX}" \
         --out-trace-id-map "${FAIR_META_DIR}/10_trace_id_mapping.csv" \
         --out-trace-id-map-tex "${FAIR_META_DIR}/10_trace_id_mapping.tex" \
         --verbose
@@ -94,7 +96,7 @@ WAVEFORM_QC_DIR="${FAIR_META_DIR}/waveform_qc"
 if [ "${ENABLE_STEP_11}" = true ]; then
     echo "=== STEP 11: Waveform time-series diagnostics ==="
     python "${CODE_TOP}/11_waveform_timeseries_diagnostics.py" \
-        --waveform-index "${SEISAN_WAV_DB}/10_waveform_index.csv" \
+        --waveform-index "${FAIR_WAVEFORM_INDEX}" \
         --outdir "${WAVEFORM_QC_DIR}" \
         --net "${NET}"
 else
@@ -165,7 +167,7 @@ if [ "${ENABLE_STEP_23}" = true ]; then
     python "${CODE_TOP}/23_plot_pick_event_diagnostics.py" \
         --individual "${INDIV_PHA_CSV}" \
         --monthly "${MONTHLY_PHA_CSV}" \
-        --merged "${MERGED_PICKS_CSV}" \
+        --merged "${MERGED_PHA_CSV}" \
         --outdir "${STEP23_DIR}" \
         --top-stations 10 \
         --ps-delay-max 60 \
@@ -176,18 +178,18 @@ else
 fi
 
 ###############################################################################
-# STEP 30 — Associate individual PHA events with waveform files
+# STEP 30 — Associate authoritative individual picks with waveforms
 ###############################################################################
+
 INDIV_WAVEFORM_EVENT_CSV="${FAIR_ASSOC_DIR}/30_individual_waveform_event_index.csv"
 INDIV_PICK_WAVEFORM_MAP="${FAIR_ASSOC_DIR}/30_individual_pick_waveform_map.csv"
 INDIV_WAVEFORM_QC="${QC_DIR}/30_individual_waveform_qc.csv"
 
-
 if [ "${ENABLE_STEP_30}" = true ]; then
-    echo "=== STEP 30: Associating individual PHA events with waveform files ==="
+    echo "=== STEP 30: Associating individual picks with waveform files ==="
     python "${CODE_TOP}/30_associate_individual_picks_with_waveforms.py" \
-        --individual-picks "${INDIV_PHA_CSV}" \
-        --waveform-index "${WAVEFORM_INDEX}" \
+        --merged-picks "${MERGED_PHA_CSV}" \
+        --waveform-index "${FAIR_WAVEFORM_INDEX}" \
         --out-event-csv "${INDIV_WAVEFORM_EVENT_CSV}" \
         --out-pick-map-csv "${INDIV_PICK_WAVEFORM_MAP}" \
         --out-qc-csv "${INDIV_WAVEFORM_QC}"
@@ -209,9 +211,9 @@ mkdir -p "${EVENT_DIR}" "${QC_DIR}"
 
 if [ "${ENABLE_STEP_32}" = true ]; then
     echo "=== STEP 32: Building authoritative event catalog ==="
-    python "${CODE_TOP}/32_build_event_catalog.py" \
-        --waveform-index "${WAVEFORM_INDEX}" \
-        --merged-picks "${MERGED_PICKS_CSV}" \
+    python "${CODE_TOP}/32_build_waveform_pick_events.py" \
+        --waveform-index "${FAIR_WAVEFORM_INDEX}" \
+        --merged-picks "${MERGED_PHA_CSV}" \
         --individual-pick-waveform-map "${INDIV_PICK_WAVEFORM_MAP}" \
         --out-event-csv "${EVENT_CSV}" \
         --out-pick-map-csv "${PICK_MAP_CSV}" \
@@ -233,7 +235,7 @@ mkdir -p "${STEP33_DIR}"
 if [ "${ENABLE_STEP_33}" = true ]; then
     echo "=== STEP 33: Plotting event association diagnostics ==="
     python "${CODE_TOP}/33_plot_event_association_diagnostics.py" \
-        --waveform-index "${WAVEFORM_INDEX}" \
+        --waveform-index "${FAIR_WAVEFORM_INDEX}" \
         --step30-event-csv "${INDIV_WAVEFORM_EVENT_CSV}" \
         --event-catalog "${EVENT_CSV}" \
         --pick-map "${PICK_MAP_CSV}" \
@@ -284,8 +286,8 @@ mkdir -p "${COMPARE_DIR}"
 if [ "${ENABLE_STEP_42}" = true ]; then
     echo "=== STEP 42: Comparing PINAALL vs HYPO71 hypocenter indexes ==="
     python "${CODE_TOP}/42_compare_hypocenter_indexes.py" \
-        --hypo05 "${HYPO_CSV}" \
-        --hypo06 "${PINAALL_CSV}" \
+        --hypo40 "${HYPO_CSV}" \
+        --hypo41 "${PINAALL_CSV}" \
         --out-prefix "${COMPARE_PREFIX}"
 else
     echo "=== STEP 42: SKIPPED ==="
@@ -300,19 +302,30 @@ HYPO_ORIGIN_CSV="${HYPO_EVENT_DIR}/43_event_origins.csv"
 mkdir -p "${HYPO_EVENT_DIR}"
 
 TIME_TOL_S=5.0
-DIST_TOL_KM=2.0
-PREFERRED_SOURCE="hypo05"  # options: hypo05 | pinaall
+DIST_TOL_KM=10.0
+PREFERRED_SOURCE="hypo40"  # options: hypo05 | pinaall
 
 if [ "${ENABLE_STEP_43}" = true ]; then
     echo "=== STEP 43: Associating hypocenters into events ==="
     python "${CODE_TOP}/43_associate_hypocenters.py" \
-        --hypo05 "${HYPO_CSV}" \
-        --hypo06 "${PINAALL_CSV}" \
+        --hypo40 "${HYPO_CSV}" \
+        --hypo41 "${PINAALL_CSV}" \
         --time-tol "${TIME_TOL_S}" \
         --dist-tol "${DIST_TOL_KM}" \
         --preferred-source "${PREFERRED_SOURCE}" \
+        --emit-diagnostics \
         --out-event-csv "${HYPO_EVENT_CSV}" \
         --out-origin-csv "${HYPO_ORIGIN_CSV}"
+else
+    echo "=== STEP 43: SKIPPED ==="
+fi
+
+if [ "${ENABLE_STEP_44}" = true ]; then
+    echo "=== STEP 44: Plot hypocenters per day ==="
+    python "${CODE_TOP}/44_plot_hypocenters_per_day.py" \
+        --hypo40 "${FAIR_HYPO_DIR}/40_hypocenter_index_pinatubo_all.csv" \
+        --hypo41 "${FAIR_HYPO_DIR}/41_pinaall_hypocenter_index.csv" \
+        --out "${FAIR_HYPO_DIR}/comparisons/44_hypocenters_per_day.png"
 else
     echo "=== STEP 43: SKIPPED ==="
 fi
@@ -338,4 +351,46 @@ if [ "${ENABLE_STEP_50}" = true ]; then
         --out-quakeml "${QUAKEML_OUT}"
 else
     echo "=== STEP 50: SKIPPED ==="
+fi
+
+###############################################################################
+# STEP 52 — Build SEISAN REA catalog
+###############################################################################
+
+REA_DIR="${FAIR_TOP}/SEISAN/REA"
+
+if [ "${ENABLE_STEP_52}" = true ]; then
+    echo "=== STEP 52: Building SEISAN REA catalog ==="
+    python "${CODE_TOP}/52_build_seisan_rea_catalog.py" \
+        --quakeml "${QUAKEML_OUT}" \
+        --rea-dir "${REA_DIR}" \
+        --author "GT__" \
+        --evtype "L"
+else
+    echo "=== STEP 52: SKIPPED ==="
+fi
+
+###############################################################################
+# STEP 53 — SEISAN REA sanity checks & diagnostics
+###############################################################################
+
+SEISAN_DIAG_DIR="${FAIR_TOP}/diagnostics/seisan"
+STEP53_CSV="${SEISAN_DIAG_DIR}/53_seisan_rea_daily_summary.csv"
+STEP53_PLOT="${SEISAN_DIAG_DIR}/53_seisan_rea_daily_summary.png"
+
+mkdir -p "${SEISAN_DIAG_DIR}"
+
+if [ "${ENABLE_STEP_53}" = true ]; then
+    echo "=== STEP 53: SEISAN REA diagnostics ==="
+
+    python "${CODE_TOP}/53_seisan_rea_diagnostics.py" \
+        --rea-dir "${REA_DIR}" \
+        --db-name "PNTBO" \
+        #--out-csv "${STEP53_CSV}" \
+        #--out-plot "${STEP53_PLOT}" \
+        --out-dir "$SEISAN_DIAG_DIR" \
+        --wavefile-regex "$WAVE_RE"
+
+else
+    echo "=== STEP 53: SKIPPED ==="
 fi

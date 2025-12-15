@@ -156,7 +156,8 @@ def merge_pick_tables(
             suffixes=("", "_prim"),
         )
 
-        matched = m["pick_time_dt_prim"].notna()
+        #matched = m["pick_time_dt_prim"].notna()
+        matched = m["seed_norm_prim"].notna()
         suppress_sec.append(sec_block.loc[matched.values])
         keep_sec.append(sec_block.loc[~matched.values])
 

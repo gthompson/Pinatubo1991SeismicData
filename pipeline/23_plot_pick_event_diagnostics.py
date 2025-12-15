@@ -383,7 +383,7 @@ def plot_ps_delay_box_by_station(ps: pd.DataFrame, top_stations: int, outpath: P
             continue
 
         plt.figure(figsize=(11, 4))
-        plt.boxplot(data, labels=labels, showfliers=False)
+        plt.boxplot(data, tick_labels=labels, showfliers=False)
         plt.title(f"{title} — {source} (top {top_stations} stations)")
         plt.xlabel("Station")
         plt.ylabel("P–S delay (s)")
@@ -438,7 +438,7 @@ def build_qc_flags(
             sub["station"] = sub["station"].astype("string").fillna("").str.strip()
             sub = sub[sub["station"].ne("")]
 
-// Stations with P
+            # Stations with P
             st_p = set(sub.loc[sub["phase"] == "P", "station"].unique().tolist())
             st_s = set(sub.loc[sub["phase"] == "S", "station"].unique().tolist())
             if st_p:

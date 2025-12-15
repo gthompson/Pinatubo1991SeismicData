@@ -7,15 +7,13 @@ STEP 43 of the Pinatubo FAIR pipeline
 Associate hypocenters from multiple sources into seismic events
 based on time and spatial proximity.
 
-Uses exact origin values from STEP 40 and STEP 41 and links them
-into event groups using:
-  • time tolerance (seconds)
-  • distance tolerance (kilometers)
+Enhancements:
+-------------
+• Step-42-style reconciliation diagnostics (fuzzy match)
+• Explicit reporting of hypo40 vs pinaall contribution
+• Optional CSV diagnostics for publication / QA
 
-Outputs:
---------
-• Event-level CSV
-• Origin-level CSV
+Association logic is UNCHANGED.
 """
 
 from __future__ import annotations
@@ -58,6 +56,10 @@ def main():
     ap.add_argument("--out-event-csv", required=True)
     ap.add_argument("--out-origin-csv", required=True)
 
+    # NEW (optional)
+    ap.add_argument("--emit-diagnostics", action="store_true",
+                    help="Write Step-42-style fuzzy reconciliation CSVs")
+
     args = ap.parse_args()
 
     # ------------------------------------------------------------------
@@ -98,7 +100,7 @@ def main():
     )
 
     # ------------------------------------------------------------------
-    # Event association
+    # Event association (UNCHANGED)
     # ------------------------------------------------------------------
 
     events: List[Dict] = []
@@ -113,7 +115,6 @@ def main():
 
         event_id += 1
         assigned[i] = True
-
         members = [i]
 
         for j in range(i + 1, len(all_origins)):
@@ -139,12 +140,8 @@ def main():
 
         group = all_origins.loc[members]
 
-        # Preferred origin selection
         preferred = group[group["source"] == args.preferred_source]
-        if preferred.empty:
-            preferred = group.iloc[[0]]
-        else:
-            preferred = preferred.iloc[[0]]
+        preferred = preferred.iloc[[0]] if not preferred.empty else group.iloc[[0]]
 
         events.append({
             "event_id": event_id,
@@ -159,7 +156,7 @@ def main():
         for _, o in group.iterrows():
             origins_out.append({
                 "event_id": event_id,
-                "origin_id": o["origin_id"],       
+                "origin_id": o["origin_id"],
                 "origin_time": o["origin_time"].isoformat(),
                 "latitude": o["latitude"],
                 "longitude": o["longitude"],
@@ -169,18 +166,39 @@ def main():
                 "source_file": o["source_file"],
                 "source_line": o["source_line"],
             })
+
     # ------------------------------------------------------------------
-    # Write outputs
+    # Write primary outputs
     # ------------------------------------------------------------------
 
     out_event = Path(args.out_event_csv)
     out_origin = Path(args.out_origin_csv)
-
     out_event.parent.mkdir(parents=True, exist_ok=True)
-    out_origin.parent.mkdir(parents=True, exist_ok=True)
 
-    pd.DataFrame(events).to_csv(out_event, index=False)
-    pd.DataFrame(origins_out).to_csv(out_origin, index=False)
+    df_events = pd.DataFrame(events)
+    df_origins = pd.DataFrame(origins_out)
+
+    df_events.to_csv(out_event, index=False)
+    df_origins.to_csv(out_origin, index=False)
+
+    # ------------------------------------------------------------------
+    # Diagnostics (NEW)
+    # ------------------------------------------------------------------
+
+    comp = (
+        df_origins
+        .groupby(["event_id", "source"])
+        .size()
+        .unstack(fill_value=0)
+        .reset_index()
+    )
+
+    comp["has_hypo40"] = comp.get("hypo40", 0) > 0
+    comp["has_pinaall"] = comp.get("pinaall", 0) > 0
+
+    both = comp[comp["has_hypo40"] & comp["has_pinaall"]]
+    hypo40_only = comp[comp["has_hypo40"] & ~comp["has_pinaall"]]
+    pinaall_only = comp[~comp["has_hypo40"] & comp["has_pinaall"]]
 
     # ------------------------------------------------------------------
     # Report
@@ -188,11 +206,38 @@ def main():
 
     print("\nSTEP 43 — HYPOCENTER ASSOCIATION COMPLETE")
     print("----------------------------------------")
-    print(f"Total events:   {len(events)}")
-    print(f"Total origins:  {len(origins_out)}")
-    print(f"Event CSV:      {out_event}")
-    print(f"Origin CSV:     {out_origin}")
+    print(f"Total events:            {len(df_events)}")
+    print(f"Total origins:           {len(df_origins)}")
+    print("")
+    print("FUZZY RECONCILIATION SUMMARY")
+    print("============================")
+    print(f"Events with both sources: {len(both)}")
+    print(f"Events with hypo40 only:  {len(hypo40_only)}")
+    print(f"Events with pinaall only: {len(pinaall_only)}")
+    print("")
+    print("ORIGIN COUNTS")
+    print("-------------")
+    print(f"Hypo40 origins:  {(df_origins['source'] == 'hypo40').sum()}")
+    print(f"Pinaall origins: {(df_origins['source'] == 'pinaall').sum()}")
+    print("")
+    print(f"Event CSV:  {out_event}")
+    print(f"Origin CSV: {out_origin}")
 
+    # ------------------------------------------------------------------
+    # Optional diagnostic CSVs
+    # ------------------------------------------------------------------
+
+    if args.emit_diagnostics:
+        diag_dir = out_event.parent / "diagnostics"
+        diag_dir.mkdir(parents=True, exist_ok=True)
+
+        comp.to_csv(diag_dir / "43_event_source_composition.csv", index=False)
+        both.to_csv(diag_dir / "43_events_with_both_sources.csv", index=False)
+        hypo40_only.to_csv(diag_dir / "43_events_hypo40_only.csv", index=False)
+        pinaall_only.to_csv(diag_dir / "43_events_pinaall_only.csv", index=False)
+
+        print("\nDiagnostic CSVs written to:")
+        print(f"  {diag_dir}")
 
 if __name__ == "__main__":
     main()
