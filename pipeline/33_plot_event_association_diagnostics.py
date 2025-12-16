@@ -46,8 +46,7 @@ def main():
     args = ap.parse_args()
 
     outdir = Path(args.outdir)
-    plots = outdir / "plots"
-    plots.mkdir(parents=True, exist_ok=True)
+    outdir.mkdir(parents=True, exist_ok=True)
 
     # -------------------------------------------------------------------------
     # Load data
@@ -86,7 +85,7 @@ def main():
     plt.xlabel("Date (UTC)")
     plt.ylabel("Count")
     plt.grid(True, alpha=0.3)
-    savefig(plots / "33_waveform_coverage.png")
+    savefig(outdir / "33_waveform_coverage.png")
 
     # -------------------------------------------------------------------------
     # Pick-only vs waveform events
@@ -100,7 +99,7 @@ def main():
     plt.xlabel("Date (UTC)")
     plt.ylabel("Events")
     plt.grid(True, alpha=0.3)
-    savefig(plots / "33_event_types.png")
+    savefig(outdir / "33_event_types.png")
 
     # -------------------------------------------------------------------------
     # Picks per event
@@ -127,7 +126,7 @@ def main():
         plt.xlabel("Date (UTC)")
         plt.ylabel("Mean picks")
         plt.grid(True, alpha=0.3)
-        savefig(plots / "33_mean_picks_per_event.png")
+        savefig(outdir / "33_mean_picks_per_event.png")
 
     # -------------------------------------------------------------------------
     # Primary vs secondary picks
@@ -149,10 +148,10 @@ def main():
         plt.ylabel("Fraction")
         plt.ylim(0, 1)
         plt.grid(True, alpha=0.3)
-        savefig(plots / "33_primary_pick_fraction.png")
+        savefig(outdir / "33_primary_pick_fraction.png")
 
     print("\n=== STEP 33 COMPLETE ===")
-    print(f"Plots written to: {plots}")
+    print(f"plots written to: {outdir}")
 
 
 if __name__ == "__main__":

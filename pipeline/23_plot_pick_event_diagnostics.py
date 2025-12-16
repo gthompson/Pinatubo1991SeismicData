@@ -73,11 +73,6 @@ def day_floor_utc(ts: pd.Series) -> pd.Series:
     return ts.dt.floor("D")
 
 
-def mkdirs(*paths: Path) -> None:
-    for p in paths:
-        p.mkdir(parents=True, exist_ok=True)
-
-
 def savefig(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     plt.tight_layout()
@@ -473,9 +468,6 @@ def main() -> None:
     args = ap.parse_args()
 
     outdir = Path(args.outdir)
-    plots_dir = outdir / "plots"
-    csv_dir = outdir / "csv"
-    mkdirs(plots_dir, csv_dir)
 
     sources: List[Tuple[str, Optional[str]]] = [
         ("individual", args.individual),
@@ -509,45 +501,45 @@ def main() -> None:
 
     # Write CSVs
     if args.emit_csv:
-        daily_picks.to_csv(csv_dir / "23_daily_pick_counts.csv", index=False)
-        daily_events.to_csv(csv_dir / "23_daily_event_counts.csv", index=False)
-        event_stats.to_csv(csv_dir / "23_event_size_stats.csv", index=False)
-        station_rates.to_csv(csv_dir / "23_station_pick_rates.csv", index=False)
-        phase_counts.to_csv(csv_dir / "23_phase_counts.csv", index=False)
+        daily_picks.to_csv(outdir / "23_daily_pick_counts.csv", index=False)
+        daily_events.to_csv(outdir / "23_daily_event_counts.csv", index=False)
+        event_stats.to_csv(outdir / "23_event_size_stats.csv", index=False)
+        station_rates.to_csv(outdir / "23_station_pick_rates.csv", index=False)
+        phase_counts.to_csv(outdir / "23_phase_counts.csv", index=False)
         # P-S table (full, includes ok flag)
         if not ps.empty:
-            ps.to_csv(csv_dir / "23_ps_delay_distribution.csv", index=False)
+            ps.to_csv(outdir / "23_ps_delay_distribution.csv", index=False)
         # Event table useful for deeper debugging
-        ev_all.to_csv(csv_dir / "23_event_table.csv", index=False)
+        ev_all.to_csv(outdir / "23_event_table.csv", index=False)
 
     # Plots: time series
-    plot_timeseries_multi(daily_picks, "n_picks", "Picks per day (UTC)", plots_dir / "23_picks_per_day.png")
-    plot_timeseries_multi(daily_events, "n_events", "Events per day (UTC)", plots_dir / "23_events_per_day.png")
-    plot_timeseries_stat(ev_all, "n_picks", "Median picks per event per day (UTC)", plots_dir / "23_median_picks_per_event_per_day.png")
-    plot_timeseries_stat(ev_all, "duration_s", "Median event duration (s) per day (UTC)", plots_dir / "23_median_event_duration_per_day.png")
+    plot_timeseries_multi(daily_picks, "n_picks", "Picks per day (UTC)", outdir / "23_picks_per_day.png")
+    plot_timeseries_multi(daily_events, "n_events", "Events per day (UTC)", outdir / "23_events_per_day.png")
+    plot_timeseries_stat(ev_all, "n_picks", "Median picks per event per day (UTC)", outdir / "23_median_picks_per_event_per_day.png")
+    plot_timeseries_stat(ev_all, "duration_s", "Median event duration (s) per day (UTC)", outdir / "23_median_event_duration_per_day.png")
 
     # Plots: distributions
-    plot_hist_by_source(ev_all, "n_picks", "Distribution: picks per event", plots_dir / "23_hist_picks_per_event.png", bins=60)
-    plot_hist_by_source(ev_all, "duration_s", "Distribution: event duration (s)", plots_dir / "23_hist_event_duration_s.png", bins=80)
+    plot_hist_by_source(ev_all, "n_picks", "Distribution: picks per event", outdir / "23_hist_picks_per_event.png", bins=60)
+    plot_hist_by_source(ev_all, "duration_s", "Distribution: event duration (s)", outdir / "23_hist_event_duration_s.png", bins=80)
 
     if not ps.empty:
         # Use only ok delays for histogram (less dominated by parser bugs)
         ps_ok = ps[ps["ps_delay_ok"]].copy()
         if not ps_ok.empty:
-            plot_hist_by_source(ps_ok, "ps_delay_s", f"Distribution: P–S delay (<= {args.ps_delay_max}s)", plots_dir / "23_hist_ps_delay_s.png", bins=80)
+            plot_hist_by_source(ps_ok, "ps_delay_s", f"Distribution: P–S delay (<= {args.ps_delay_max}s)", outdir / "23_hist_ps_delay_s.png", bins=80)
         else:
             # still write a plot showing "nothing ok"
             plt.figure(figsize=(8, 3))
             plt.title("P–S delay: no values within configured bounds")
             plt.text(0.01, 0.5, "All P–S delays fell outside [0, ps-delay-max].", transform=plt.gca().transAxes)
             plt.axis("off")
-            savefig(plots_dir / "23_hist_ps_delay_s.png")
+            savefig(outdir / "23_hist_ps_delay_s.png")
 
-        plot_ps_delay_box_by_station(ps, top_stations=int(args.top_stations), outpath=plots_dir / "23_box_ps_delay_by_station.png", title="P–S delay by station")
+        plot_ps_delay_box_by_station(ps, top_stations=int(args.top_stations), outpath=outdir / "23_box_ps_delay_by_station.png", title="P–S delay by station")
 
     # Plots: station & phase health
-    plot_station_stacked_area(station_rates, top_stations=int(args.top_stations), outpath=plots_dir / "23_station_pick_counts_stacked.png", title="Top-station pick counts (stacked area)")
-    plot_phase_fraction(phase_counts, outpath=plots_dir / "23_phase_fraction.png", title="Phase fraction over time (stacked)")
+    plot_station_stacked_area(station_rates, top_stations=int(args.top_stations), outpath=outdir / "23_station_pick_counts_stacked.png", title="Top-station pick counts (stacked area)")
+    plot_phase_fraction(phase_counts, outpath=outdir / "23_phase_fraction.png", title="Phase fraction over time (stacked)")
 
     # QC flags JSON
     if args.emit_qc:
@@ -560,9 +552,9 @@ def main() -> None:
     print("\n=== STEP 23 COMPLETE ===")
     print(f"Total picks (all sources): {len(df_all)}")
     print(f"Total events (all sources): {len(ev_all)}")
-    print(f"Plots dir: {plots_dir}")
+    print(f"Plots dir: {outdir}")
     if args.emit_csv:
-        print(f"CSV dir:   {csv_dir}")
+        print(f"CSV dir:   {outdir}")
 
 
 if __name__ == "__main__":

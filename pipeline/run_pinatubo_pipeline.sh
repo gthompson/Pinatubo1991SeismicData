@@ -1,12 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-#Step 10 ─┐
-#         ├─ Step 30 ─┐
-#Step 20 ─┘           │
-#                     ├─ Step 32 → Final Event Catalog
-#Step 21 ── Step 22 ──┘
-
 ###############################################################################
 # CONFIGURATION
 ###############################################################################
@@ -14,36 +8,29 @@ set -euo pipefail
 DATA_TOP="$HOME/Dropbox/PROFESSIONAL/DATA/Pinatubo/ASSEMBLED-25-028-THOMPSON-PINATUBO1991"
 CODE_TOP="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
+# Legacy data 
 LEGACY_TOP="$DATA_TOP/LEGACY"
 SUDS_TOP="$LEGACY_TOP/WAVEFORM_DATA/SUDS"
-
-FAIR_TOP="$DATA_TOP/FAIR"
-
-DB="PNTBO"
-NET="XB"
-
-SEISAN_TOP="${FAIR_TOP}/SEISAN"
-SEISAN_WAV_DB="${SEISAN_TOP}/WAV/${DB}"
-
 FIX_FS=100.0
 DMX_GLOB="**/*.DMX"
-
 LEGACY_EVENTMETA_DIR="${LEGACY_TOP}/EVENT_METADATA"
 LEGACY_PHA_MONTHLY_DIR="${LEGACY_EVENTMETA_DIR}/MONTHLY_PHA"
 LEGACY_PHA_INDIVIDUAL_DIR="${LEGACY_EVENTMETA_DIR}/PHA"
 LEGACY_HYPO_DIR="${LEGACY_EVENTMETA_DIR}/HYPOCENTERS"
 
-SUMMARY_FILE_40="${LEGACY_HYPO_DIR}/Pinatubo_all.sum"
-PINAALL_DAT_FILE_41="${LEGACY_HYPO_DIR}/PINAALL.DAT"
-
-FAIR_WAVEFORM_INDEX="${SEISAN_WAV_DB}/10_waveform_index.csv" 
+# FAIR data
+FAIR_TOP="$DATA_TOP/FAIR"
+DB="PNTBO"
+NET="XB"
+SEISAN_TOP="${FAIR_TOP}/SEISAN"
+SEISAN_WAV_DB="${SEISAN_TOP}/WAV/${DB}"
 FAIR_META_DIR="${FAIR_TOP}/metadata"
-FAIR_PHA_DIR="${FAIR_META_DIR}/pha"
-FAIR_HYPO_DIR="${FAIR_META_DIR}/hypo71"
-FAIR_ASSOC_DIR="${FAIR_META_DIR}/association"
-QC_DIR="${FAIR_META_DIR}/qc"
+mkdir -p "${FAIR_META_DIR}" "${SEISAN_WAV_DB}"
 
-mkdir -p "${FAIR_PHA_DIR}" "${FAIR_HYPO_DIR}" "${FAIR_ASSOC_DIR}" "${QC_DIR}"
+# Intermediate processing paths
+TMP_DIR="${DATA_TOP}/pipeline_tmp"
+QC_DIR="${TMP_DIR}/qc"
+mkdir -p "${QC_DIR}"
 
 ###############################################################################
 # STEP SWITCHES (match script numbering)
@@ -68,7 +55,12 @@ ENABLE_STEP_53=true
 
 ###############################################################################
 # STEP 10 — DMX → SEISAN WAV (+ index)
+# This is the first step in the pipeline. It converts legacy DMX files to SEISAN WAV files
+# and builds an index of the waveforms that we can use to associate picks and hypocenters with waveforms.
 ###############################################################################
+WAVEFORM_INDEX="${TMP_DIR}/10_waveform_index.csv" 
+TRANSLATION_CSV="${FAIR_META_DIR}/10_trace_id_mapping.csv"
+TRANSLATION_TEX="${FAIR_META_DIR}/10_trace_id_mapping.tex"
 
 if [ "${ENABLE_STEP_10}" = true ]; then
     echo "=== STEP 10: DMX → SEISAN WAV ==="
@@ -79,9 +71,9 @@ if [ "${ENABLE_STEP_10}" = true ]; then
         --net "${NET}" \
         --fix-fs "${FIX_FS}" \
         --glob "${DMX_GLOB}" \
-        --out-waveform-index "${FAIR_WAVEFORM_INDEX}" \
-        --out-trace-id-map "${FAIR_META_DIR}/10_trace_id_mapping.csv" \
-        --out-trace-id-map-tex "${FAIR_META_DIR}/10_trace_id_mapping.tex" \
+        --out-waveform-index "${WAVEFORM_INDEX}" \
+        --out-trace-id-map "${TRANSLATION_CSV}" \
+        --out-trace-id-map-tex "${TRANSLATION_TEX}" \
         --verbose
 else
     echo "=== STEP 10: SKIPPED ==="
@@ -89,65 +81,71 @@ fi
 ###############################################################################
 # STEP 11 — Waveform archive diagnostics
 ###############################################################################
-ENABLE_STEP_11=true
-
-WAVEFORM_QC_DIR="${FAIR_META_DIR}/waveform_qc"
-
 if [ "${ENABLE_STEP_11}" = true ]; then
     echo "=== STEP 11: Waveform time-series diagnostics ==="
     python "${CODE_TOP}/11_waveform_timeseries_diagnostics.py" \
-        --waveform-index "${FAIR_WAVEFORM_INDEX}" \
-        --outdir "${WAVEFORM_QC_DIR}" \
+        --waveform-index "${WAVEFORM_INDEX}" \
+        --outdir "${QC_DIR}" \
         --net "${NET}"
 else
     echo "=== STEP 11: SKIPPED ==="
 fi
 ###############################################################################
-# STEP 20 — Individual PHA files → pick index
+# STEP 20 — Individual PHA files → pick event index
+# We only have individual PHA files for the two days: June 3 and 10, 1991
+# Ideally we would have them for every waveform file, making association easier.
+# Instead we use the monthly PHA files to fill in gaps, but these are more 
+# challenging to parse and associate.
 ###############################################################################
-INDIV_PHA_CSV="${FAIR_PHA_DIR}/20_individual_pha_picks.csv"
-INDIV_LOGFILE="${FAIR_PHA_DIR}/20_individual_pha_parse_errors.log"
+INDIV_PICK_INDEX="${TMP_DIR}/20_individual_pick_index.csv"
+INDIV_LOGFILE="${TMP_DIR}/20_individual_pick_parse_errors.log"
 
 if [ "${ENABLE_STEP_20}" = true ]; then
     echo "=== STEP 20: Parsing individual PHA files ==="
     python "${CODE_TOP}/20_parse_individual_phase_files.py" \
         --pha-root "${LEGACY_PHA_INDIVIDUAL_DIR}" \
-        --out-csv "${INDIV_PHA_CSV}" \
+        --out-csv "${INDIV_PICK_INDEX}" \
         --error-log "${INDIV_LOGFILE}"
 else
     echo "=== STEP 20: SKIPPED ==="
 fi
 
 ###############################################################################
-# STEP 21 — Monthly PHA files → pick index
+# STEP 21 — Monthly PHA files → pick event index
+# We parse the monthly PHA files to get picks for May-Aug 1991, but these are
+# secondary to the individual PHA files and are more challenging to parse.
 ###############################################################################
-MONTHLY_PHA_CSV="${FAIR_PHA_DIR}/21_monthly_pha_picks.csv"
-MONTHLY_PHA_ERR="${FAIR_PHA_DIR}/21_monthly_pha_parse_errors.log"
+MONTHLY_PICK_INDEX="${TMP_DIR}/21_monthly_pick_index.csv"
+MONTHLY_PICK_ERR="${TMP_DIR}/21_monthly_pick_parse_errors.log"
 
 if [ "${ENABLE_STEP_21}" = true ]; then
     echo "=== STEP 21: Parsing monthly PHA files ==="
     python "${CODE_TOP}/21_parse_monthly_phase_files.py" \
         --pha-dir "${LEGACY_PHA_MONTHLY_DIR}" \
-        --out-csv "${MONTHLY_PHA_CSV}" \
-        --error-log "${MONTHLY_PHA_ERR}"
+        --out-csv "${MONTHLY_PICK_INDEX}" \
+        --error-log "${MONTHLY_PICK_ERR}"
 else
     echo "=== STEP 21: SKIPPED ==="
 fi
 
 ###############################################################################
-# STEP 22 — Merge individual + monthly picks
+# STEP 22 — Merge individual + monthly pick event indexes
+# We treat the monthly picks as secondary to the individual picks, so we use a
+# time tolerance to avoid double-counting picks that are close in time.
+# Then we add unassociated monthly picks to the merged index.
 ###############################################################################
-MERGED_PHA_CSV="${FAIR_PHA_DIR}/22_merged_pha_picks.csv"
-MERGED_PHA_SUPPRESSED="${FAIR_PHA_DIR}/22_suppressed_pha_picks.csv"
+MERGED_PICK_INDEX="${TMP_DIR}/22_merged_pick_index.csv"
+MERGED_PICKS_SUPPRESSED="${TMP_DIR}/22_suppressed_picks.csv"
+PICK_TIME_TOL=0.5
 
 if [ "${ENABLE_STEP_22}" = true ]; then
     echo "=== STEP 22: Merging phase picks ==="
     python "${CODE_TOP}/22_merge_picks.py" \
-        --primary "${INDIV_PHA_CSV}" \
-        --secondary "${MONTHLY_PHA_CSV}" \
-        --out "${MERGED_PHA_CSV}" \
-        --time-tolerance 0.5\
-        --report "${MERGED_PHA_SUPPRESSED}"
+        --primary "${INDIV_PICK_INDEX}" \
+        --secondary "${MONTHLY_PICK_INDEX}" \
+        --out "${MERGED_PICK_INDEX}" \
+        --time-tolerance "${PICK_TIME_TOL}" \
+        --report "${MERGED_PICKS_SUPPRESSED}"
 else
     echo "=== STEP 22: SKIPPED ==="
 fi
@@ -156,21 +154,19 @@ fi
 # STEP 23 — Plot pick/event diagnostics for Step 20/21/22
 ###############################################################################
 STEP23_DIR="${QC_DIR}/step23_pick_event_diagnostics"
-STEP23_PLOTS="${STEP23_DIR}/plots"
-STEP23_CSV="${STEP23_DIR}/csv"
-STEP23_QC_JSON="${STEP23_DIR}/23_qc_flags.json"
-
 mkdir -p "${STEP23_DIR}"
+MAX_PS_DELAY=15.0
+MAX_STATION_COUNT=20
 
 if [ "${ENABLE_STEP_23}" = true ]; then
     echo "=== STEP 23: Plotting pick/event diagnostics ==="
     python "${CODE_TOP}/23_plot_pick_event_diagnostics.py" \
-        --individual "${INDIV_PHA_CSV}" \
-        --monthly "${MONTHLY_PHA_CSV}" \
-        --merged "${MERGED_PHA_CSV}" \
+        --individual "${INDIV_PICK_INDEX}" \
+        --monthly "${MONTHLY_PICK_INDEX}" \
+        --merged "${MERGED_PICK_INDEX}" \
         --outdir "${STEP23_DIR}" \
-        --top-stations 10 \
-        --ps-delay-max 60 \
+        --top-stations "${MAX_STATION_COUNT}" \
+        --ps-delay-max "${MAX_PS_DELAY}" \
         --emit-csv \
         --emit-qc
 else
@@ -178,18 +174,18 @@ else
 fi
 
 ###############################################################################
-# STEP 30 — Associate authoritative individual picks with waveforms
+# STEP 30 — Associate authoritative individual pick events with waveform events
+# These are related by use of common YYMMDDNN SUDS identifiers (with extensions DMX or PHA)
 ###############################################################################
-
-INDIV_WAVEFORM_EVENT_CSV="${FAIR_ASSOC_DIR}/30_individual_waveform_event_index.csv"
-INDIV_PICK_WAVEFORM_MAP="${FAIR_ASSOC_DIR}/30_individual_pick_waveform_map.csv"
+INDIV_WAVEFORM_EVENT_CSV="${TMP_DIR}/30_individual_waveform_event_index.csv"
+INDIV_PICK_WAVEFORM_MAP="${TMP_DIR}/30_individual_pick_waveform_map.csv"
 INDIV_WAVEFORM_QC="${QC_DIR}/30_individual_waveform_qc.csv"
 
 if [ "${ENABLE_STEP_30}" = true ]; then
     echo "=== STEP 30: Associating individual picks with waveform files ==="
     python "${CODE_TOP}/30_associate_individual_picks_with_waveforms.py" \
-        --merged-picks "${MERGED_PHA_CSV}" \
-        --waveform-index "${FAIR_WAVEFORM_INDEX}" \
+        --merged-picks "${MERGED_PICK_INDEX}" \
+        --waveform-index "${WAVEFORM_INDEX}" \
         --out-event-csv "${INDIV_WAVEFORM_EVENT_CSV}" \
         --out-pick-map-csv "${INDIV_PICK_WAVEFORM_MAP}" \
         --out-qc-csv "${INDIV_WAVEFORM_QC}"
@@ -197,25 +193,21 @@ else
     echo "=== STEP 30: SKIPPED ==="
 fi
 
-
 ###############################################################################
-# STEP 32 — Build authoritative event catalog (waveforms + picks)
+# STEP 32 — Associate all pick events to waveform events (and keep unassociated pick events)
+# This effectively adds monthly pick events to the waveform-pick event index from step 30
 ###############################################################################
-
-EVENT_DIR="${FAIR_ASSOC_DIR}/event_catalog"
-EVENT_CSV="${EVENT_DIR}/32_event_catalog.csv"
-PICK_MAP_CSV="${EVENT_DIR}/32_event_pick_map.csv"
+WAVEFORM_PICK_EVENT_INDEX="${TMP_DIR}/32_waveform_pick_event_index.csv"
+PICK_MAP_CSV="${TMP_DIR}/32_waveform_pick_event_map.csv"
 QC_CSV="${QC_DIR}/32_event_catalog_qc.csv"
-
-mkdir -p "${EVENT_DIR}" "${QC_DIR}"
 
 if [ "${ENABLE_STEP_32}" = true ]; then
     echo "=== STEP 32: Building authoritative event catalog ==="
     python "${CODE_TOP}/32_build_waveform_pick_events.py" \
-        --waveform-index "${FAIR_WAVEFORM_INDEX}" \
-        --merged-picks "${MERGED_PHA_CSV}" \
+        --waveform-index "${WAVEFORM_INDEX}" \
+        --merged-picks "${MERGED_PICK_INDEX}" \
         --individual-pick-waveform-map "${INDIV_PICK_WAVEFORM_MAP}" \
-        --out-event-csv "${EVENT_CSV}" \
+        --out-event-csv "${WAVEFORM_PICK_EVENT_INDEX}" \
         --out-pick-map-csv "${PICK_MAP_CSV}" \
         --out-qc-csv "${QC_CSV}" \
         --time-tolerance 0.5
@@ -224,20 +216,18 @@ else
 fi
 
 ###############################################################################
-# STEP 33 — Plot waveform ↔ pick association diagnostics
+# STEP 33 — Plot waveform-pick association diagnostics
 ###############################################################################
-
 STEP33_DIR="${QC_DIR}/step33_event_association"
 STEP33_PLOTS="${STEP33_DIR}/plots"
-
 mkdir -p "${STEP33_DIR}"
 
 if [ "${ENABLE_STEP_33}" = true ]; then
     echo "=== STEP 33: Plotting event association diagnostics ==="
     python "${CODE_TOP}/33_plot_event_association_diagnostics.py" \
-        --waveform-index "${FAIR_WAVEFORM_INDEX}" \
+        --waveform-index "${WAVEFORM_INDEX}" \
         --step30-event-csv "${INDIV_WAVEFORM_EVENT_CSV}" \
-        --event-catalog "${EVENT_CSV}" \
+        --event-catalog "${WAVEFORM_PICK_EVENT_INDEX}" \
         --pick-map "${PICK_MAP_CSV}" \
         --outdir "${STEP33_DIR}"
 else
@@ -245,49 +235,54 @@ else
 fi
 
 ###############################################################################
-# STEP 40 — HYPO71 summary → hypocenter index
+# STEP 40 — HYPO71 summary file "Pinatubo_all.sum" → hypocenter index
+# This file contains hypocenters from HYPO71, and it seems to be the most complete
+# version in the legacy archive, so we use it as our initial reference.
 ###############################################################################
-HYPO_CSV="${FAIR_HYPO_DIR}/40_hypocenter_index_pinatubo_all.csv"
-HYPO_ERR="${FAIR_HYPO_DIR}/40_hypocenter_unparsed_lines.txt"
+SUMMARY_FILE_40="${LEGACY_HYPO_DIR}/Pinatubo_all.sum"
+SUMMARY_FILE_40_INDEX="${TMP_DIR}/40_summary_file_index.csv"
+SUMMARY_FILE_40_ERR="${TMP_DIR}/40_summary_file_unparsed_lines.txt"
 
 if [ "${ENABLE_STEP_40}" = true ]; then
     echo "=== STEP 40: Building hypocenter index from HYPO71 summary ==="
     python "${CODE_TOP}/40_build_hypocenter_index_pinatubo_all.py" \
         --summary-file "${SUMMARY_FILE_40}" \
-        --out-csv "${HYPO_CSV}" \
-        --error-log "${HYPO_ERR}"
+        --out-csv "${SUMMARY_FILE_40_INDEX}" \
+        --error-log "${SUMMARY_FILE_40_ERR}"
 else
     echo "=== STEP 40: SKIPPED ==="
 fi
 
 ###############################################################################
-# STEP 41 — PINAALL.DAT → hypocenter index
+# STEP 41 — HYPO71 summary file "PINAALL.DAT" → hypocenter index
+# This file also contains hypocenters from HYPO71, but it seems to be less complete than the
+# Pinatubo_all.sum file, but it seems to have some additional hypocenters that are not in the Pinatubo_all.sum file.
 ###############################################################################
-PINAALL_CSV="${FAIR_HYPO_DIR}/41_pinaall_hypocenter_index.csv"
-PINAALL_ERR="${FAIR_HYPO_DIR}/41_pinaall_unparsed_lines.txt"
+SUMMARY_FILE_41="${LEGACY_HYPO_DIR}/PINAALL.DAT"
+SUMMARY_FILE_41_INDEX="${TMP_DIR}/41_summary_file_index.csv"
+SUMMARY_FILE_41_ERR="${TMP_DIR}/41_summary_file_unparsed_lines.txt"
 
 if [ "${ENABLE_STEP_41}" = true ]; then
     echo "=== STEP 41: Parsing PINAALL.DAT hypocenter file ==="
     python "${CODE_TOP}/41_build_hypocenter_index_pinaall.py" \
-        --pinaall-file "${PINAALL_DAT_FILE_41}" \
-        --out-csv "${PINAALL_CSV}" \
-        --error-log "${PINAALL_ERR}"
+        --pinaall-file "${SUMMARY_FILE_41}" \
+        --out-csv "${SUMMARY_FILE_41_INDEX}" \
+        --error-log "${SUMMARY_FILE_41_ERR}"
 else
     echo "=== STEP 41: SKIPPED ==="
 fi
 
 ###############################################################################
 # STEP 42 — Compare hypocenter indexes (exact match test)
+# This step compares the hypocenter indexes from the two summary files and outputs a CSV file with the results.
 ###############################################################################
-COMPARE_DIR="${FAIR_HYPO_DIR}/comparisons"
-COMPARE_PREFIX="${COMPARE_DIR}/42_pinaall_vs_hypo71"
-mkdir -p "${COMPARE_DIR}"
+COMPARE_PREFIX="${TMP_DIR}/42_pinaalldat_vs_pinatuboallsum"
 
 if [ "${ENABLE_STEP_42}" = true ]; then
     echo "=== STEP 42: Comparing PINAALL vs HYPO71 hypocenter indexes ==="
     python "${CODE_TOP}/42_compare_hypocenter_indexes.py" \
-        --hypo40 "${HYPO_CSV}" \
-        --hypo41 "${PINAALL_CSV}" \
+        --hypo40 "${SUMMARY_FILE_40_INDEX}" \
+        --hypo41 "${SUMMARY_FILE_41_INDEX}" \
         --out-prefix "${COMPARE_PREFIX}"
 else
     echo "=== STEP 42: SKIPPED ==="
@@ -295,58 +290,65 @@ fi
 
 ###############################################################################
 # STEP 43 — Associate hypocenters into unified events
+# This step associates hypocenters from the two summary files into unified events.
+# We use a time and distance tolerance to associate hypocenters that are close in time and space.
 ###############################################################################
-HYPO_EVENT_DIR="${FAIR_HYPO_DIR}/events"
-HYPO_EVENT_CSV="${HYPO_EVENT_DIR}/43_event_index.csv"
-HYPO_ORIGIN_CSV="${HYPO_EVENT_DIR}/43_event_origins.csv"
-mkdir -p "${HYPO_EVENT_DIR}"
-
+HYPO71_EVENT_INDEX="${TMP_DIR}/43_hypo71_event_index.csv"
+HYPO71_ORIGIN_INDEX="${TMP_DIR}/43_hypo71_origin_index.csv"
 TIME_TOL_S=5.0
-DIST_TOL_KM=10.0
-PREFERRED_SOURCE="hypo40"  # options: hypo05 | pinaall
+DIST_TOL_KM=15.0
+PREFERRED_SOURCE="hypo40"  # options: hypo40 | pinaall
 
 if [ "${ENABLE_STEP_43}" = true ]; then
     echo "=== STEP 43: Associating hypocenters into events ==="
     python "${CODE_TOP}/43_associate_hypocenters.py" \
-        --hypo40 "${HYPO_CSV}" \
-        --hypo41 "${PINAALL_CSV}" \
+        --hypo40 "${SUMMARY_FILE_40_INDEX}" \
+        --hypo41 "${SUMMARY_FILE_41_INDEX}" \
         --time-tol "${TIME_TOL_S}" \
         --dist-tol "${DIST_TOL_KM}" \
         --preferred-source "${PREFERRED_SOURCE}" \
         --emit-diagnostics \
-        --out-event-csv "${HYPO_EVENT_CSV}" \
-        --out-origin-csv "${HYPO_ORIGIN_CSV}"
+        --diagnostics-dir "${QC_DIR}/step43_hypo_associate_diagnostics" \
+        --out-event-csv "${HYPO71_EVENT_INDEX}" \
+        --out-origin-csv "${HYPO71_ORIGIN_INDEX}"
 else
     echo "=== STEP 43: SKIPPED ==="
 fi
+
+#################################################################################
+# STEP 44 — Plot hypocenter diagnostics
+#################################################################################
+HYPO_QC_DIR="${QC_DIR}/step44_hypo71_diagnostics"
+mkdir -p "${HYPO_QC_DIR}"
 
 if [ "${ENABLE_STEP_44}" = true ]; then
     echo "=== STEP 44: Plot hypocenters per day ==="
     python "${CODE_TOP}/44_plot_hypocenters_per_day.py" \
-        --hypo40 "${FAIR_HYPO_DIR}/40_hypocenter_index_pinatubo_all.csv" \
-        --hypo41 "${FAIR_HYPO_DIR}/41_pinaall_hypocenter_index.csv" \
-        --out "${FAIR_HYPO_DIR}/comparisons/44_hypocenters_per_day.png"
+        --hypo40 "${SUMMARY_FILE_40_INDEX}" \
+        --hypo41 "${SUMMARY_FILE_41_INDEX}" \
+        --out "${HYPO_QC_DIR}/44_hypocenters_per_day.png"
 else
-    echo "=== STEP 43: SKIPPED ==="
+    echo "=== STEP 44: SKIPPED ==="
 fi
 
 ###############################################################################
 # STEP 50 — Build ObsPy Catalog (QuakeML)
+# This step builds an ObsPy catalog from the waveform-pick event index and the hypocenter index.
+# The catalog is written to a QuakeML file.
+# The origin time tolerance is used to associate picks with hypocenters that are close in time,
+# but this matching is not perfect.
 ###############################################################################
-QUAKEML_DIR="${FAIR_TOP}/quakeml"
-QUAKEML_OUT="${QUAKEML_DIR}/50_pin_catalog.xml"
-mkdir -p "${QUAKEML_DIR}"
-
+QUAKEML_OUT="${FAIR_META_DIR}/50_pin_catalog.xml"
 ORIGIN_TIME_TOL_S=10.0
 
 if [ "${ENABLE_STEP_50}" = true ]; then
     echo "=== STEP 50: Building ObsPy Catalog ==="
     python "${CODE_TOP}/50_build_obspy_catalog.py" \
-        --waveform-event-index "${EVENT_CSV}" \
+        --waveform-event-index "${WAVEFORM_PICK_EVENT_INDEX}" \
         --waveform-pick-map "${PICK_MAP_CSV}" \
-        --pick-index "${MERGED_PHA_CSV}" \
-        --hypo-event-index "${HYPO_EVENT_CSV}" \
-        --hypo-origin-index "${HYPO_ORIGIN_CSV}" \
+        --pick-index "${MERGED_PICK_INDEX}" \
+        --hypo-event-index "${HYPO71_EVENT_INDEX}" \
+        --hypo-origin-index "${HYPO71_ORIGIN_INDEX}" \
         --origin-time-tol "${ORIGIN_TIME_TOL_S}" \
         --out-quakeml "${QUAKEML_OUT}"
 else
@@ -355,17 +357,19 @@ fi
 
 ###############################################################################
 # STEP 52 — Build SEISAN REA catalog
+# This step builds a SEISAN REA catalog from the QuakeML catalog we just wrote.
 ###############################################################################
-
-REA_DIR="${FAIR_TOP}/SEISAN/REA"
+FAIR_REA_DIR="${FAIR_TOP}/SEISAN/REA"
+DEFAULT_AUTHOR="GT__"
+DEFAULT_EVTYPE="L"
 
 if [ "${ENABLE_STEP_52}" = true ]; then
     echo "=== STEP 52: Building SEISAN REA catalog ==="
     python "${CODE_TOP}/52_build_seisan_rea_catalog.py" \
         --quakeml "${QUAKEML_OUT}" \
-        --rea-dir "${REA_DIR}" \
-        --author "GT__" \
-        --evtype "L"
+        --rea-dir "${FAIR_REA_DIR}" \
+        --author "${DEFAULT_AUTHOR}" \
+        --evtype "${DEFAULT_EVTYPE}"
 else
     echo "=== STEP 52: SKIPPED ==="
 fi
@@ -373,10 +377,7 @@ fi
 ###############################################################################
 # STEP 53 — SEISAN REA sanity checks & diagnostics
 ###############################################################################
-
-SEISAN_DIAG_DIR="${FAIR_TOP}/diagnostics/seisan"
-STEP53_CSV="${SEISAN_DIAG_DIR}/53_seisan_rea_daily_summary.csv"
-STEP53_PLOT="${SEISAN_DIAG_DIR}/53_seisan_rea_daily_summary.png"
+SEISAN_DIAG_DIR="${QC_DIR}/step53_seisan_rea_diagnostics"
 
 mkdir -p "${SEISAN_DIAG_DIR}"
 
@@ -384,13 +385,10 @@ if [ "${ENABLE_STEP_53}" = true ]; then
     echo "=== STEP 53: SEISAN REA diagnostics ==="
 
     python "${CODE_TOP}/53_seisan_rea_diagnostics.py" \
-        --rea-dir "${REA_DIR}" \
+        --rea-dir "${FAIR_REA_DIR}" \
         --db-name "PNTBO" \
-        #--out-csv "${STEP53_CSV}" \
-        #--out-plot "${STEP53_PLOT}" \
         --out-dir "$SEISAN_DIAG_DIR" \
         --wavefile-regex "$WAVE_RE"
-
 else
     echo "=== STEP 53: SKIPPED ==="
 fi

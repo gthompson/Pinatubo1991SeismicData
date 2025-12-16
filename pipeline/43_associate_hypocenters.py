@@ -58,8 +58,8 @@ def main():
 
     # NEW (optional)
     ap.add_argument("--emit-diagnostics", action="store_true",
-                    help="Write Step-42-style fuzzy reconciliation CSVs")
-
+                    help="Write fuzzy reconciliation CSVs")
+    ap.add_argument("--diagnostics-dir", required=False)
     args = ap.parse_args()
 
     # ------------------------------------------------------------------
@@ -227,8 +227,8 @@ def main():
     # Optional diagnostic CSVs
     # ------------------------------------------------------------------
 
-    if args.emit_diagnostics:
-        diag_dir = out_event.parent / "diagnostics"
+    if args.emit_diagnostics and args.diagnostics_dir:
+        diag_dir = Path(args.diagnostics_dir)
         diag_dir.mkdir(parents=True, exist_ok=True)
 
         comp.to_csv(diag_dir / "43_event_source_composition.csv", index=False)

@@ -47,7 +47,7 @@ def main():
     # 1) Waveform files per day
     # ------------------------------------------------------------------
     wf_per_day = df.groupby("date").size().rename("n_waveforms")
-    wf_per_day.to_csv(outdir / "waveform_files_per_day.csv")
+    wf_per_day.to_csv(outdir / "10_waveform_files_per_day.csv")
 
     plt.figure()
     wf_per_day.plot()
@@ -55,7 +55,7 @@ def main():
     plt.ylabel("Number of waveform files")
     plt.title("Waveform files per day")
     plt.tight_layout()
-    plt.savefig(outdir / "waveform_files_per_day.png", dpi=args.fig_dpi)
+    plt.savefig(outdir / "10_waveform_files_per_day.png", dpi=args.fig_dpi)
     plt.close()
 
     # ------------------------------------------------------------------
@@ -80,7 +80,7 @@ def main():
         .nunique()
         .rename("n_stations")
     )
-    stations_per_day.to_csv(outdir / "stations_per_day.csv")
+    stations_per_day.to_csv(outdir / "10_stations_per_day.csv")
 
     plt.figure()
     stations_per_day.plot()
@@ -88,7 +88,7 @@ def main():
     plt.ylabel("Number of stations")
     plt.title("Stations reporting per day")
     plt.tight_layout()
-    plt.savefig(outdir / "stations_per_day.png", dpi=args.fig_dpi)
+    plt.savefig(outdir / "10_stations_per_day.png", dpi=args.fig_dpi)
     plt.close()
 
     # ------------------------------------------------------------------
@@ -116,7 +116,7 @@ def main():
         .nunique()
         .rename("n_seed_ids")
     )
-    seed_per_day.to_csv(outdir / "seed_ids_per_day.csv")
+    seed_per_day.to_csv(outdir / "10_seed_ids_per_day.csv")
 
     plt.figure()
     seed_per_day.plot()
@@ -124,7 +124,7 @@ def main():
     plt.ylabel("Number of SEED IDs")
     plt.title("SEED IDs reporting per day")
     plt.tight_layout()
-    plt.savefig(outdir / "seed_ids_per_day.png", dpi=args.fig_dpi)
+    plt.savefig(outdir / "10_seed_ids_per_day.png", dpi=args.fig_dpi)
     plt.close()
 
     # ------------------------------------------------------------------
@@ -137,7 +137,7 @@ def main():
         .astype(bool)
     )
 
-    avail.to_csv(outdir / "station_availability_matrix.csv")
+    avail.to_csv(outdir / "10_station_availability_matrix.csv")
 
     plt.figure(figsize=(12, max(4, 0.25 * len(avail.columns))))
     plt.imshow(avail.T, aspect="auto", interpolation="nearest")
@@ -149,7 +149,7 @@ def main():
     plt.ylabel("Station")
     plt.title("Station data availability (by day)")
     plt.tight_layout()
-    plt.savefig(outdir / "station_availability.png", dpi=args.fig_dpi)
+    plt.savefig(outdir / "10_station_availability.png", dpi=args.fig_dpi)
     plt.close()
 
     print("\nSTEP 11 COMPLETE")
