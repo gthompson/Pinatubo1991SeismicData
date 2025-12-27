@@ -49,9 +49,10 @@ ENABLE_STEP_41=false   # PINAALL.DAT → hypocenter index
 ENABLE_STEP_42=false   # Compare hypocenter indexes
 ENABLE_STEP_43=false   # Associate hypocenters into unified events
 ENABLE_STEP_44=false   # Plot hypocenter diagnostics
-ENABLE_STEP_50=true    # Build ObsPy Catalog (QuakeML)
-ENABLE_STEP_52=true    # Build SEISAN REA catalog
-ENABLE_STEP_53=true
+ENABLE_STEP_50=false    # Build ObsPy Catalog (QuakeML)
+ENABLE_STEP_51=true
+ENABLE_STEP_52=false    # Build SEISAN REA catalog
+ENABLE_STEP_53=false
 
 ###############################################################################
 # STEP 10 — DMX → SEISAN WAV (+ index)
@@ -338,7 +339,9 @@ fi
 # The origin time tolerance is used to associate picks with hypocenters that are close in time,
 # but this matching is not perfect.
 ###############################################################################
-QUAKEML_OUT="${FAIR_META_DIR}/50_pin_catalog.xml"
+QUAKEML_PREFIX="${FAIR_META_DIR}/50_pin_catalog"
+#QUAKEML_OUT="${QUAKEML_PREFIX}.xml"
+CATALOG_PKL="${QUAKEML_PREFIX}.pkl"
 ORIGIN_TIME_TOL_S=10.0
 
 if [ "${ENABLE_STEP_50}" = true ]; then
@@ -350,9 +353,25 @@ if [ "${ENABLE_STEP_50}" = true ]; then
         --hypo-event-index "${HYPO71_EVENT_INDEX}" \
         --hypo-origin-index "${HYPO71_ORIGIN_INDEX}" \
         --origin-time-tol "${ORIGIN_TIME_TOL_S}" \
-        --out-quakeml "${QUAKEML_OUT}"
+        --out-prefix "${QUAKEML_PREFIX}"
 else
     echo "=== STEP 50: SKIPPED ==="
+fi
+
+
+###############################################################################
+# STEP 51 — counts just for days where we have complete waveform, pick, and hypocenter data
+###############################################################################
+daily_csv_51="${QC_DIR}/51_event_counts_daily.csv"
+
+if [ "${ENABLE_STEP_51}" = true ]; then
+    echo "=== STEP 51: counts for days where we have W, P, and H data ==="
+
+    python "${CODE_TOP}/51_event_numbers_in_complete_windows.py" \
+        --catalog-pkl ${CATALOG_PKL} \
+        --out-daily-csv ${daily_csv_51} 
+else
+    echo "=== STEP 51: SKIPPED ==="
 fi
 
 ###############################################################################
@@ -366,7 +385,7 @@ DEFAULT_EVTYPE="L"
 if [ "${ENABLE_STEP_52}" = true ]; then
     echo "=== STEP 52: Building SEISAN REA catalog ==="
     python "${CODE_TOP}/52_build_seisan_rea_catalog.py" \
-        --quakeml "${QUAKEML_OUT}" \
+        --catalog-pkl ${CATALOG_PKL} \
         --rea-dir "${FAIR_REA_DIR}" \
         --author "${DEFAULT_AUTHOR}" \
         --evtype "${DEFAULT_EVTYPE}"
@@ -378,6 +397,7 @@ fi
 # STEP 53 — SEISAN REA sanity checks & diagnostics
 ###############################################################################
 SEISAN_DIAG_DIR="${QC_DIR}/step53_seisan_rea_diagnostics"
+WAVE_RE="M\\.${DB}_"
 
 mkdir -p "${SEISAN_DIAG_DIR}"
 
@@ -386,9 +406,8 @@ if [ "${ENABLE_STEP_53}" = true ]; then
 
     python "${CODE_TOP}/53_seisan_rea_diagnostics.py" \
         --rea-dir "${FAIR_REA_DIR}" \
-        --db-name "PNTBO" \
-        --out-dir "$SEISAN_DIAG_DIR" \
-        --wavefile-regex "$WAVE_RE"
+        --out-dir "${SEISAN_DIAG_DIR}" \
+        --wavefile-regex "${WAVE_RE}"
 else
     echo "=== STEP 53: SKIPPED ==="
 fi
