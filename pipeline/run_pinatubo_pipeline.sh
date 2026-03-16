@@ -35,6 +35,7 @@ mkdir -p "${QC_DIR}"
 ###############################################################################
 # STEP SWITCHES (match script numbering)
 ###############################################################################
+ENABLE_STEP_00=true
 ENABLE_STEP_10=false   # DMX → SEISAN WAV (+ index)
 ENABLE_STEP_11=false   # Waveform archive diagnostics
 ENABLE_STEP_20=false   # Individual PHA → CSV
@@ -49,9 +50,9 @@ ENABLE_STEP_41=false   # PINAALL.DAT → hypocenter index
 ENABLE_STEP_42=false   # Compare hypocenter indexes
 ENABLE_STEP_43=false   # Associate hypocenters into unified events
 ENABLE_STEP_44=false   # Plot hypocenter diagnostics
-ENABLE_STEP_50=true    # Build ObsPy Catalog (QuakeML)
-ENABLE_STEP_52=true    # Build SEISAN REA catalog
-ENABLE_STEP_53=true
+ENABLE_STEP_50=false    # Build ObsPy Catalog (QuakeML)
+ENABLE_STEP_52=false    # Build SEISAN REA catalog
+ENABLE_STEP_53=false
 
 ###############################################################################
 # STEP 10 — DMX → SEISAN WAV (+ index)
