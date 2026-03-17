@@ -8,7 +8,7 @@ set -euo pipefail
 DATA_TOP="$HOME/Dropbox/PROFESSIONAL/DATA/Pinatubo/ASSEMBLED-25-028-THOMPSON-PINATUBO1991"
 CODE_TOP="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
-# Legacy data 
+# Legacy data
 LEGACY_TOP="$DATA_TOP/LEGACY"
 SUDS_TOP="$LEGACY_TOP/WAVEFORM_DATA/SUDS"
 FIX_FS=100.0
@@ -35,7 +35,7 @@ mkdir -p "${QC_DIR}"
 ###############################################################################
 # STEP SWITCHES (match script numbering)
 ###############################################################################
-ENABLE_STEP_00=true
+ENABLE_STEP_00=true    # test convert DMX files with WinSUDS Utilities
 ENABLE_STEP_10=false   # DMX → SEISAN WAV (+ index)
 ENABLE_STEP_11=false   # Waveform archive diagnostics
 ENABLE_STEP_20=false   # Individual PHA → CSV
@@ -50,16 +50,17 @@ ENABLE_STEP_41=false   # PINAALL.DAT → hypocenter index
 ENABLE_STEP_42=false   # Compare hypocenter indexes
 ENABLE_STEP_43=false   # Associate hypocenters into unified events
 ENABLE_STEP_44=false   # Plot hypocenter diagnostics
-ENABLE_STEP_50=false    # Build ObsPy Catalog (QuakeML)
-ENABLE_STEP_52=false    # Build SEISAN REA catalog
-ENABLE_STEP_53=false
+ENABLE_STEP_50=false   # Build ObsPy Catalogs (QuakeML + pickle)
+ENABLE_STEP_52=false   # Build SEISAN REA catalog
+ENABLE_STEP_53=false   # SEISAN REA diagnostics
 
 ###############################################################################
 # STEP 10 — DMX → SEISAN WAV (+ index)
-# This is the first step in the pipeline. It converts legacy DMX files to SEISAN WAV files
-# and builds an index of the waveforms that we can use to associate picks and hypocenters with waveforms.
+# This is the first step in the pipeline. It converts legacy DMX files to SEISAN
+# WAV files and builds an index of the waveforms that we can use to associate
+# picks and hypocenters with waveforms.
 ###############################################################################
-WAVEFORM_INDEX="${TMP_DIR}/10_waveform_index.csv" 
+WAVEFORM_INDEX="${TMP_DIR}/10_waveform_index.csv"
 TRANSLATION_CSV="${FAIR_META_DIR}/10_trace_id_mapping.csv"
 TRANSLATION_TEX="${FAIR_META_DIR}/10_trace_id_mapping.tex"
 
@@ -79,6 +80,7 @@ if [ "${ENABLE_STEP_10}" = true ]; then
 else
     echo "=== STEP 10: SKIPPED ==="
 fi
+
 ###############################################################################
 # STEP 11 — Waveform archive diagnostics
 ###############################################################################
@@ -91,11 +93,12 @@ if [ "${ENABLE_STEP_11}" = true ]; then
 else
     echo "=== STEP 11: SKIPPED ==="
 fi
+
 ###############################################################################
 # STEP 20 — Individual PHA files → pick event index
-# We only have individual PHA files for the two days: June 3 and 10, 1991
+# We only have individual PHA files for the two days: June 3 and 10, 1991.
 # Ideally we would have them for every waveform file, making association easier.
-# Instead we use the monthly PHA files to fill in gaps, but these are more 
+# Instead we use the monthly PHA files to fill in gaps, but these are more
 # challenging to parse and associate.
 ###############################################################################
 INDIV_PICK_INDEX="${TMP_DIR}/20_individual_pick_index.csv"
@@ -176,7 +179,8 @@ fi
 
 ###############################################################################
 # STEP 30 — Associate authoritative individual pick events with waveform events
-# These are related by use of common YYMMDDNN SUDS identifiers (with extensions DMX or PHA)
+# These are related by use of common YYMMDDNN SUDS identifiers
+# (with extensions DMX or PHA).
 ###############################################################################
 INDIV_WAVEFORM_EVENT_CSV="${TMP_DIR}/30_individual_waveform_event_index.csv"
 INDIV_PICK_WAVEFORM_MAP="${TMP_DIR}/30_individual_pick_waveform_map.csv"
@@ -195,8 +199,10 @@ else
 fi
 
 ###############################################################################
-# STEP 32 — Associate all pick events to waveform events (and keep unassociated pick events)
-# This effectively adds monthly pick events to the waveform-pick event index from step 30
+# STEP 32 — Associate all pick events to waveform events
+# (and keep unassociated pick events)
+# This effectively adds monthly pick events to the waveform-pick event index
+# from Step 30.
 ###############################################################################
 WAVEFORM_PICK_EVENT_INDEX="${TMP_DIR}/32_waveform_pick_event_index.csv"
 PICK_MAP_CSV="${TMP_DIR}/32_waveform_pick_event_map.csv"
@@ -237,8 +243,8 @@ fi
 
 ###############################################################################
 # STEP 40 — HYPO71 summary file "Pinatubo_all.sum" → hypocenter index
-# This file contains hypocenters from HYPO71, and it seems to be the most complete
-# version in the legacy archive, so we use it as our initial reference.
+# This file contains hypocenters from HYPO71, and it seems to be the most
+# complete version in the legacy archive, so we use it as our initial reference.
 ###############################################################################
 SUMMARY_FILE_40="${LEGACY_HYPO_DIR}/Pinatubo_all.sum"
 SUMMARY_FILE_40_INDEX="${TMP_DIR}/40_summary_file_index.csv"
@@ -256,8 +262,8 @@ fi
 
 ###############################################################################
 # STEP 41 — HYPO71 summary file "PINAALL.DAT" → hypocenter index
-# This file also contains hypocenters from HYPO71, but it seems to be less complete than the
-# Pinatubo_all.sum file, but it seems to have some additional hypocenters that are not in the Pinatubo_all.sum file.
+# This file also contains hypocenters from HYPO71. It seems to be less complete
+# than Pinatubo_all.sum, but may contain some additional hypocenters.
 ###############################################################################
 SUMMARY_FILE_41="${LEGACY_HYPO_DIR}/PINAALL.DAT"
 SUMMARY_FILE_41_INDEX="${TMP_DIR}/41_summary_file_index.csv"
@@ -275,7 +281,8 @@ fi
 
 ###############################################################################
 # STEP 42 — Compare hypocenter indexes (exact match test)
-# This step compares the hypocenter indexes from the two summary files and outputs a CSV file with the results.
+# This step compares the hypocenter indexes from the two summary files and
+# outputs CSV summaries.
 ###############################################################################
 COMPARE_PREFIX="${TMP_DIR}/42_pinaalldat_vs_pinatuboallsum"
 
@@ -291,8 +298,8 @@ fi
 
 ###############################################################################
 # STEP 43 — Associate hypocenters into unified events
-# This step associates hypocenters from the two summary files into unified events.
-# We use a time and distance tolerance to associate hypocenters that are close in time and space.
+# This step associates hypocenters from the two summary files into unified
+# events using time and distance tolerances.
 ###############################################################################
 HYPO71_EVENT_INDEX="${TMP_DIR}/43_hypo71_event_index.csv"
 HYPO71_ORIGIN_INDEX="${TMP_DIR}/43_hypo71_origin_index.csv"
@@ -316,9 +323,9 @@ else
     echo "=== STEP 43: SKIPPED ==="
 fi
 
-#################################################################################
+###############################################################################
 # STEP 44 — Plot hypocenter diagnostics
-#################################################################################
+###############################################################################
 HYPO_QC_DIR="${QC_DIR}/step44_hypo71_diagnostics"
 mkdir -p "${HYPO_QC_DIR}"
 
@@ -333,17 +340,24 @@ else
 fi
 
 ###############################################################################
-# STEP 50 — Build ObsPy Catalog (QuakeML)
-# This step builds an ObsPy catalog from the waveform-pick event index and the hypocenter index.
-# The catalog is written to a QuakeML file.
-# The origin time tolerance is used to associate picks with hypocenters that are close in time,
-# but this matching is not perfect.
+# STEP 50 — Build ObsPy Event Catalogs (QuakeML + pickle)
+# This step builds:
+#   1. catalog_all       -> all events, including H_ONLY
+#   2. catalog_waveform  -> waveform-related subset only
+#
+# Output files written from OUT_PREFIX:
+#   ${CATALOG_PREFIX}.xml
+#   ${CATALOG_PREFIX}.pkl
+#   ${CATALOG_PREFIX}_waveform.xml
+#   ${CATALOG_PREFIX}_waveform.pkl
 ###############################################################################
-QUAKEML_OUT="${FAIR_META_DIR}/50_pin_catalog.xml"
+CATALOG_PREFIX="${FAIR_META_DIR}/50_pin_catalog"
+QUAKEML_ALL="${CATALOG_PREFIX}.xml"
+QUAKEML_WAVEFORM="${CATALOG_PREFIX}_waveform.xml"
 ORIGIN_TIME_TOL_S=10.0
 
 if [ "${ENABLE_STEP_50}" = true ]; then
-    echo "=== STEP 50: Building ObsPy Catalog ==="
+    echo "=== STEP 50: Building ObsPy Catalogs ==="
     python "${CODE_TOP}/50_build_obspy_catalog.py" \
         --waveform-event-index "${WAVEFORM_PICK_EVENT_INDEX}" \
         --waveform-pick-map "${PICK_MAP_CSV}" \
@@ -351,14 +365,14 @@ if [ "${ENABLE_STEP_50}" = true ]; then
         --hypo-event-index "${HYPO71_EVENT_INDEX}" \
         --hypo-origin-index "${HYPO71_ORIGIN_INDEX}" \
         --origin-time-tol "${ORIGIN_TIME_TOL_S}" \
-        --out-quakeml "${QUAKEML_OUT}"
+        --out-prefix "${CATALOG_PREFIX}"
 else
     echo "=== STEP 50: SKIPPED ==="
 fi
 
 ###############################################################################
 # STEP 52 — Build SEISAN REA catalog
-# This step builds a SEISAN REA catalog from the QuakeML catalog we just wrote.
+# This step builds a SEISAN REA catalog from the full QuakeML catalog.
 ###############################################################################
 FAIR_REA_DIR="${FAIR_TOP}/SEISAN/REA"
 DEFAULT_AUTHOR="GT__"
@@ -367,7 +381,7 @@ DEFAULT_EVTYPE="L"
 if [ "${ENABLE_STEP_52}" = true ]; then
     echo "=== STEP 52: Building SEISAN REA catalog ==="
     python "${CODE_TOP}/52_build_seisan_rea_catalog.py" \
-        --quakeml "${QUAKEML_OUT}" \
+        --quakeml "${QUAKEML_ALL}" \
         --rea-dir "${FAIR_REA_DIR}" \
         --author "${DEFAULT_AUTHOR}" \
         --evtype "${DEFAULT_EVTYPE}"
@@ -379,7 +393,6 @@ fi
 # STEP 53 — SEISAN REA sanity checks & diagnostics
 ###############################################################################
 SEISAN_DIAG_DIR="${QC_DIR}/step53_seisan_rea_diagnostics"
-
 mkdir -p "${SEISAN_DIAG_DIR}"
 
 if [ "${ENABLE_STEP_53}" = true ]; then
@@ -387,9 +400,9 @@ if [ "${ENABLE_STEP_53}" = true ]; then
 
     python "${CODE_TOP}/53_seisan_rea_diagnostics.py" \
         --rea-dir "${FAIR_REA_DIR}" \
-        --db-name "PNTBO" \
-        --out-dir "$SEISAN_DIAG_DIR" \
-        --wavefile-regex "$WAVE_RE"
+        --db-name "${DB}" \
+        --out-dir "${SEISAN_DIAG_DIR}" \
+        --wavefile-regex "${WAVE_RE}"
 else
     echo "=== STEP 53: SKIPPED ==="
 fi

@@ -2,22 +2,22 @@
 """
 53_seisan_rea_diagnostics.py
 
-STEP 53 — Sanity checks, diagnostics, and plots for SEISAN REA catalog.
+STEP 53 — Diagnostics and sanity checks for SEISAN REA catalog.
+
+Uses EVENT_CLASS comments written in Step 52 as the authoritative source
+of event composition (W, P, H), with heuristic fallback for legacy files.
 
 Outputs:
-  • Summary counts of S-files with Waveforms (W), Picks (P), Hypocenters (H)
-    including combinations (W, P, H, WP, WH, PH, WPH)
-  • Daily time series plot:
+  • Summary counts by EVENT_CLASS
+  • Daily counts:
       - total events
-      - events with linked miniseed files (waveform filename lines)
-      - events with phase picks
+      - events with waveforms
+      - events with picks
       - events with hypocenters
-  • CSV of per-day counts
+  • Daily EVENT_CLASS counts
+  • CSV + PNG plot
 
-Waveform detection:
-  • Uses regex match against full S-file lines
-  • Default matches: r"\\b[MS]\\.[A-Za-z0-9]{1,12}_[A-Za-z0-9]{1,6}\\b" (generic)
-  • For Pinatubo you can pass: --wavefile-regex "M\\.PNTBO_"
+Author: GT__/ChatGPT
 """
 
 from __future__ import annotations
@@ -31,37 +31,43 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
+# -----------------------------------------------------------------------------
+# Utilities
+# -----------------------------------------------------------------------------
+
 def iter_sfiles(rea_dir: Path):
     for p in rea_dir.rglob("*"):
-        if p.is_file() and p.name.endswith(".S") or p.suffix.startswith(".S"):
-            # SEISAN sfiles typically like "03-0845-35L.S199107"
+        if p.is_file() and re.search(r"\.S\d{6}$", p.name):
             yield p
 
 
-def parse_sfile_flags(text: str, wave_re: re.Pattern):
+def get_event_class(lines):
     """
-    Return flags: has_wave, has_picks, has_hypo
-    Heuristics (Nordic 1):
-      - Waveform lines: match wavefile regex anywhere in file
-      - Picks: presence of the pick header line starting with 'STAT'
-              or any typical station-phase lines after it
-      - Hypocenter: presence of 'GAP=' line OR a line ending with '1' type
-                    OR typical origin line format (we use a conservative check)
+    Extract EVENT_CLASS from Nordic comment lines.
+    Expected:
+      EVENT_CLASS:W+P+H
     """
-    lines = text.splitlines()
+    for ln in lines:
+        if "EVENT_CLASS:" in ln:
+            return ln.split("EVENT_CLASS:", 1)[1].strip()
+    return None
 
+
+def fallback_flags(lines, wave_re):
+    """
+    Heuristic fallback if EVENT_CLASS is missing.
+    Returns: has_W, has_P, has_H
+    """
     has_wave = any(wave_re.search(ln) for ln in lines)
 
-    # Picks: SEISAN pick section header is very characteristic
+    # Picks
     has_pick_header = any(ln.startswith(" STAT") or ln.startswith("STAT ") for ln in lines)
-    # fallback: look for station-like lines (3-5 char station then space then component)
-    stationish = re.compile(r"^[A-Z0-9]{2,5}\s+[A-Z0-9]{1,3}\s+[A-Z0-9]{0,2}\s+[A-Z0-9]{0,5}")
+    stationish = re.compile(r"^[A-Z0-9]{2,5}\s+[A-Z0-9]{1,3}\s+[A-Z0-9]{0,2}")
     has_station_lines = any(stationish.match(ln) for ln in lines)
     has_picks = has_pick_header or has_station_lines
 
-    # Hypocenter: GAP= line is common when solution exists
+    # Hypocenter
     has_gap = any("GAP=" in ln for ln in lines)
-    # Or: an origin line type "1" (line type is last char, but not always present in exports)
     has_type1 = any(ln.rstrip().endswith("1") and ln[:4].strip().isdigit() for ln in lines)
     has_hypo = has_gap or has_type1
 
@@ -70,29 +76,30 @@ def parse_sfile_flags(text: str, wave_re: re.Pattern):
 
 def day_key_from_sfilename(name: str) -> str | None:
     """
-    From SEISAN filename like: 03-0845-35L.S199107
-    => date is encoded in the .SYYYYMM part AND day in prefix.
-    We'll parse: DD-... .SYYYYMM
+    Parse date from SEISAN S-file name:
+      DD-HHMM-SSL.SYYYYMM
     """
     m = re.search(r"^(?P<dd>\d{2})-.*\.S(?P<yyyy>\d{4})(?P<mm>\d{2})$", name)
     if not m:
         return None
-    dd = int(m.group("dd"))
-    yyyy = int(m.group("yyyy"))
-    mm = int(m.group("mm"))
     try:
-        return f"{yyyy:04d}-{mm:02d}-{dd:02d}"
+        return f"{int(m.group('yyyy')):04d}-{int(m.group('mm')):02d}-{int(m.group('dd')):02d}"
     except Exception:
         return None
+
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
 
 def main():
     ap = argparse.ArgumentParser(description="STEP 53: SEISAN REA diagnostics")
     ap.add_argument("--rea-dir", required=True, help="Top-level REA directory")
-    ap.add_argument("--out-dir", required=True, help="Output directory for plots/CSVs")
+    ap.add_argument("--out-dir", required=True, help="Output directory")
     ap.add_argument(
         "--wavefile-regex",
         default=r"\b[MS]\.[A-Za-z0-9]{1,12}_[A-Za-z0-9]{1,6}\b",
-        help=r"Regex to detect waveform filename lines (e.g. 'M\.PNTBO_')."
+        help="Regex to detect waveform filenames (fallback only)"
     )
     args = ap.parse_args()
 
@@ -102,70 +109,98 @@ def main():
 
     wave_re = re.compile(args.wavefile_regex)
 
-    # Counters
     combo = Counter()
-    daily = defaultdict(lambda: {"total": 0, "wave": 0, "picks": 0, "hypo": 0})
+    daily = defaultdict(lambda: {
+        "total": 0,
+        "wave": 0,
+        "picks": 0,
+        "hypo": 0
+    })
 
-    sfiles = sorted(rea_dir.rglob("*.S*"))  # catches .SYYYYMM
+    daily_by_class = defaultdict(lambda: Counter())
+
+    sfiles = sorted(iter_sfiles(rea_dir))
     if not sfiles:
         raise SystemExit(f"No S-files found under {rea_dir}")
 
     for sf in sfiles:
         try:
-            text = sf.read_text(errors="replace")
+            lines = sf.read_text(errors="replace").splitlines()
         except Exception:
             continue
 
-        has_wave, has_picks, has_hypo = parse_sfile_flags(text, wave_re)
+        ev_class = get_event_class(lines)
 
-        key = (
-            ("W" if has_wave else "") +
-            ("P" if has_picks else "") +
-            ("H" if has_hypo else "")
-        ) or "none"
-        combo[key] += 1
+        if ev_class:
+            has_W = "W" in ev_class
+            has_P = "P" in ev_class
+            has_H = "H" in ev_class
+            label = ev_class
+        else:
+            has_W, has_P, has_H = fallback_flags(lines, wave_re)
+            label = (
+                ("W" if has_W else "") +
+                ("+P" if has_P else "") +
+                ("+H" if has_H else "")
+            ).lstrip("+") or "none"
+
+        combo[label] += 1
 
         day = day_key_from_sfilename(sf.name)
-        if day:
-            daily[day]["total"] += 1
-            if has_wave:
-                daily[day]["wave"] += 1
-            if has_picks:
-                daily[day]["picks"] += 1
-            if has_hypo:
-                daily[day]["hypo"] += 1
+        if not day:
+            continue
 
-    # Print combo counts (including the “any 1/2/3” question)
-    print("\nSTEP 53 — SUMMARY COUNTS")
-    print("------------------------")
-    for k in ["WPH", "WP", "WH", "PH", "W", "P", "H", "none"]:
-        if k in combo:
-            print(f"{k:4s}: {combo[k]}")
-    # also show everything found
-    extra = [k for k in combo.keys() if k not in {"WPH","WP","WH","PH","W","P","H","none"}]
-    for k in sorted(extra):
-        print(f"{k:4s}: {combo[k]}")
+        daily[day]["total"] += 1
+        if has_W:
+            daily[day]["wave"] += 1
+        if has_P:
+            daily[day]["picks"] += 1
+        if has_H:
+            daily[day]["hypo"] += 1
 
-    # Daily dataframe
-    df = pd.DataFrame.from_dict(daily, orient="index").sort_index()
-    df.index = pd.to_datetime(df.index)
-    df = df.sort_index()
+        daily_by_class[day][label] += 1
+
+    # ------------------------------------------------------------------
+    # OUTPUT: SUMMARY
+    # ------------------------------------------------------------------
+
+    print("\nSTEP 53 — EVENT CLASS SUMMARY")
+    print("------------------------------")
+    for k, v in combo.most_common():
+        print(f"{k:10s}: {v}")
+
+    # ------------------------------------------------------------------
+    # OUTPUT: DAILY CSV
+    # ------------------------------------------------------------------
+
+    df_daily = pd.DataFrame.from_dict(daily, orient="index").sort_index()
+    df_daily.index = pd.to_datetime(df_daily.index)
+    df_daily.index.name = "date"
+
+    df_class = pd.DataFrame.from_dict(daily_by_class, orient="index").fillna(0).astype(int)
+    df_class.index = pd.to_datetime(df_class.index)
+    df_class.index.name = "date"
+
+    df = df_daily.join(df_class, how="left")
 
     csv_path = out_dir / "53_daily_counts.csv"
-    df.to_csv(csv_path, index_label="date")
+    df.to_csv(csv_path)
 
-    # Plot
+    # ------------------------------------------------------------------
+    # OUTPUT: PLOT
+    # ------------------------------------------------------------------
+
     fig_path = out_dir / "53_daily_counts.png"
 
-    plt.figure()
+    plt.figure(figsize=(10, 5))
     plt.plot(df.index, df["total"], label="total events")
-    plt.plot(df.index, df["wave"], label="events with linked miniseed")
-    plt.plot(df.index, df["picks"], label="events with phase picks")
+    plt.plot(df.index, df["wave"], label="events with waveforms")
+    plt.plot(df.index, df["picks"], label="events with picks")
     plt.plot(df.index, df["hypo"], label="events with hypocenters")
     plt.legend()
     plt.xlabel("Date")
     plt.ylabel("Count")
-    plt.title("SEISAN REA Daily Counts (Step 53)")
+    plt.title("SEISAN REA Daily Event Counts (Step 53)")
     plt.tight_layout()
     plt.savefig(fig_path, dpi=200)
     plt.close()
