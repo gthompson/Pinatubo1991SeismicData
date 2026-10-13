@@ -1,0 +1,36 @@
+STEP 41 — PINATUBO HYPOCENTER AUDIT
+=============================================
+
+Parser: pinaall_annotated_rw_v1
+Source: /Users/thompsong/Library/CloudStorage/Box-Box/thompsong/3_Project_Documents/USFprojects/Pinatubo_1991/PINAALL_annotated_RW_20261013.DAT
+
+Parsed earthquakes: 3602
+Annotations: 303
+Parsing errors: 0
+
+Time basis:
+  LOCAL: 118
+  LOCAL_PLUS_1MIN: 123
+  UNCERTAIN: 2
+  UTC: 3359
+
+Local UTC offset: None
+
+Annotation types:
+  dated_annotation: 1
+  inline: 278
+  standalone: 24
+
+Event classifications:
+  distal: 23
+  distal_vt: 14
+  proximal: 49
+  spasmodic_burst: 14
+  unclassified: 3502
+
+Catalog ranges:
+  First reported time: 1991-05-10T04:10:52.990000
+  Last reported time:  1991-08-19T02:30:44.800000
+  Latitude:  14.95283 to 15.51433
+  Longitude: 120.07617 to 120.64000
+  Depth:     -1.80 to 32.38 km
