@@ -22,11 +22,13 @@ However:
 
 This repository provides:
 
+<pre>
 ✔ A seven-stage Python pipeline for full FAIR reconstruction
 ✔ Modern MiniSEED + QuakeML + SEISAN REA outputs
 ✔ A unified, cross-referenced event catalog
 ✔ Scripts designed for transparency, modularity, and reproducibility
 ✔ Self-contained helper functions (no FLOVOPY dependency)
+</pre>
 
 A companion JOSS submission will document the pipeline as research-grade software.
 
