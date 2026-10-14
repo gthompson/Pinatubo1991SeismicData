@@ -33,7 +33,7 @@ A companion JOSS submission will document the pipeline as research-grade softwar
 ⸻
 
 ## Repository Structure
-
+<pre>
 Pinatubo1991SeismicData/
 │
 ├── README.md
@@ -82,7 +82,7 @@ Pinatubo1991SeismicData/
     ├── test_associate.py
     ├── data/
     └── utils/
-
+</pre>
 
 ⸻
 
