@@ -34,6 +34,15 @@ A companion JOSS submission will document the pipeline as research-grade softwar
 
 ⸻
 
+## Goals of This Repository
+	•	Preserve the most complete digital representation of the 1991 Pinatubo seismic dataset
+	•	Enable modern waveform and catalog analysis (QuakeML, MiniSEED, SEISAN)
+	•	Support machine learning, clustering, and new interpretations
+	•	Document the full provenance and reproducibility of the reconstruction
+	•	Prepare the dataset for DOI-based archiving (Zenodo + EarthScope/ScienceBase)
+
+⸻
+
 ## Repository Structure
 <pre>
 Pinatubo1991SeismicData/
@@ -95,7 +104,6 @@ This repository uses a conda environment for maximum reproducibility.
 mamba env create -f environment.yml
 mamba activate pinatubo_fair
 
-
 ⸻
 
 ## Pipeline Overview (01–07)
@@ -148,13 +156,48 @@ pinmay91.pha, pinjun91.pha, pinjul91.pha, pinaug91.pha
 	•	Export of research-ready files
 
 ⸻
+## Data directories
 
-## Goals of This Repository
-	•	Preserve the most complete digital representation of the 1991 Pinatubo seismic dataset
-	•	Enable modern waveform and catalog analysis (QuakeML, MiniSEED, SEISAN)
-	•	Support machine learning, clustering, and new interpretations
-	•	Document the full provenance and reproducibility of the reconstruction
-	•	Prepare the dataset for DOI-based archiving (Zenodo + EarthScope/ScienceBase)
+Based on the default settings in the run_pinatubo_pipeline.sh file, the directory tree built will look like:
+<pre>
+~/Dropbox/PROFESSIONAL/DATA/Pinatubo/
+└── ASSEMBLED-25-028-THOMPSON-PINATUBO1991/       [DATA_TOP]
+    │
+    ├── LEGACY/                                    [LEGACY_TOP]
+    │   │
+    │   ├── WAVEFORM_DATA/
+    │   │   └── SUDS/                             [SUDS_TOP]
+    │   │       └── .../*.DMX                     Legacy waveform files
+    │   │
+    │   └── EVENT_METADATA/                       [LEGACY_EVENTMETA_DIR]
+    │       ├── MONTHLY_PHA/                      [LEGACY_PHA_MONTHLY_DIR]
+    │       │   └── ...                           Monthly phase arrivals
+    │       │
+    │       ├── PHA/                              [LEGACY_PHA_INDIVIDUAL_DIR]
+    │       │   └── ...                           Individual phase files
+    │       │
+    │       └── HYPOCENTERS/                      [LEGACY_HYPO_DIR]
+    │           └── ...                           Legacy hypocenter data
+    │
+    ├── FAIR/                                      [FAIR_TOP]
+    │   │
+    │   ├── SEISAN/                               [SEISAN_TOP]
+    │   │   └── WAV/
+    │   │       └── PNTBO/                        [SEISAN_WAV_DB]
+    │   │           └── YYYY/
+    │   │               └── MM/
+    │   │                   └── ...               Converted waveform files
+    │   │
+    │   └── metadata/                             [FAIR_META_DIR]
+    │       └── ...                               Catalogs and metadata
+    │
+    └── pipeline_tmp/                             [TMP_DIR]
+        └── qc/                                   [QC_DIR]
+            └── ...                               Diagnostics and QC outputs
+	
+</pre>
+
+Organize the legacy data as shown in the LEGACY/ folder above. Other directories will be created.
 
 ⸻
 
