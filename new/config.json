@@ -1,0 +1,53 @@
+{
+  "input": {
+    "mode": "seisan",
+    "seisan_root": "/Volumes/haldata/Pinatubo/ASSEMBLED-25-028-THOMPSON-PINATUBO1991/FAIR/SEISAN",
+    "database": "PNTBO",
+    "start": "1991-01-01T00:00:00",
+    "end": "1992-07-01T00:00:00",
+    "glob": "**/*",
+    "paths": []
+  },
+  "output": {
+    "directory": "./event_metrics_output",
+    "save_filtered_mseed": false
+  },
+  "processing": {
+    "units": "counts",
+    "detrend": "linear",
+    "taper_fraction": 0.0,
+    "lowpass_hz": 25.0,
+    "lowpass_corners": 6,
+    "zero_phase": true,
+    "noise_seconds": 5.0,
+    "noise_guard_seconds": 0.0,
+    "event_start_seconds": 5.0,
+    "minimum_window_seconds": 2.0,
+    "bands_hz": [
+      0.8,
+      4.0,
+      4.0,
+      20.0
+    ],
+    "compute_spectral": true,
+    "compute_sam": true,
+    "compute_sem": true,
+    "compute_bandratios": true
+  },
+  "artifact_audit": {
+    "enabled": true,
+    "target_hz": 40.5,
+    "search_halfwidth_hz": 2.5,
+    "background_halfwidth_hz": 7.0,
+    "background_exclusion_hz": 3.0,
+    "psd_ratio_threshold": 10.0,
+    "welch_nperseg": 2048
+  },
+  "plots": {
+    "enabled": true,
+    "dpi": 140,
+    "amplitude_metric": "sample_rms",
+    "bandratio_metric": "spectral.bandratio.ratio",
+    "max_station_plots": 100
+  }
+}
