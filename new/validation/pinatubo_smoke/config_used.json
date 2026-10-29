@@ -1,0 +1,53 @@
+{
+  "input": {
+    "mode": "files",
+    "paths": [
+      "/Users/thompsong/Downloads/1991-06-03-1534-16M.PNTBO_015"
+    ]
+  },
+  "output": {
+    "directory": "../validation/pinatubo_smoke",
+    "save_filtered_mseed": false
+  },
+  "processing": {
+    "units": "counts",
+    "detrend": "linear",
+    "taper_fraction": 0.0,
+    "lowpass_hz": 25.0,
+    "lowpass_corners": 6,
+    "zero_phase": true,
+    "noise_seconds": 5.0,
+    "noise_guard_seconds": 0.0,
+    "event_start_seconds": 5.0,
+    "minimum_window_seconds": 2.0,
+    "bands_hz": [
+      0.8,
+      4.0,
+      4.0,
+      20.0
+    ],
+    "compute_spectral": true,
+    "compute_sam": true,
+    "compute_sem": true,
+    "compute_bandratios": true,
+    "compute_temporal_features": false,
+    "temporal_features": {
+      "smoothing_seconds": 0.25,
+      "snr_threshold": 3.0,
+      "filter_corners": 4,
+      "early_seconds": 2.0,
+      "transition_min_seconds": 0.5
+    },
+    "compute_reusable_features": true,
+    "reusable_features": {}
+  },
+  "artifact_audit": {
+    "enabled": true,
+    "target_hz": 40.45,
+    "search_halfwidth_hz": 0.6,
+    "background_halfwidth_hz": 2.5,
+    "background_exclusion_hz": 0.8,
+    "psd_ratio_threshold": 10.0,
+    "welch_nperseg": 2048
+  }
+}

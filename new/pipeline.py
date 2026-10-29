@@ -207,7 +207,7 @@ def process_file(path, config):
         try:
             if a.get('enabled', True):
                 audit_rows.append({**base, **audit_trace(tr, a)})
-            if tr.stats.npts < 16 or not np.all(np.isfinite(tr.data)):
+            if tr.stats.npts < 16 or np.any(np.ma.getmaskarray(tr.data)) or not np.all(np.isfinite(tr.data)):
                 raise ValueError('trace too short or nonfinite')
             filtered = preprocess(Stream(traces=[tr]), p)[0]
             processed.append(filtered)
@@ -224,6 +224,24 @@ def process_file(path, config):
                 if metrics is not None:
                     metric_rows.append({**base, **metrics})
                     results[label] = metrics
+            if p.get('compute_reusable_features', False) and 'event' in results:
+                from flovopy.core.features import FeatureConfig, extract_trace_features
+                event_trace = filtered.copy().trim(event_start, filtered.stats.endtime, nearest_sample=True)
+                noise_trace = filtered.copy().trim(start, noise_end-guard, nearest_sample=True) if 'noise' in results else None
+                l1, l2, h1, h2 = map(float, p.get('bands_hz', [.8, 4., 4., 20.]))
+                options = dict(p.get('reusable_features', {}))
+                options.setdefault('lf_band', (l1, l2))
+                options.setdefault('hf_band', (h1, h2))
+                features = extract_trace_features(event_trace, noise_trace, config=FeatureConfig(**options))
+                features['provenance']['upstream_processing'] = p
+                extra = flatten({'features': features})
+                results['event'].update(extra)
+                for row in reversed(metric_rows):
+                    if row.get('trace_index') == index and row.get('window') == 'event':
+                        row.update(extra)
+                        break
+                qc_rows.append({**base, 'window': 'features',
+                                'status': ';'.join(features['qc_flags']) or 'ok'})
             if p.get('compute_temporal_features', True) and 'event' in results:
                 try:
                     event_trace=filtered.copy().trim(event_start,filtered.stats.endtime,nearest_sample=True)
