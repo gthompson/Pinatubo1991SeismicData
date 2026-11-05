@@ -1,0 +1,9 @@
+source,target,link
+BUG,GRN,radio
+GRN,PVO,radio
+PIE,PVO,radio
+UBO,PVO,radio / LDR
+CAB,PVO,radio
+BUR,PPO,radio
+PPO,BH,multiplex radio
+BH,PVO,military microwave

@@ -1,0 +1,11 @@
+{
+  "files_read": 12778,
+  "failures": 1,
+  "source_root": "/Users/glennthompson/Library/CloudStorage/Box-Box/thompsong/DATA/pinatubo1991/FAIR/SEISAN/WAV/PNTBO/1991",
+  "months": [
+    "06",
+    "07",
+    "08"
+  ],
+  "qualification": "Header identities only; stored timestamps not retimed; not uptime or install/removal dates."
+}

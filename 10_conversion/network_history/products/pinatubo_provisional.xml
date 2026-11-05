@@ -1,0 +1,726 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<FDSNStationXML xmlns="http://www.fdsn.org/xml/station/1" schemaVersion="1.2">
+  <Source>Pinatubo evidence reconstruction — DRAFT; unknown electronics explicit</Source>
+  <Module>ObsPy 1.5.0</Module>
+  <ModuleURI>https://www.obspy.org</ModuleURI>
+  <Created>2026-11-03T20:09:52.633903Z</Created>
+  <Network code="XB">
+    <Description>Provisional 1991 Pinatubo network, including undated and auxiliary channels</Description>
+    <Station code="CAB">
+      <Comment>
+        <Value>DRAFT: historical datum unknown; plotting assumes geographic WGS84. Published pre-eruption Table 1 supplied by Wendy (bibliographic citation pending); lat/lon matches STATIONS.INP</Value>
+      </Comment>
+      <Comment>
+        <Value>Alternative coordinates: [{"source": "PIN_STA_ALL.txt", "latitude": 15.17933333, "longitude": 120.51016667, "elevation_m": 240.0}, {"source": "STATIONS.INP", "latitude": 15.18983333, "longitude": 120.50583333, "elevation_m": null}]</Value>
+      </Comment>
+      <Comment>
+        <Value>Unknown electronics: VCO/preamp, discriminator/filter and ADC scale. No complete counts-to-ground-motion response supplied.</Value>
+      </Comment>
+      <Latitude unit="DEGREES">15.189833333333333</Latitude>
+      <Longitude unit="DEGREES">120.50583333333333</Longitude>
+      <Elevation unit="METERS">220.0</Elevation>
+      <Site>
+        <Name>Clark Air Base</Name>
+      </Site>
+      <Channel code="EHZ" startDate="1991-05-01T00:00:00.000000Z" endDate="1991-05-05T04:45:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Buried sensor; depth unreported, 0 m placeholder. Date-only start conventional UTC.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: 30; sensor: L4-C; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.189833333333333</Latitude>
+        <Longitude unit="DEGREES">120.50583333333333</Longitude>
+        <Elevation unit="METERS">220.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>L4-C</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+      <Channel code="EHZ" startDate="1991-05-05T04:45:00.000000Z" endDate="1991-06-16T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Unknown burial depth: 0 m placeholder. 12:45 local attenuation change converted nominally to UTC. Battery outage separate. Later calibration continuity unverified.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: 24; sensor: L4-C; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.189833333333333</Latitude>
+        <Longitude unit="DEGREES">120.50583333333333</Longitude>
+        <Elevation unit="METERS">220.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>L4-C</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+      <Channel code="EHN" startDate="1991-06-16T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Post-eruption configuration unknown. Start is first surviving header identity (CAB/BUG: conventional June 16 boundary); not verified installation or calibration. Depth 0 is an unknown-depth placeholder.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: None; sensor: unknown; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.189833333333333</Latitude>
+        <Longitude unit="DEGREES">120.50583333333333</Longitude>
+        <Elevation unit="METERS">220.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>unknown</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+      <Channel code="EHZ" startDate="1991-06-16T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Post-eruption configuration unknown. Start is first surviving header identity (CAB/BUG: conventional June 16 boundary); not verified installation or calibration. Depth 0 is an unknown-depth placeholder.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: None; sensor: unknown; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.189833333333333</Latitude>
+        <Longitude unit="DEGREES">120.50583333333333</Longitude>
+        <Elevation unit="METERS">220.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>unknown</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+    </Station>
+    <Station code="PIE">
+      <Comment>
+        <Value>DRAFT: historical datum unknown; plotting assumes geographic WGS84. Published pre-eruption Table 1 supplied by Wendy (bibliographic citation pending); lat/lon matches STATIONS.INP</Value>
+      </Comment>
+      <Comment>
+        <Value>Alternative coordinates: [{"source": "PIN_STA_ALL.txt", "latitude": 15.16666667, "longitude": 120.42883333, "elevation_m": 880.0}, {"source": "STATIONS.INP", "latitude": 15.16666667, "longitude": 120.42916667, "elevation_m": null}]</Value>
+      </Comment>
+      <Comment>
+        <Value>Unknown electronics: VCO/preamp, discriminator/filter and ADC scale. No complete counts-to-ground-motion response supplied.</Value>
+      </Comment>
+      <Latitude unit="DEGREES">15.166666666666666</Latitude>
+      <Longitude unit="DEGREES">120.42916666666666</Longitude>
+      <Elevation unit="METERS">880.0</Elevation>
+      <Site>
+        <Name>Mount Pinatubo East</Name>
+      </Site>
+      <Channel code="EHZ" startDate="1991-04-30T00:00:00.000000Z" endDate="1991-06-16T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Destroyed June 15; end June 16 is an inclusive-day convention, not measured failure time.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: 18; sensor: L4-C; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.166666666666666</Latitude>
+        <Longitude unit="DEGREES">120.42916666666666</Longitude>
+        <Elevation unit="METERS">880.0</Elevation>
+        <Depth unit="METERS">1.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>L4-C</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+    </Station>
+    <Station code="UBO">
+      <Comment>
+        <Value>DRAFT: historical datum unknown; plotting assumes geographic WGS84. Published pre-eruption Table 1 supplied by Wendy (bibliographic citation pending); lat/lon matches STATIONS.INP</Value>
+      </Comment>
+      <Comment>
+        <Value>Alternative coordinates: [{"source": "PIN_STA_ALL.txt", "latitude": 15.13883333, "longitude": 120.36266667, "elevation_m": 1320.0}, {"source": "STATIONS.INP", "latitude": 15.13916667, "longitude": 120.3625, "elevation_m": null}]</Value>
+      </Comment>
+      <Comment>
+        <Value>Unknown electronics: VCO/preamp, discriminator/filter and ADC scale. No complete counts-to-ground-motion response supplied.</Value>
+      </Comment>
+      <Latitude unit="DEGREES">15.139166666666666</Latitude>
+      <Longitude unit="DEGREES">120.3625</Longitude>
+      <Elevation unit="METERS">1200.0</Elevation>
+      <Site>
+        <Name>Geothermal drill pad</Name>
+      </Site>
+      <Channel code="EHZ" startDate="1991-05-01T00:00:00.000000Z" endDate="1991-06-11T14:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Buried in rocky fill, exact depth unknown: 0 m placeholder. Seismic lost June 11 22:00 local; nominal UTC conversion, clock uncertainty retained.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: 36; sensor: L4-C; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.139166666666666</Latitude>
+        <Longitude unit="DEGREES">120.3625</Longitude>
+        <Elevation unit="METERS">1200.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>L4-C</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+      <Channel code="WA1" startDate="1991-05-31T00:00:00.000000Z" endDate="1991-06-14T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Draft radial/tangential tilt codes, not geographic N/E. UBO axes 274/4 degrees; sign convention west-up/south-up needs raw-data verification. PPO floor installation unreliable; June 10 improvement incomplete. End boundaries approximate; no calibration supplied.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: None; sensor: electronic tilt, model unverified; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.139166666666666</Latitude>
+        <Longitude unit="DEGREES">120.3625</Longitude>
+        <Elevation unit="METERS">1200.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">274.0</Azimuth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate>0.0016666666666666668</SampleRate>
+        <Sensor>
+          <Type>electronic tilt, model unverified</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+      <Channel code="WA2" startDate="1991-05-31T00:00:00.000000Z" endDate="1991-06-14T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Draft radial/tangential tilt codes, not geographic N/E. UBO axes 274/4 degrees; sign convention west-up/south-up needs raw-data verification. PPO floor installation unreliable; June 10 improvement incomplete. End boundaries approximate; no calibration supplied.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: None; sensor: electronic tilt, model unverified; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.139166666666666</Latitude>
+        <Longitude unit="DEGREES">120.3625</Longitude>
+        <Elevation unit="METERS">1200.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">4.0</Azimuth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate>0.0016666666666666668</SampleRate>
+        <Sensor>
+          <Type>electronic tilt, model unverified</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+    </Station>
+    <Station code="PPO">
+      <Comment>
+        <Value>DRAFT: historical datum unknown; plotting assumes geographic WGS84. Published pre-eruption Table 1 supplied by Wendy (bibliographic citation pending); lat/lon matches STATIONS.INP</Value>
+      </Comment>
+      <Comment>
+        <Value>Alternative coordinates: [{"source": "PIN_STA_ALL.txt", "latitude": 15.1825, "longitude": 120.34166667, "elevation_m": 840.0}, {"source": "STATIONS.INP", "latitude": 15.1825, "longitude": 120.34166667, "elevation_m": null}]</Value>
+      </Comment>
+      <Comment>
+        <Value>Unknown electronics: VCO/preamp, discriminator/filter and ADC scale. No complete counts-to-ground-motion response supplied.</Value>
+      </Comment>
+      <Latitude unit="DEGREES">15.1825</Latitude>
+      <Longitude unit="DEGREES">120.34166666666667</Longitude>
+      <Elevation unit="METERS">840.0</Elevation>
+      <Site>
+        <Name>Patal Pinto</Name>
+      </Site>
+      <Channel code="EHZ" startDate="1991-05-03T00:00:00.000000Z" endDate="1991-05-12T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Date-only boundaries use nominal UTC midnight; field clock/time basis uncertain.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: 36; sensor: L4-C; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.1825</Latitude>
+        <Longitude unit="DEGREES">120.34166666666667</Longitude>
+        <Elevation unit="METERS">840.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>L4-C</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+      <Channel code="EHZ" startDate="1991-05-12T00:00:00.000000Z" endDate="1991-05-30T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Date-only boundaries use nominal UTC midnight; field clock/time basis uncertain.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: 24; sensor: L22-D; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.1825</Latitude>
+        <Longitude unit="DEGREES">120.34166666666667</Longitude>
+        <Elevation unit="METERS">840.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>L22-D</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+      <Channel code="EHZ" startDate="1991-05-30T00:00:00.000000Z" endDate="1991-06-12T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Date-only boundaries use nominal UTC midnight; field clock/time basis uncertain.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: 30; sensor: L22-D; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.1825</Latitude>
+        <Longitude unit="DEGREES">120.34166666666667</Longitude>
+        <Elevation unit="METERS">840.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>L22-D</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+      <Channel code="EHN" startDate="1991-05-12T00:00:00.000000Z" endDate="1991-06-12T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Date-only boundaries use nominal UTC midnight; field clock/time basis uncertain.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: 30; sensor: L22-D; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.1825</Latitude>
+        <Longitude unit="DEGREES">120.34166666666667</Longitude>
+        <Elevation unit="METERS">840.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>L22-D</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+      <Channel code="EHE" startDate="1991-05-12T00:00:00.000000Z" endDate="1991-06-12T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Date-only boundaries use nominal UTC midnight; field clock/time basis uncertain.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: 30; sensor: L22-D; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.1825</Latitude>
+        <Longitude unit="DEGREES">120.34166666666667</Longitude>
+        <Elevation unit="METERS">840.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">90.0</Azimuth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>L22-D</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+      <Channel code="WA1" startDate="1991-06-02T00:00:00.000000Z" endDate="1991-06-12T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Draft radial/tangential tilt codes, not geographic N/E. UBO axes 274/4 degrees; sign convention west-up/south-up needs raw-data verification. PPO floor installation unreliable; June 10 improvement incomplete. End boundaries approximate; no calibration supplied.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: None; sensor: electronic tilt, model unverified; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.1825</Latitude>
+        <Longitude unit="DEGREES">120.34166666666667</Longitude>
+        <Elevation unit="METERS">840.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate>0.0016666666666666668</SampleRate>
+        <Sensor>
+          <Type>electronic tilt, model unverified</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+      <Channel code="WA2" startDate="1991-06-02T00:00:00.000000Z" endDate="1991-06-12T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Draft radial/tangential tilt codes, not geographic N/E. UBO axes 274/4 degrees; sign convention west-up/south-up needs raw-data verification. PPO floor installation unreliable; June 10 improvement incomplete. End boundaries approximate; no calibration supplied.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: None; sensor: electronic tilt, model unverified; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.1825</Latitude>
+        <Longitude unit="DEGREES">120.34166666666667</Longitude>
+        <Elevation unit="METERS">840.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate>0.0016666666666666668</SampleRate>
+        <Sensor>
+          <Type>electronic tilt, model unverified</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+    </Station>
+    <Station code="BUR">
+      <Comment>
+        <Value>DRAFT: historical datum unknown; plotting assumes geographic WGS84. Published pre-eruption Table 1 supplied by Wendy (bibliographic citation pending); lat/lon matches STATIONS.INP</Value>
+      </Comment>
+      <Comment>
+        <Value>Alternative coordinates: [{"source": "PIN_STA_ALL.txt", "latitude": 15.2235, "longitude": 120.25933333, "elevation_m": 235.0}, {"source": "STATIONS.INP", "latitude": 15.22283333, "longitude": 120.25683333, "elevation_m": null}]</Value>
+      </Comment>
+      <Comment>
+        <Value>Unknown electronics: VCO/preamp, discriminator/filter and ADC scale. No complete counts-to-ground-motion response supplied.</Value>
+      </Comment>
+      <Latitude unit="DEGREES">15.222833333333334</Latitude>
+      <Longitude unit="DEGREES">120.25683333333333</Longitude>
+      <Elevation unit="METERS">380.0</Elevation>
+      <Site>
+        <Name>Burgos</Name>
+      </Site>
+      <Channel code="EHZ" startDate="1991-05-05T00:00:00.000000Z" endDate="1991-06-12T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Link lost June 11; end is inclusive-day convention.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: 24; sensor: L4-C; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.222833333333334</Latitude>
+        <Longitude unit="DEGREES">120.25683333333333</Longitude>
+        <Elevation unit="METERS">380.0</Elevation>
+        <Depth unit="METERS">1.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>L4-C</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+    </Station>
+    <Station code="GRN">
+      <Comment>
+        <Value>DRAFT: historical datum unknown; plotting assumes geographic WGS84. Published pre-eruption Table 1 supplied by Wendy (bibliographic citation pending); lat/lon matches STATIONS.INP</Value>
+      </Comment>
+      <Comment>
+        <Value>Alternative coordinates: [{"source": "PIN_STA_ALL.txt", "latitude": 15.0945, "longitude": 120.36633333, "elevation_m": 1583.0}, {"source": "STATIONS.INP", "latitude": 15.095, "longitude": 120.36666667, "elevation_m": null}]</Value>
+      </Comment>
+      <Comment>
+        <Value>Unknown electronics: VCO/preamp, discriminator/filter and ADC scale. No complete counts-to-ground-motion response supplied.</Value>
+      </Comment>
+      <Latitude unit="DEGREES">15.095</Latitude>
+      <Longitude unit="DEGREES">120.36666666666666</Longitude>
+      <Elevation unit="METERS">1560.0</Elevation>
+      <Site>
+        <Name>Mount Negron</Name>
+      </Site>
+      <Channel code="EHZ" startDate="1991-05-14T00:00:00.000000Z" endDate="1991-06-16T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>24 dB inferred retrospectively from pulses. Reburied 1.5 m in early June; exact date unknown, initial depth unknown; 0 m placeholder.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: 24; sensor: L4-C; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.095</Latitude>
+        <Longitude unit="DEGREES">120.36666666666666</Longitude>
+        <Elevation unit="METERS">1560.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>L4-C</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+    </Station>
+    <Station code="BUG">
+      <Comment>
+        <Value>DRAFT: historical datum unknown; plotting assumes geographic WGS84. Published pre-eruption Table 1 supplied by Wendy (bibliographic citation pending); lat/lon matches STATIONS.INP</Value>
+      </Comment>
+      <Comment>
+        <Value>Alternative coordinates: [{"source": "PIN_STA_ALL.txt", "latitude": 15.084, "longitude": 120.28166667, "elevation_m": 600.0}, {"source": "STATIONS.INP", "latitude": 15.084, "longitude": 120.28166667, "elevation_m": null}, {"source": "Lockhart Appendix 1", "latitude": 15.084166666666667, "longitude": 120.28166666666667, "elevation_m": null}]</Value>
+      </Comment>
+      <Comment>
+        <Value>Unknown electronics: VCO/preamp, discriminator/filter and ADC scale. No complete counts-to-ground-motion response supplied.</Value>
+      </Comment>
+      <Latitude unit="DEGREES">15.084</Latitude>
+      <Longitude unit="DEGREES">120.28166666666667</Longitude>
+      <Elevation unit="METERS">600.0</Elevation>
+      <Site>
+        <Name>Sitio Buag</Name>
+      </Site>
+      <Channel code="EHZ" startDate="1991-05-11T00:00:00.000000Z" endDate="1991-06-16T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Lightning outage and May 28 reinstall in chronology; exact outage onset unknown. June 15 heat damage; inclusive-day end.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: 18; sensor: L4-C; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.084</Latitude>
+        <Longitude unit="DEGREES">120.28166666666667</Longitude>
+        <Elevation unit="METERS">600.0</Elevation>
+        <Depth unit="METERS">1.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>L4-C</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+      <Channel code="EHZ" startDate="1991-06-16T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Post-eruption configuration unknown. Start is first surviving header identity (CAB/BUG: conventional June 16 boundary); not verified installation or calibration. Depth 0 is an unknown-depth placeholder.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: None; sensor: unknown; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.084</Latitude>
+        <Longitude unit="DEGREES">120.28166666666667</Longitude>
+        <Elevation unit="METERS">600.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>unknown</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+    </Station>
+    <Station code="DON">
+      <Comment>
+        <Value>DRAFT: historical datum unknown; plotting assumes geographic WGS84. STATIONS.INP coordinates; PIN_STA_ALL elevation; epoch/datum not documented</Value>
+      </Comment>
+      <Comment>
+        <Value>Alternative coordinates: [{"source": "PIN_STA_ALL.txt", "latitude": 15.37833333, "longitude": 120.50333333, "elevation_m": 100.0}, {"source": "STATIONS.INP", "latitude": 15.37833333, "longitude": 120.50333333, "elevation_m": null}]</Value>
+      </Comment>
+      <Comment>
+        <Value>Unknown electronics: VCO/preamp, discriminator/filter and ADC scale. No complete counts-to-ground-motion response supplied.</Value>
+      </Comment>
+      <Latitude unit="DEGREES">15.37833333</Latitude>
+      <Longitude unit="DEGREES">120.50333333</Longitude>
+      <Elevation unit="METERS">100.0</Elevation>
+      <Site>
+        <Name>DON (site name unverified)</Name>
+      </Site>
+      <Channel code="EHZ" startDate="1991-06-27T08:03:18.505000Z" locationCode="">
+        <Comment>
+          <Value>Post-eruption configuration unknown. Start is first surviving header identity (CAB/BUG: conventional June 16 boundary); not verified installation or calibration. Depth 0 is an unknown-depth placeholder.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: None; sensor: unknown; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.37833333</Latitude>
+        <Longitude unit="DEGREES">120.50333333</Longitude>
+        <Elevation unit="METERS">100.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>unknown</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+    </Station>
+    <Station code="CRW">
+      <Comment>
+        <Value>DRAFT: historical datum unknown; plotting assumes geographic WGS84. STATIONS.INP coordinates; PIN_STA_ALL elevation; epoch/datum not documented</Value>
+      </Comment>
+      <Comment>
+        <Value>Alternative coordinates: [{"source": "PIN_STA_ALL.txt", "latitude": 15.27933333, "longitude": 120.3495, "elevation_m": 668.0}, {"source": "STATIONS.INP", "latitude": 15.27933333, "longitude": 120.3495, "elevation_m": null}]</Value>
+      </Comment>
+      <Comment>
+        <Value>Unknown electronics: VCO/preamp, discriminator/filter and ADC scale. No complete counts-to-ground-motion response supplied.</Value>
+      </Comment>
+      <Latitude unit="DEGREES">15.27933333</Latitude>
+      <Longitude unit="DEGREES">120.3495</Longitude>
+      <Elevation unit="METERS">668.0</Elevation>
+      <Site>
+        <Name>Crow's Nest (code/location correspondence provisional)</Name>
+      </Site>
+      <Channel code="EHZ" startDate="1991-06-29T11:08:44.758000Z" locationCode="">
+        <Comment>
+          <Value>Post-eruption configuration unknown. Start is first surviving header identity (CAB/BUG: conventional June 16 boundary); not verified installation or calibration. Depth 0 is an unknown-depth placeholder.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: None; sensor: unknown; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.27933333</Latitude>
+        <Longitude unit="DEGREES">120.3495</Longitude>
+        <Elevation unit="METERS">668.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>unknown</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+    </Station>
+    <Station code="PI2">
+      <Comment>
+        <Value>DRAFT: historical datum unknown; plotting assumes geographic WGS84. STATIONS.INP coordinates; PIN_STA_ALL elevation; epoch/datum not documented</Value>
+      </Comment>
+      <Comment>
+        <Value>Alternative coordinates: [{"source": "PIN_STA_ALL.txt", "latitude": 15.22083333, "longitude": 120.41766667, "elevation_m": 720.0}, {"source": "STATIONS.INP", "latitude": 15.22083333, "longitude": 120.41766667, "elevation_m": null}]</Value>
+      </Comment>
+      <Comment>
+        <Value>Unknown electronics: VCO/preamp, discriminator/filter and ADC scale. No complete counts-to-ground-motion response supplied.</Value>
+      </Comment>
+      <Latitude unit="DEGREES">15.22083333</Latitude>
+      <Longitude unit="DEGREES">120.41766667</Longitude>
+      <Elevation unit="METERS">720.0</Elevation>
+      <Site>
+        <Name>PI2 (site name unverified)</Name>
+      </Site>
+      <Channel code="EHZ" startDate="1991-06-27T08:03:18.505000Z" locationCode="">
+        <Comment>
+          <Value>Post-eruption configuration unknown. Start is first surviving header identity (CAB/BUG: conventional June 16 boundary); not verified installation or calibration. Depth 0 is an unknown-depth placeholder.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: None; sensor: unknown; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.22083333</Latitude>
+        <Longitude unit="DEGREES">120.41766667</Longitude>
+        <Elevation unit="METERS">720.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>unknown</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+      <Channel code="ELZ" locationCode="">
+        <Comment>
+          <Value>Undated low-gain identity PI2L in station list. No verified epoch or response; earlier conversion may have collapsed it into EHZ.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: None; sensor: unknown; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.22083333</Latitude>
+        <Longitude unit="DEGREES">120.41766667</Longitude>
+        <Elevation unit="METERS">720.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>unknown</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+    </Station>
+    <Station code="FNG">
+      <Comment>
+        <Value>DRAFT: historical datum unknown; plotting assumes geographic WGS84. STATIONS.INP coordinates; PIN_STA_ALL elevation; epoch/datum not documented</Value>
+      </Comment>
+      <Comment>
+        <Value>Alternative coordinates: [{"source": "PIN_STA_ALL.txt", "latitude": 15.09616667, "longitude": 120.40516667, "elevation_m": 860.0}, {"source": "STATIONS.INP", "latitude": 15.09616667, "longitude": 120.40516667, "elevation_m": null}]</Value>
+      </Comment>
+      <Comment>
+        <Value>Unknown electronics: VCO/preamp, discriminator/filter and ADC scale. No complete counts-to-ground-motion response supplied.</Value>
+      </Comment>
+      <Latitude unit="DEGREES">15.09616667</Latitude>
+      <Longitude unit="DEGREES">120.40516667</Longitude>
+      <Elevation unit="METERS">860.0</Elevation>
+      <Site>
+        <Name>FNG (site name unverified)</Name>
+      </Site>
+      <Channel code="EHZ" startDate="1991-06-25T10:32:57.966000Z" locationCode="">
+        <Comment>
+          <Value>Post-eruption configuration unknown. Start is first surviving header identity (CAB/BUG: conventional June 16 boundary); not verified installation or calibration. Depth 0 is an unknown-depth placeholder.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: None; sensor: unknown; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.09616667</Latitude>
+        <Longitude unit="DEGREES">120.40516667</Longitude>
+        <Elevation unit="METERS">860.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>unknown</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+    </Station>
+    <Station code="QAD">
+      <Comment>
+        <Value>DRAFT: historical datum unknown; plotting assumes geographic WGS84. STATIONS.INP coordinates; PIN_STA_ALL elevation; epoch/datum not documented</Value>
+      </Comment>
+      <Comment>
+        <Value>Alternative coordinates: [{"source": "PIN_STA_ALL.txt", "latitude": 15.04416667, "longitude": 120.354, "elevation_m": 1070.0}, {"source": "STATIONS.INP", "latitude": 15.04433333, "longitude": 120.354, "elevation_m": null}]</Value>
+      </Comment>
+      <Comment>
+        <Value>Unknown electronics: VCO/preamp, discriminator/filter and ADC scale. No complete counts-to-ground-motion response supplied.</Value>
+      </Comment>
+      <Latitude unit="DEGREES">15.04433333</Latitude>
+      <Longitude unit="DEGREES">120.354</Longitude>
+      <Elevation unit="METERS">1070.0</Elevation>
+      <Site>
+        <Name>Mount Cuadrado (code/location correspondence provisional)</Name>
+      </Site>
+      <Channel code="EHZ" startDate="1991-06-27T08:03:18.505000Z" locationCode="">
+        <Comment>
+          <Value>Post-eruption configuration unknown. Start is first surviving header identity (CAB/BUG: conventional June 16 boundary); not verified installation or calibration. Depth 0 is an unknown-depth placeholder.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: None; sensor: unknown; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.04433333</Latitude>
+        <Longitude unit="DEGREES">120.354</Longitude>
+        <Elevation unit="METERS">1070.0</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>unknown</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+    </Station>
+    <Station code="LIL">
+      <Comment>
+        <Value>DRAFT: historical datum unknown; plotting assumes geographic WGS84. Lockhart Appendix 1; elevation not reported; modern-DEM estimate used only for required draft XML field</Value>
+      </Comment>
+      <Comment>
+        <Value>Alternative coordinates: []</Value>
+      </Comment>
+      <Comment>
+        <Value>Unknown electronics: VCO/preamp, discriminator/filter and ADC scale. No complete counts-to-ground-motion response supplied.</Value>
+      </Comment>
+      <Comment>
+        <Value>Required elevation field estimated from MODERN 15-arcsec DEM; not a historical measurement.</Value>
+      </Comment>
+      <Latitude unit="DEGREES">15.193666666666667</Latitude>
+      <Longitude unit="DEGREES">120.53016666666667</Longitude>
+      <Elevation unit="METERS">181.98599999999962</Elevation>
+      <Site>
+        <Name>Lily Hill</Name>
+      </Site>
+      <Channel code="EHZ" startDate="1991-04-25T00:00:00.000000Z" endDate="1991-05-01T00:00:00.000000Z" locationCode="">
+        <Comment>
+          <Value>Date-only boundaries use nominal UTC midnight; field clock/time basis uncertain.</Value>
+        </Comment>
+        <Comment>
+          <Value>Attenuation dB: 30; sensor: L4-C; electronics scale UNKNOWN</Value>
+        </Comment>
+        <Latitude unit="DEGREES">15.193666666666667</Latitude>
+        <Longitude unit="DEGREES">120.53016666666667</Longitude>
+        <Elevation unit="METERS">181.98599999999962</Elevation>
+        <Depth unit="METERS">1.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">-90.0</Dip>
+        <SampleRate>100.0</SampleRate>
+        <Sensor>
+          <Type>L4-C</Type>
+          <Description>Provisional historical identification; no serial-specific calibration.</Description>
+        </Sensor>
+      </Channel>
+    </Station>
+  </Network>
+</FDSNStationXML>

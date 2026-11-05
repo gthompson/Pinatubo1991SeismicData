@@ -1,0 +1,121 @@
+[
+  {
+    "source": "11_waveform_timeseries_diagnostics.py",
+    "sha256": "dae75816fa7049bfbe9de314a4eade4d379a75a89a32780f3608fc06ec80392c",
+    "notebook": "11_waveform_timeseries_diagnostics.ipynb",
+    "module": "pinatubo_steps/step_11_waveform_timeseries_diagnostics.py"
+  },
+  {
+    "source": "20_parse_individual_phase_files.py",
+    "sha256": "13f3dde537b416a259c0e3960254783b6b1c85f3ddc030139aadfe193643a619",
+    "notebook": "20_parse_individual_phase_files.ipynb",
+    "module": "pinatubo_steps/step_20_parse_individual_phase_files.py"
+  },
+  {
+    "source": "21_parse_monthly_phase_files.py",
+    "sha256": "4e4c88c2c819464bbe5bc9bd0dfe3594552dfd70093c3a5753bb4409759f9b51",
+    "notebook": "21_parse_monthly_phase_files.ipynb",
+    "module": "pinatubo_steps/step_21_parse_monthly_phase_files.py"
+  },
+  {
+    "source": "22_merge_picks.py",
+    "sha256": "2a61027c50ce433c6887d08700fab2094c39460bb20229964e54301fde948477",
+    "notebook": "22_merge_picks.ipynb",
+    "module": "pinatubo_steps/step_22_merge_picks.py"
+  },
+  {
+    "source": "23_plot_pick_event_diagnostics.py",
+    "sha256": "185cf5e8ff6e23cfd5beed8c1eae555f21348c8c6b47febe9b7136cf7078cadc",
+    "notebook": "23_plot_pick_event_diagnostics.ipynb",
+    "module": "pinatubo_steps/step_23_plot_pick_event_diagnostics.py"
+  },
+  {
+    "source": "30_associate_individual_picks_with_waveforms.py",
+    "sha256": "613b8c698bf703db52d533f0ebcbc96ce70d9c2f28f23f0681494b2c6888ff54",
+    "notebook": "30_associate_individual_picks_with_waveforms.ipynb",
+    "module": "pinatubo_steps/step_30_associate_individual_picks_with_waveforms.py"
+  },
+  {
+    "source": "32_build_waveform_pick_events.py",
+    "sha256": "0e7d7853e56d5c1acb13a97a7792b38052be11b2bde23af5a6a7d0cb319ad9a3",
+    "notebook": "32_build_waveform_pick_events.ipynb",
+    "module": "pinatubo_steps/step_32_build_waveform_pick_events.py"
+  },
+  {
+    "source": "33_plot_event_association_diagnostics.py",
+    "sha256": "75f4e913644e353a9c2b83e5124683403f546baf9e5e8f2c39648e478c467cdd",
+    "notebook": "33_plot_event_association_diagnostics.ipynb",
+    "module": "pinatubo_steps/step_33_plot_event_association_diagnostics.py"
+  },
+  {
+    "source": "40_build_hypocenter_index_pinatubo_all.py",
+    "sha256": "328927cccdc9818d51bb3743614e99fb94d9ddf1257f2cadb0b642f9b2a371c8",
+    "notebook": "40_build_hypocenter_indexes.ipynb",
+    "module": "pinatubo_steps/step_40_build_hypocenter_index_pinatubo_all.py",
+    "status": "shared ingestion notebook; independent source sections; parser unchanged"
+  },
+  {
+    "source": "41_build_hypocenter_index_pinaall.py",
+    "sha256": "7ced224ca5a4c47b7a51dfb1ef6acde08f45a474f32474cf7d1c5f29292a2aed",
+    "notebook": "40_build_hypocenter_indexes.ipynb",
+    "module": "pinatubo_steps/step_41_build_hypocenter_index_pinaall.py",
+    "status": "shared ingestion notebook; independent source sections; parser unchanged"
+  },
+  {
+    "source": "41_build_hypocenter_index_pinaall_v2.py",
+    "sha256": "963b33c6dc630b94268f38de26ddfdbc2595ebc164d22d0f51da7f3549db797d",
+    "notebook": "superseded/step41/41_build_hypocenter_index_pinaall_v2.ipynb",
+    "module": "pinatubo_steps/step_41_build_hypocenter_index_pinaall_v2.py",
+    "status": "parser selected in combined 40_build_hypocenter_indexes.ipynb; old notebook superseded"
+  },
+  {
+    "source": "42_compare_hypocenter_indexes.py",
+    "sha256": "183b30cde596c49caa9a57823e843869f5adf00d6c1eae62d13a81cf9195eb1d",
+    "notebook": "42_compare_hypocenter_indexes.ipynb",
+    "module": "pinatubo_steps/step_42_compare_hypocenter_indexes.py"
+  },
+  {
+    "source": "43_associate_hypocenters.py",
+    "sha256": "eecc4450bd7a344f007b7ee97580a2a14cd2d74beb9369f5db6b7bf1cdde55af",
+    "notebook": "43_associate_hypocenters.ipynb",
+    "module": "pinatubo_steps/step_43_associate_hypocenters.py"
+  },
+  {
+    "source": "44_plot_hypocenters_per_day.py",
+    "sha256": "3d2c404989cfc4c82ba99861fdac8ebbc53b1ea3d47e13a50b5b65da1569acee",
+    "notebook": "44_plot_hypocenters_per_day.ipynb",
+    "module": "pinatubo_steps/step_44_plot_hypocenters_per_day.py"
+  },
+  {
+    "source": "50_build_obspy_catalog.py",
+    "sha256": "0746a12dd4d2b88a87cf490aa847ad195f50ae08cfabd2ce50a35fc739caf11d",
+    "notebook": "50_build_obspy_catalog.ipynb",
+    "module": "pinatubo_steps/step_50_build_obspy_catalog.py",
+    "status": "consolidated; association_policy defaults to one_to_one"
+  },
+  {
+    "source": "50_build_obspy_catalog_alt.py",
+    "sha256": "9e37ccead745d8ed424ef0d4103afda5a55555196355e9a4b407de215acf6dd8",
+    "notebook": "superseded/step50/50_build_obspy_catalog_alt.ipynb",
+    "module": "pinatubo_steps/step_50_build_obspy_catalog_alt.py",
+    "status": "superseded; compatibility import only"
+  },
+  {
+    "source": "51_event_numbers_in_complete_windows.py",
+    "sha256": "b2bffcbd6f75e83c579d756d2b094235f1f83dbf28789e1e6c2c103964020692",
+    "notebook": "51_event_numbers_in_complete_windows.ipynb",
+    "module": "pinatubo_steps/step_51_event_numbers_in_complete_windows.py"
+  },
+  {
+    "source": "52_build_seisan_rea_catalog.py",
+    "sha256": "6a8bcf307dc21501d9b9c5ea8481c36a8b84d501e65d10c0a6423b50f5d5843f",
+    "notebook": "52_build_seisan_rea_catalog.ipynb",
+    "module": "pinatubo_steps/step_52_build_seisan_rea_catalog.py"
+  },
+  {
+    "source": "53_seisan_rea_diagnostics.py",
+    "sha256": "9144ed5c0b8e7c7031193a533c66a09777dbdd7e9910ca354cb154567c29d4ee",
+    "notebook": "53_seisan_rea_diagnostics.ipynb",
+    "module": "pinatubo_steps/step_53_seisan_rea_diagnostics.py"
+  }
+]

@@ -1,0 +1,48 @@
+[
+  {
+    "id": "Lockhart",
+    "uri": "https://pubs.usgs.gov/pinatubo/lock/",
+    "local": "/Users/glennthompson/Downloads/Lockhart.pdf",
+    "scope": "First network through June 15; Appendix 1 station history",
+    "sha256": "0472cfbfbc516066bc56fb18a7957225b5772cf6e12304922ecded6fc876bd1a"
+  },
+  {
+    "id": "Murray",
+    "uri": "https://pubs.usgs.gov/pinatubo/murray/",
+    "local": "/Users/glennthompson/Downloads/Murray.pdf",
+    "scope": "1991 hardware, data flow and timing; later improvements separate",
+    "sha256": "157b818a999540315d80adac978a6643c97cb7f509057b5974c227932797a307"
+  },
+  {
+    "id": "Ewert",
+    "uri": "https://pubs.usgs.gov/pinatubo/ewert/",
+    "local": null,
+    "scope": "UBO/PPO tilt installation, axes, ancillary channels"
+  },
+  {
+    "id": "Bautista",
+    "uri": "https://pubs.usgs.gov/pinatubo/bbautist/",
+    "local": null,
+    "scope": "Network restored by June 29; site-specific dates unknown"
+  },
+  {
+    "id": "WendyTable",
+    "uri": null,
+    "local": "/Users/glennthompson/Downloads/Screenshot 2026-11-02 at 10.15.50\u202fAM.png",
+    "scope": "Published pre-eruption coordinate/elevation table; full bibliographic citation pending",
+    "sha256": "e11e1f848b0a3f1931cdbdf504c048ea554cf14fd948f49ea74a16115f3d7fc1"
+  },
+  {
+    "id": "PowerEmail",
+    "uri": null,
+    "local": null,
+    "scope": "User-supplied Power-to-White email October 29 2026; recollection about May 25"
+  },
+  {
+    "id": "ModernRelief",
+    "uri": "https://oceania.generic-mapping-tools.org",
+    "local": "/Users/glennthompson/Documents/ChatGPT/pinatubo/outputs/network_reconstruction/network_history/data/modern_earth_relief.nc",
+    "scope": "GMT SRTM15 Earth Relief v2.7; modern terrain, not pre-eruption surface",
+    "sha256": "cc6d0ef8ef02049fcf736f5141c0ce3d6d100cbcaea5b1fc1dffbf6652dc8417"
+  }
+]

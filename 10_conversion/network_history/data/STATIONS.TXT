@@ -1,0 +1,28 @@
+                          STATIONS FOR PINATUBO
+                          
+RSAM     Classic RSAM
+EVNT     Events as detected by RSAM
+
+       SSAM data
+S1_1     1-minute SSAM data from station S1_
+S2_1     1-minute SSAM data from station S2_
+S3_1     1-minute SSAM data from station S3_
+S4_1     1-minute SSAM data from station S4_
+S5_1     1-minute SSAM data from station S5_
+S6_1     1-minute SSAM data from station S6_
+
+S1_F     10-minute SSAM average in BOB files for station S1_
+S2_F     10-minute SSAM average in BOB files for station S2_
+S3_F     10-minute SSAM average in BOB files for station S3_
+S4_F     10-minute SSAM average in BOB files for station S4_
+      
+TIDE     Calculated Earth tide data
+
+UBO_	 Electronic tilt at UBO site
+PPO_     Electronic tilt at Patal Pinto
+
+RAIN     Rain guages
+LSAC     Flow sensor on lower Sacobia
+USAC     Flow sensor on upper Sacobia
+MARL     Flow sensor on upper Marella
+ABAC     Flow sensor on Abacan ( near lower Sacobia)

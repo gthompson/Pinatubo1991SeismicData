@@ -1,0 +1,492 @@
+[
+  {
+    "station": "LIL",
+    "date_as_reported": "1991-04-25",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "deployment",
+    "event": "installed",
+    "detail": "L-4 interpretation of printed L-c4; 30 dB attenuation; sensor buried 1 m; 15\u00b011.62 N, 120\u00b031.81 E",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "LIL",
+    "date_as_reported": "1991-05-01",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "deployment",
+    "event": "removed",
+    "detail": "Original Lily Hill installation; retain a distinct station identity from CAB.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "PIE",
+    "date_as_reported": "1991-04-30",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "deployment",
+    "event": "installed",
+    "detail": "L-4; 18 dB attenuation; sensor buried 1 m.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "PIE",
+    "date_as_reported": "1991-06-15",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "termination",
+    "event": "destroyed",
+    "detail": "Do not assume exact midnight shutdown.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "UBO",
+    "date_as_reported": "1991-05-01",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "deployment",
+    "event": "installed",
+    "detail": "L-4; 36 dB attenuation; sensor in rocky fill.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "UBO",
+    "date_as_reported": "1991-05-31",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "tilt",
+    "event": "tiltmeter site visit",
+    "detail": "Companion Ewert chapter independently reports first tilt data on May 31.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "UBO",
+    "date_as_reported": "1991-06-11 22:00",
+    "date_precision": "minute",
+    "time_basis": "local, as reported",
+    "event_type": "telemetry",
+    "event": "seismic telemetry lost",
+    "detail": "Do not equate this to loss of all tilt data or physical destruction.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "UBO",
+    "date_as_reported": "1991-06-12 03:41",
+    "date_precision": "minute",
+    "time_basis": "local, narrative context",
+    "event_type": "observation",
+    "event": "nearby explosion reference",
+    "detail": "Explosion time is from PIEZ, not a functioning UBO seismic record; weak transmitter noted during 0600 flyby.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "BUR",
+    "date_as_reported": "1991-05-05",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "deployment",
+    "event": "installed",
+    "detail": "L-4; 24 dB attenuation; sensor buried 1 m.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "BUR",
+    "date_as_reported": "1991-05-07",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "recording",
+    "event": "first received at Clark",
+    "detail": "Separate installation from successful receipt.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "BUR",
+    "date_as_reported": "1991-06-11",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "telemetry",
+    "event": "Bunker Hill link lost",
+    "detail": "Shared loss with PPO channels and LDR path; not necessarily sensor failure.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "PPO",
+    "date_as_reported": "1991-05-03",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "deployment",
+    "event": "installed",
+    "detail": "Single vertical L-4 on hut floor; 36 dB attenuation.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "PPO",
+    "date_as_reported": "1991-05-06",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "recording",
+    "event": "first received at Clark",
+    "detail": "Separate installation from successful receipt.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "PPO",
+    "date_as_reported": "1991-05-12",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "response_epoch",
+    "event": "sensor replacement and new components",
+    "detail": "Three-component L-22D, 2 Hz: Z attenuation 24 dB; N and E attenuation 30 dB.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "PPO",
+    "date_as_reported": "1991-05-30",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "response_epoch",
+    "event": "vertical attenuation changed",
+    "detail": "PPOZ to 30 dB; no explicit change of N/E settings is stated.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "PPO",
+    "date_as_reported": "1991-06-02",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "tilt",
+    "event": "tilt installed on hut floor",
+    "detail": "Lockhart PPO Telemetry section; installation/wiring unsuitable, data never reliable.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "PPO",
+    "date_as_reported": "1991-06-10",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "tilt",
+    "event": "attempted tilt reinstallation",
+    "detail": "Lockhart PPO Telemetry section; work cut short, not evidence of successful new installation.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "PPO",
+    "date_as_reported": "1991-06-11",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "telemetry",
+    "event": "Bunker Hill link lost",
+    "detail": "Affected seismic components, tilt and rain-gauge telemetry.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "BUG",
+    "date_as_reported": "1991-05-11",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "deployment",
+    "event": "installed",
+    "detail": "L-4; 18 dB attenuation; sensor buried 1 m. Appendix latitude 15\u00b005.05 N differs from 15\u00b005.04 in the other coordinate sources.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "BUG",
+    "date_as_reported": "1991-05-14",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "recording",
+    "event": "first repeated to base",
+    "detail": "Through GRN.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "BUG",
+    "date_as_reported": "1991-05-24",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "outage",
+    "event": "lightning damage found",
+    "detail": "Visit found destroyed radio and damaged VCO; actual failure time not established.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "BUG",
+    "date_as_reported": "1991-05-28",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "maintenance",
+    "event": "reinstalled",
+    "detail": "18 dB attenuation; confirm instrument serials/response if available.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "BUG",
+    "date_as_reported": "1991-06-15",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "termination",
+    "event": "transmissions lost",
+    "detail": "Exposed components damaged by heat; not total destruction of buried equipment.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "GRN",
+    "date_as_reported": "1991-05-14",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "deployment",
+    "event": "installed",
+    "detail": "L-4. 24 dB attenuation is a retrospective inference from calibration signals, not a recorded field setting.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "GRN",
+    "date_as_reported": "1991-05-16",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "telemetry",
+    "event": "VO-COM repeater installed",
+    "detail": "Telemetry configuration history.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "GRN",
+    "date_as_reported": "early June 1991",
+    "date_precision": "approximate interval",
+    "time_basis": "unspecified in appendix",
+    "event_type": "site_change",
+    "event": "sensor reburied",
+    "detail": "Depth changed to 1.5 m; date is approximate, no exact epoch boundary is established.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "GRN",
+    "date_as_reported": "1991-06-15",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "termination",
+    "event": "destroyed/buried",
+    "detail": "Appendix says annihilated; main text says destroyed or buried.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "CAB",
+    "date_as_reported": "1991-05-01",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "deployment",
+    "event": "installed",
+    "detail": "L-4, distinct site from LIL; old coordinates 15\u00b010.76 N, 120\u00b030.61 E are explicitly printed in Appendix 1.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "CAB",
+    "date_as_reported": "1991-05-05 12:45",
+    "date_precision": "minute",
+    "time_basis": "local, as reported",
+    "event_type": "response_epoch",
+    "event": "attenuation changed",
+    "detail": "Reduced from 30 to 24 dB.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "CAB",
+    "date_as_reported": "latter May and early June 1991",
+    "date_precision": "approximate interval",
+    "time_basis": "unspecified in appendix",
+    "event_type": "outage",
+    "event": "battery outage",
+    "detail": "Approximate interval only; do not invent exact gap start.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "CAB",
+    "date_as_reported": "1991-06-11",
+    "date_precision": "day",
+    "time_basis": "unspecified in appendix",
+    "event_type": "maintenance",
+    "event": "back online",
+    "detail": "Battery change; reduced water-pump noise after evacuation.",
+    "source": "Lockhart et al., Appendix 1 unless noted"
+  },
+  {
+    "station": "PVO",
+    "date_as_reported": "1991-04 (response deployment)",
+    "event": "system installed",
+    "detail": "Murray: response equipment taken from USA to Maryland Street apartment at Clark; exact date not stated.",
+    "event_type": "operations",
+    "date_precision": "approximate",
+    "time_basis": "as reported; not automatically UTC",
+    "source": "Murray et al. hardware/conclusions; Lockhart; Bautista; supplied Power email as identified in detail"
+  },
+  {
+    "station": "PVO",
+    "date_as_reported": "before 1991-06-15",
+    "event": "observatory move",
+    "detail": "Maryland Street apartment to Dau Complex as unrest intensified; exact date unresolved.",
+    "event_type": "operations",
+    "date_precision": "approximate",
+    "time_basis": "as reported; not automatically UTC",
+    "source": "Murray et al. hardware/conclusions; Lockhart; Bautista; supplied Power email as identified in detail"
+  },
+  {
+    "station": "PVO",
+    "date_as_reported": "just after 1991-06-15",
+    "event": "observatory move",
+    "detail": "Dau Complex to Clark BaseOps; exact date unresolved.",
+    "event_type": "operations",
+    "date_precision": "approximate",
+    "time_basis": "as reported; not automatically UTC",
+    "source": "Murray et al. hardware/conclusions; Lockhart; Bautista; supplied Power email as identified in detail"
+  },
+  {
+    "station": "PVO",
+    "date_as_reported": "early July 1991",
+    "event": "disk replacement",
+    "detail": "Murray reports erratic hard disk, replaced with a disk bought in Manila; machine/date not specified.",
+    "event_type": "maintenance",
+    "date_precision": "approximate",
+    "time_basis": "as reported; not automatically UTC",
+    "source": "Murray et al. hardware/conclusions; Lockhart; Bautista; supplied Power email as identified in detail"
+  },
+  {
+    "station": "PVO",
+    "date_as_reported": "1991-11",
+    "event": "observatory move",
+    "detail": "System moved off Clark to Quezon City; exact day unresolved.",
+    "event_type": "operations",
+    "date_precision": "month",
+    "time_basis": "as reported; not automatically UTC",
+    "source": "Murray et al. hardware/conclusions; Lockhart; Bautista; supplied Power email as identified in detail"
+  },
+  {
+    "station": "WILLIE",
+    "date_as_reported": "about 1991-05-25",
+    "event": "candidate timing/software transition",
+    "detail": "Power email Oct 29 2026 recalls GMT/version change around May 25; not a verified correction boundary.",
+    "event_type": "timing",
+    "date_precision": "approximate recollection",
+    "time_basis": "as reported; not automatically UTC",
+    "source": "Murray et al. hardware/conclusions; Lockhart; Bautista; supplied Power email as identified in detail"
+  },
+  {
+    "station": "NETWORK",
+    "date_as_reported": "by 1991-06-29",
+    "event": "network restoration",
+    "detail": "Bautista chapter reports telemetry network restored by June 29; exact site-specific redeployment dates unresolved.",
+    "event_type": "deployment",
+    "date_precision": "upper bound",
+    "time_basis": "as reported; not automatically UTC",
+    "source": "Murray et al. hardware/conclusions; Lockhart; Bautista; supplied Power email as identified in detail"
+  },
+  {
+    "station": "PPO",
+    "date_as_reported": "date not established",
+    "event": "rain gauge added",
+    "detail": "Lockhart PPO telemetry: rain gauge added to LDR platform; precise start and calibration unknown.",
+    "event_type": "auxiliary",
+    "date_precision": "unknown",
+    "time_basis": "as reported; not automatically UTC",
+    "source": "Murray et al. hardware/conclusions; Lockhart; Bautista; supplied Power email as identified in detail"
+  },
+  {
+    "station": "PHIVOLCS",
+    "date_as_reported": "early April 1991",
+    "event": "portable monitoring established",
+    "detail": "After April 2 unrest, PHIVOLCS established an observatory west of the volcano and deployed several portable, nontelemetered recorders. Site identities/coordinates/epochs not recovered here.",
+    "event_type": "deployment",
+    "date_precision": "approximate interval",
+    "time_basis": "as reported; clock basis not automatically UTC",
+    "source": "Ewert for tilt record; Lockhart introduction, network configuration and repeater sections otherwise"
+  },
+  {
+    "station": "VDAP",
+    "date_as_reported": "1991-04-05",
+    "event": "response team alerted",
+    "detail": "VDAP alerted; this is an organizational milestone, not a sensor installation.",
+    "event_type": "operations",
+    "date_precision": "day",
+    "time_basis": "as reported; clock basis not automatically UTC",
+    "source": "Ewert for tilt record; Lockhart introduction, network configuration and repeater sections otherwise"
+  },
+  {
+    "station": "VDAP",
+    "date_as_reported": "1991-04-23",
+    "event": "team deployment",
+    "detail": "Three-person USGS team flew to the Philippines with prepared analog telemetry and tilt equipment.",
+    "event_type": "operations",
+    "date_precision": "day",
+    "time_basis": "as reported; clock basis not automatically UTC",
+    "source": "Ewert for tilt record; Lockhart introduction, network configuration and repeater sections otherwise"
+  },
+  {
+    "station": "NETWORK",
+    "date_as_reported": "1991-05-14",
+    "event": "initial network installed",
+    "detail": "Lockhart describes installation during April 25\u2013May 14: seven stations, three repeaters, nine seismic components. First reception and later configuration dates remain separate.",
+    "event_type": "deployment",
+    "date_precision": "day",
+    "time_basis": "as reported; clock basis not automatically UTC",
+    "source": "Ewert for tilt record; Lockhart introduction, network configuration and repeater sections otherwise"
+  },
+  {
+    "station": "BUNKER_HILL",
+    "date_as_reported": "1991-06-10",
+    "event": "guards evacuated",
+    "detail": "Guards evacuated, generators subsequently stolen; telephone telemetry loss dated June 11 separately.",
+    "event_type": "telemetry",
+    "date_precision": "day",
+    "time_basis": "as reported; clock basis not automatically UTC",
+    "source": "Ewert for tilt record; Lockhart introduction, network configuration and repeater sections otherwise"
+  },
+  {
+    "station": "CROWS_NEST",
+    "date_as_reported": "1991-06-14",
+    "event": "replacement repeater attempt failed",
+    "detail": "Attempted 5-W UHF/yagi link to receiver 60 feet up Clark mast; no usable reception because path not line-of-sight. Does not establish an operational CRW seismic station at this date.",
+    "event_type": "telemetry",
+    "date_precision": "last attempt bound",
+    "time_basis": "as reported; clock basis not automatically UTC",
+    "source": "Ewert for tilt record; Lockhart introduction, network configuration and repeater sections otherwise"
+  },
+  {
+    "station": "NETWORK",
+    "date_as_reported": "after 1991-06-15",
+    "event": "reconstruction and new repeater sites",
+    "detail": "Second network installed, some sites reoccupied and newly accessible repeater sites used. Exact site-specific dates/routes unresolved.",
+    "event_type": "deployment",
+    "date_precision": "approximate interval",
+    "time_basis": "as reported; clock basis not automatically UTC",
+    "source": "Ewert for tilt record; Lockhart introduction, network configuration and repeater sections otherwise"
+  },
+  {
+    "station": "UBO",
+    "date_as_reported": "1991-05-31",
+    "event": "tilt data begin",
+    "detail": "Ewert reports UBO tilt data starting May 31, through June 13. This product history differs from June 11 seismic telemetry failure.",
+    "event_type": "auxiliary",
+    "date_precision": "day",
+    "time_basis": "as reported; clock basis not automatically UTC",
+    "source": "Ewert for tilt record; Lockhart introduction, network configuration and repeater sections otherwise"
+  },
+  {
+    "station": "UBO",
+    "date_as_reported": "1991-06-13",
+    "event": "last reported tilt data",
+    "detail": "Ewert tilt record ends June 13; exact failure time and timestamp reliability remain unresolved.",
+    "event_type": "auxiliary",
+    "date_precision": "day",
+    "time_basis": "as reported; clock basis not automatically UTC",
+    "source": "Ewert for tilt record; Lockhart introduction, network configuration and repeater sections otherwise"
+  },
+  {
+    "station": "PPO",
+    "date_as_reported": "after 1991-05-03 (exact date unknown)",
+    "event": "BUR repeater added",
+    "detail": "PPO augmented from single seismic site to receive BUR; documented receiving at Clark by May 7. Exact field addition date not given.",
+    "event_type": "telemetry",
+    "date_precision": "unknown",
+    "time_basis": "as reported; clock basis not automatically UTC",
+    "source": "Ewert for tilt record; Lockhart introduction, network configuration and repeater sections otherwise"
+  }
+]
