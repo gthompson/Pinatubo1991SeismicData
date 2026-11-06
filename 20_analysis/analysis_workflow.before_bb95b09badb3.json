@@ -1,0 +1,51 @@
+{
+  "wav_root": null,
+  "selection": {
+    "mode": "all",
+    "months": [
+      "1991/05",
+      "1991/06",
+      "1991/07",
+      "1991/08"
+    ],
+    "files_per_month": 50,
+    "explicit_files": [],
+    "max_files": null
+  },
+  "processing": {
+    "minimum_window_s": 2.0,
+    "lowpass_hz": null,
+    "noise_guard_s": 1.0,
+    "lf_band": [
+      0.8,
+      4.0
+    ],
+    "hf_band": [
+      4.0,
+      20.0
+    ]
+  },
+  "spectra": {
+    "segment_s": 2.56,
+    "overlap": 0.5,
+    "multitaper_nw": 2.5,
+    "fft_windows_s": [
+      1.28,
+      2.56,
+      5.12
+    ],
+    "step_s": 0.16
+  },
+  "plots": {
+    "dpi": 300,
+    "frequency_limits_hz": [
+      0.8,
+      25.0
+    ],
+    "psd_db_limits": [
+      -10.0,
+      70.0
+    ],
+    "max_examples": 4
+  }
+}

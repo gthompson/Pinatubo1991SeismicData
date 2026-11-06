@@ -1,5 +1,12 @@
 # Generic FloVoPy event metrics pipeline (prototype v0.1)
 
+## Notebook workflow
+
+The recommended interactive sequence is documented in [ANALYSIS_NOTEBOOKS.md](ANALYSIS_NOTEBOOKS.md), starting with `00_archive_inventory_and_qc.ipynb`. It shares `analysis_workflow.json`, uses reviewed trace-specific windows and FLOVOpy features, and saves publication figure drafts. See [METRIC_SCHEMA.md](METRIC_SCHEMA.md) for units and quality conventions. The default run is a small pilot; no noise/event proposal is automatically accepted. `legacy_rsam_analysis.ipynb` remains separate.
+
+The existing command-line workflow below is retained; its fixed-window behavior is separate from the new reviewed-window notebooks.
+
+
 This is a **generic**, non-Pinatubo-specific processor. It reads event waveform
 files from a SEISAN `WAV/<DB>/<YEAR>/<MONTH>` tree or file glob patterns.
 It audits a configurable narrowband artifact on the **unfiltered** data, then

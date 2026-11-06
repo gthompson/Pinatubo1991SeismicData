@@ -1,0 +1,45 @@
+{
+  "status": "DRAFT_REQUIRES_AUTHOR_SELECTION",
+  "run_id": "e75d49b2bf48",
+  "example_traces": [
+    {
+      "trace_key": "ccdc18d400ed:0",
+      "source_fingerprint": "d227c13c6afd2d8124f139ee4f88a3fb380a51518842f7e9772d9e076c33744a"
+    },
+    {
+      "trace_key": "11528bd4cb1c:0",
+      "source_fingerprint": "19e2b11d07b949bf3bca724f785f746468586e810de2ebb6c9ed7ef88389d6ad"
+    },
+    {
+      "trace_key": "fdef7378dd9a:0",
+      "source_fingerprint": "eaa6117897c6f2f421e015ab028d92c984eba8b4873f9976565fb7f2de361f72"
+    },
+    {
+      "trace_key": "e6d54cae857d:0",
+      "source_fingerprint": "778f967e215427d805a3a1b2744de605011bd3106fa27991b94d9392ed304ed0"
+    }
+  ],
+  "style": {
+    "dpi": 300,
+    "frequency_limits_hz": [
+      0.8,
+      25.0
+    ],
+    "psd_db_limits": [
+      -10.0,
+      70.0
+    ],
+    "max_examples": 4
+  },
+  "spectra": {
+    "segment_s": 2.56,
+    "overlap": 0.5,
+    "multitaper_nw": 2.5,
+    "fft_windows_s": [
+      1.28,
+      2.56,
+      5.12
+    ],
+    "step_s": 0.16
+  }
+}
