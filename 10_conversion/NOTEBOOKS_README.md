@@ -2,7 +2,7 @@
 
 The 19 numbered Python scripts in Archive.zip now have corresponding notebooks and callable local modules. Existing scripts, the launcher, and step 10 are untouched. This is a refactor of archived implementations, not a claim that every historical parsing or association assumption has been validated.
 
-Open the notebooks in Jupyter using a kernel with current FLOVOpy, ObsPy, pandas (supporting format="mixed"), NumPy, Matplotlib and IPython. Jinja2 is needed for LaTeX exports where used. Launch Jupyter from the pipeline folder or project root. Each notebook has editable DATA_TOP and SETTINGS, a separate run cell, and returned objects for inspection. Diagnostic notebooks preview saved PNGs inline. No archive data processing has been run during refactoring.
+Open the notebooks in Jupyter using a kernel with current FLOVOpy, ObsPy, pandas (supporting format="mixed"), NumPy, Matplotlib and IPython. Jinja2 is needed for LaTeX exports where used. Launch Jupyter from the pipeline folder or project root. Each notebook reads the shared conversion_config.json for input and external output roots, with per-notebook SETTINGS, a separate run cell, and returned objects for inspection. See ../CONFIGURATION.md. Diagnostic notebooks preview saved PNGs inline. No archive data processing has been run during refactoring.
 
 The notebooks import adjacent pinatubo_steps modules with explicit keyword-only run(...) functions. There is no subprocess or argparse dependency in their execution paths. pinatubo_steps/config.py centralizes paths matching the archived shell launcher; DATA_TOP is supplied by the notebook. Keep this package alongside the notebooks. Restart the kernel after editing modules to avoid stale imports.
 
@@ -83,3 +83,23 @@ Reports include directional per-day/overall overlap at 0.05 and 1 second (config
 Zero valid rows give NaN rates and no_records/invalid_only status. Missing inputs raise rather than masquerading as zero coverage. Reporting dates do not truncate cross-midnight match candidates. Invalid records and date audits include all input dates with a comparison_in_scope flag; the other per-pick reports honor reporting dates. All-candidate timing statistics can be biased by multiplicity; mutual-unique statistics are provided separately.
 
 Folder-date audits require real source-path metadata. Step 20 now adds pha_path to future outputs; existing CSVs with basenames only cannot establish folder dates. Full filename/folder mismatches are flagged, not corrected. Monthly block grouping, source-priority merging and deduplication are unaffected. The three older root-level converter/verification scripts remain historical; they are not called by this review section.
+
+## Legacy BOB conversion (step 60)
+
+Run `60_convert_legacy_bob.ipynb`, or `python 10_conversion/60_convert_legacy_bob.py` from the repository root. Use `--config PATH` for a different shared configuration and `--products counts` (or cospec/radio) for a subset. No waveform processing is required.
+
+Inputs come from `LEGACY_TOP/BOB/{COSPEC,COUNTS,RAD_FREQ}`, respecting `data_top` and optional `legacy_root`. All CSV, JSON and figure products go beneath the same conversion `output_root`, in `legacy_bob/{cospec,counts,radio}`; the existing external-output and input-overlap guards apply. No additional output-root setting is used. A manifest records input and code hashes and the effective configuration. Missing selected inputs fail preflight; no missing series is silently skipped.
+
+COSPEC retains repeated timestamps; inferred units are labeled in configuration. COUNTS retains missing values, suspected −999 sentinels, duplicate times, unexpected years and malformed dates, without repairs or combining CAB versions. Radio tables retain literal tuning precision, ditto marks and both source copies; the convenience snapshot table is emitted only after checking agreement. MAP.TXT is hashed as context, not interpreted as geographic geometry. These outputs are standardized transcriptions and diagnostics, not calibrated or fully validated scientific products.
+
+The older COSPEC entry point in `20_analysis` now delegates to step 60 and uses conversion_config.json. Its former analysis-output configuration is retained only as historical reference.
+
+### RAIN compilation
+
+Step 60 now includes `rain`. Run `python 10_conversion/60_convert_legacy_bob.py --products rain`. All daily `.DAT` files in LEGACY/BOB/RAIN compile to `output_root/legacy_bob/rain/rain_records.csv`, plus a coverage/provenance JSON and README. Both spaced and hyphenated date formats are supported. Values remain positional and uncalibrated; −998 flags, original time labels, duplicate times, raw lines and file/line provenance are retained. No timezone is assigned.
+
+Optionally set `legacy_bob.rain.source` in conversion_config.json to a RAIN ZIP or another directory. Relative paths resolve against that configuration file. ZIPs are read directly, excluding __MACOSX entries, without extracting files. Default input remains the LEGACY folder.
+
+### TILT and supporting channels
+
+`61_tilt_read_and_plot.ipynb` provides the TILT class reader, channel/coverage table, source notes, CSV export and separate-panel plots for UBO and PPO. Step 60 also accepts `--products tilt`, writing beneath the shared `output_root/legacy_bob/tilt`. Requires NumPy, pandas and Matplotlib, without an ObsPy or FLOVOpy dependency. TILT deliberately uses composition rather than RSAM inheritance: signed tilt, temperature and battery observables must not inherit amplitude-processing or UTC assumptions. The binary storage layout is the same annual 576-byte-header/10-minute-float layout. Original source notes and hashes are exported.

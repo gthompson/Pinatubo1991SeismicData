@@ -8,6 +8,10 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 import re
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from pinatubo_project import output_path, runtime_environment
+runtime_environment()
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -254,11 +258,13 @@ def plot_daily_noise_and_detection(metrics, directory, dest, dpi, cfg):
 def generate_plots(directory, cfg=None):
     cfg = cfg or {}
     directory = Path(directory)
+    source = directory
+    directory = output_path('20_analysis', 'legacy_summary', create=True)
     dest = directory/'plots'
     dest.mkdir(parents=True, exist_ok=True)
     dpi = int(cfg.get('dpi', 140))
-    audit = pd.read_csv(directory/'artifact_audit.csv', low_memory=False)
-    metrics = pd.read_csv(directory/'trace_window_metrics.csv', low_memory=False)
+    audit = pd.read_csv(source/'artifact_audit.csv', low_memory=False)
+    metrics = pd.read_csv(source/'trace_window_metrics.csv', low_memory=False)
     for df in (audit, metrics):
         df['time'] = pd.to_datetime(df['starttime'], utc=True, errors='coerce')
     amp_col = cfg.get('amplitude_metric', 'sample_rms')
@@ -381,6 +387,7 @@ if __name__ == '__main__':
         out = args.output_directory
         metrics = pd.read_csv(out / 'trace_window_metrics.csv', low_memory=False)
         metrics['time'] = pd.to_datetime(metrics['starttime'], utc=True, errors='coerce')
+        out = output_path('20_analysis', 'legacy_summary', create=True)
         dest = out / 'plots'
         dest.mkdir(parents=True, exist_ok=True)
         plot_daily_noise_and_detection(metrics, out, dest, args.dpi, {})

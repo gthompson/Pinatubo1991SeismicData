@@ -18,6 +18,9 @@ import math
 import re
 import sys
 from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from pinatubo_project import runtime_environment
+runtime_environment()
 from collections.abc import Mapping
 
 import numpy as np
@@ -287,7 +290,10 @@ def write_csv(path, rows):
 
 
 def run(config, max_files=None):
-    out = Path(config['output']['directory']).expanduser().resolve()
+    from pinatubo_project import output_path
+    value=config.get('output',{}).get('directory')
+    out=Path(value).expanduser() if value and Path(value).is_absolute() else output_path('20_analysis','legacy_pipeline',*([] if not value else [str(value)]))
+    out=out.resolve()
     out.mkdir(parents=True, exist_ok=True)
     (out/'config_used.json').write_text(json.dumps(config, indent=2)+'\n')
     audit_rows, metrics_rows, qc_rows, file_rows = [], [], [], []

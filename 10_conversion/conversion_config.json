@@ -1,0 +1,27 @@
+{
+  "data_top": "~/Library/CloudStorage/Box-Box/thompsong/DATA/pinatubo1991",
+  "output_root": "~/work/Pinatubo1991Processing/converted",
+  "network": "XB",
+  "database": "PNTBO",
+  "waveform": {
+    "sampling_rate": 100.0,
+    "pattern": "**/*.DMX",
+    "max_files": null,
+    "overwrite": false,
+    "verbose": false
+  },
+  "legacy_bob": {
+    "products": [
+      "cospec",
+      "counts",
+      "radio",
+      "rain",
+      "tilt"
+    ],
+    "cospec": {
+      "units": "t/day",
+      "units_basis": "SO2 mass flux inferred from the historical COSPEC account; units not printed in source",
+      "units_reference": "https://pubs.usgs.gov/pinatubo/daag1/"
+    }
+  }
+}

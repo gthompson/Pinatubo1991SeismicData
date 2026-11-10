@@ -4,9 +4,21 @@ import unittest
 import numpy as np
 from obspy import read_inventory,UTCDateTime
 from obspy.io.stationxml.core import validate_stationxml
-from network_history.reconstruct import epochs,nominal_response,load
-ROOT=Path(__file__).parent/'products'
+from network_history.reconstruct import epochs,nominal_response,load,inventory
+from pinatubo_steps.config import pipeline_paths
+ROOT=Path(pipeline_paths()['NETWORK_HISTORY_OUTPUT'])  # Generate with notebook 05 first.
 class ReconstructionTests(unittest.TestCase):
+ @classmethod
+ def setUpClass(cls):
+  import tempfile
+  global ROOT
+  cls._temp=tempfile.TemporaryDirectory(prefix='pinatubo-stationxml-')
+  ROOT=Path(cls._temp.name)
+  for name,models in [('pinatubo_provisional.xml',False),('pinatubo_nominal_voltage_models.xml',True)]:
+   inventory(epochs(),models=models).write(str(ROOT/name),format='STATIONXML')
+ @classmethod
+ def tearDownClass(cls):cls._temp.cleanup()
+
  def test_schema_and_unknown_electronics(self):
   for name in ['pinatubo_provisional.xml','pinatubo_nominal_voltage_models.xml']:
    valid,errors=validate_stationxml(str(ROOT/name));self.assertTrue(valid,errors)

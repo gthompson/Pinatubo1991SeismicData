@@ -1,7 +1,12 @@
+from pathlib import Path
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from pinatubo_project import input_path, output_path, runtime_environment
+runtime_environment()
 from obspy import read
 from flovopy.enhanced.stream import EnhancedStream
-
-st = read("/Users/glennthompson/Library/CloudStorage/Box-Box/thompsong/DATA/25_028.Pin1991Fair.DATA.FAIR.mseed/SEISAN/WAV/1991/06/1991-06-01-0017-11M.PNTBO_008")
+source=next(iter(sorted((input_path('waveform_root')/'1991/06').glob('*'))))
+st = read(str(source))
 
 for tr in st:
     tr.stats.units = "counts"
@@ -20,3 +25,7 @@ est.ampengfft(
 for tr in est:
     print(tr.id)
     print(tr.stats.metrics)
+from flovopy.enhanced.serialization import atomic_json
+atomic_json(output_path('testing','enhanced_stream',create=True)/'metrics.json',
+    {'source':str(source),'traces':[{'id':tr.id,'metrics':tr.stats.metrics,
+      'spectral':tr.stats.get('spectral',{})} for tr in est]})

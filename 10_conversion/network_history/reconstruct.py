@@ -2,11 +2,11 @@
 Run with python -m network_history.reconstruct; no archive data are modified.
 """
 from pathlib import Path
-import os,json,copy,csv,re
+import os,json,copy,csv,re,tempfile,sys
 BASE=Path(__file__).resolve().parent
-os.environ.setdefault('MPLCONFIGDIR',str(BASE/'products/.matplotlib'))
-os.environ.setdefault('GMT_USERDIR',str(BASE/'products/.gmt'))
-os.environ.setdefault('GMT_SESSIONDIR',str(BASE/'products/.gmt/sessions'))
+os.environ.setdefault('MPLCONFIGDIR',str(Path(tempfile.gettempdir())/'pinatubo-plot-cache/matplotlib'))
+os.environ.setdefault('GMT_USERDIR',str(Path(tempfile.gettempdir())/'pinatubo-plot-cache/gmt'))
+os.environ.setdefault('GMT_SESSIONDIR',str(Path(tempfile.gettempdir())/'pinatubo-plot-cache/gmt/sessions'))
 Path(os.environ['GMT_SESSIONDIR']).mkdir(parents=True,exist_ok=True)
 import numpy as np
 import pandas as pd
@@ -19,7 +19,7 @@ from obspy.core.inventory import Inventory,Network,Station,Channel,Site,Comment,
 from obspy.core.inventory.response import Response,PolesZerosResponseStage,ResponseStage,InstrumentSensitivity
 DATA=BASE/'data'
 def load(name):return json.loads((DATA/name).read_text())
-def epochs():
+def epochs(header_data_dir=None):
     rows=[]
     def add(sta,start,end=None,sensor='L4-C',att=None,ch='EHZ',depth=1.,note='Date-only boundaries use nominal UTC midnight; field clock/time basis uncertain.',rate=100.):
         rows.append(dict(station=sta,channel=ch,start=start,end=end,sensor=sensor,attenuation_db=att,depth_m=depth,sample_rate_hz=rate,note=note))
@@ -35,7 +35,7 @@ def epochs():
     add('GRN','1991-05-14','1991-06-16',att=24,depth=0,note='24 dB inferred retrospectively from pulses. Reburied 1.5 m in early June; exact date unknown, initial depth unknown; 0 m placeholder.')
     add('CAB','1991-05-01','1991-05-05T04:45:00',att=30,depth=0,note='Buried sensor; depth unreported, 0 m placeholder. Date-only start conventional UTC.')
     add('CAB','1991-05-05T04:45:00','1991-06-16',att=24,depth=0,note='Unknown burial depth: 0 m placeholder. 12:45 local attenuation change converted nominally to UTC. Battery outage separate. Later calibration continuity unverified.')
-    headers=pd.read_csv(DATA/'waveform_header_presence.csv',dtype={'file_month':str})
+    headers=pd.read_csv(Path(header_data_dir or DATA)/'waveform_header_presence.csv',dtype={'file_month':str})
     post=headers[headers.file_month.isin(['07','08'])]
     # First identities in late June are observational bounds, never deployment dates.
     for (sta,ch),group in post.groupby(['station','channel']):
@@ -62,7 +62,7 @@ def inventory(rows,models=False):
         elev=info['elevation_m']
         if elev is None:
             import xarray as xr
-            with xr.open_dataarray(DATA/'modern_earth_relief.nc') as grid:elev=float(grid.interp(lon=info['longitude'],lat=info['latitude']))
+            with xr.open_dataarray(DATA/'modern_earth_relief.nc', engine='scipy') as grid:elev=float(grid.interp(lon=info['longitude'],lat=info['latitude']))
         comments=[Comment('DRAFT: historical datum unknown; plotting assumes geographic WGS84. '+info['coordinate_source']),Comment('Alternative coordinates: '+json.dumps(info['alternatives'])),Comment('Unknown electronics: VCO/preamp, discriminator/filter and ADC scale. No complete counts-to-ground-motion response supplied.')]
         if info['elevation_m'] is None:comments.append(Comment('Required elevation field estimated from MODERN 15-arcsec DEM; not a historical measurement.'))
         st=Station(info['code'],info['latitude'],info['longitude'],elev,site=Site(name=info['name']),comments=comments)
@@ -79,7 +79,7 @@ def inventory(rows,models=False):
 def maps(out):
     import xarray as xr
     from matplotlib.colors import LightSource
-    with xr.open_dataarray(DATA/'modern_earth_relief.nc') as g:grid=g.load()
+    with xr.open_dataarray(DATA/'modern_earth_relief.nc', engine='scipy') as g:grid=g.load()
     sites={s['code']:s for s in load('stations.json')}
     for period,codes in [('early_june',['BUG','BUR','CAB','GRN','PIE','PPO','UBO']),('july_august',['BUG','CAB','CRW','DON','FNG','PI2','QAD'])]:
         fig,ax=plt.subplots(figsize=(9,9));extent=[float(grid.lon.min()),float(grid.lon.max()),float(grid.lat.min()),float(grid.lat.max())]
@@ -121,9 +121,17 @@ def diagrams(out):
     edges=[('analog','drum','analog'),('analog','willie','100 sps / 12-bit'),('willie','share','SSAM: 1 min'),('rick','share','when received'),('sleep','share','10 min'),('rsam','share','10 min'),('share','pork','serial'),('willie','lan','event waveforms'),('pork','lan','shared products'),('lan','squab','events'),('lan','dave','files'),('dave','remote','communications')]
     diagram(out,'pvo_operations','PVO operations systems — acquisition clocks remain independent',nodes,edges,'Murray: initial 1991 configuration; later software improvements are not assumed present from the start.\nAggregation and LAN transfer do not synchronize clocks. Cadences describe products/transfers, not all native sampling rates.')
 
-def build_all(output_dir=None):
-    out=Path(output_dir or BASE/'products');out.mkdir(parents=True,exist_ok=True)
-    rows=epochs();pd.DataFrame(rows).to_csv(out/'pinatubo_channel_epochs.csv',index=False)
+def build_all(output_dir=None, *, header_data_dir=None):
+    project = BASE.parents[1]
+    if str(project) not in sys.path:
+        sys.path.insert(0, str(project))
+    from pinatubo_config import external_output_root
+    if output_dir is None:
+        from pinatubo_steps.config import pipeline_paths
+        output_dir = pipeline_paths()['NETWORK_HISTORY_OUTPUT']
+    out=external_output_root(output_dir, relative_to=BASE)
+    out.mkdir(parents=True,exist_ok=True)
+    rows=epochs(header_data_dir=header_data_dir);pd.DataFrame(rows).to_csv(out/'pinatubo_channel_epochs.csv',index=False)
     stationdata=load('stations.json');pd.DataFrame([{k:v for k,v in s.items() if k!='alternatives'} for s in stationdata]).to_csv(out/'pinatubo_stations.csv',index=False)
     from pyproj import Geod
     geod=Geod(ellps='WGS84')
@@ -143,7 +151,7 @@ def build_all(output_dir=None):
     text+=['','## Archive observations','July/August headers contain BUG, CAB, CRW, DON, FNG, PI2 and QAD; CAB includes N and Z. These establish recorded identities, not installation dates or valid signals. Old BUR/GRN/PIE/PPO/UBO names persist in some late-June headers after documented failures. Stale configuration, placeholders and timing errors remain hypotheses requiring waveform inspection. PI2L may have been collapsed into EHZ by the previous converter.','', 'Rain/lahar acquisition and remote platform coordinates, calibration and installation dates remain incomplete. BOB/STATIONS.TXT distinguishes LSAC, USAC, MARL and ABAC; these are not invented as georeferenced stations.']
     text+=['','Primary references: [Lockhart](https://pubs.usgs.gov/pinatubo/lock/), [Murray](https://pubs.usgs.gov/pinatubo/murray/), [Ewert](https://pubs.usgs.gov/pinatubo/ewert/), [Bautista](https://pubs.usgs.gov/pinatubo/bbautist/). Source files and hashes: ../data/sources.json.']
     (out/'chronology.md').write_text('\n\n'.join(text))
-    header=pd.read_csv(DATA/'waveform_header_presence.csv',dtype={'file_month':str})
+    header=pd.read_csv(Path(header_data_dir or DATA)/'waveform_header_presence.csv',dtype={'file_month':str})
     observed=header[header.file_month.isin(['07','08'])].groupby(['station','channel']).agg(first_july_august_header=('first','min'),last_july_august_header=('last','max'),files=('files','sum')).reset_index()
     observed.to_csv(out/'rebuilt_header_identity_bounds.csv',index=False)
     timing=['# Timing evidence and correction limits','No universal clock correction is applied. Daily WWV checks were intended, but checks were sporadic; nominal ±0.1 s setting accuracy is not an archive accuracy claim.']

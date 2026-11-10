@@ -9,7 +9,7 @@
     "paths": []
   },
   "output": {
-    "directory": "./event_metrics_output",
+    "directory": "~/DATA/Pinatubo1991Processing/legacy_event_metrics",
     "save_filtered_mseed": false
   },
   "processing": {

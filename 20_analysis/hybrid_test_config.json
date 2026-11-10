@@ -1,0 +1,19 @@
+{
+  "max_files": 12,
+  "max_figures": 6,
+  "event_search_seconds": 30.0,
+  "lf_band_hz": [0.8, 4.0],
+  "hf_band_hz": [4.0, 20.0],
+  "peak_delay_range_s": [1.0, 10.0],
+  "minimum_peak_band_snr": 3.0,
+  "if_band_hz": [0.8, 20.0],
+  "if_window_s": 1.0,
+  "if_step_s": 0.25,
+  "if_sustain_s": 1.0,
+  "if_minimum_drop_hz": 2.0,
+  "if_minimum_coverage": 0.5,
+  "if_maximum_negative_fraction": 0.25,
+  "if_envelope_noise_ratio": 2.0,
+  "minimum_stations": 2,
+  "labels_csv": null
+}

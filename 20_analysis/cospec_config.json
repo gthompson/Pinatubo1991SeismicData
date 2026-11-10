@@ -1,0 +1,12 @@
+{
+  "data_file": "~/Library/CloudStorage/Box-Box/thompsong/DATA/pinatubo1991/LEGACY/BOB/COSPEC/COS_PEC.DAT",
+  "header_file": "~/Library/CloudStorage/Box-Box/thompsong/DATA/pinatubo1991/LEGACY/BOB/COSPEC/BOB_QPLO.TXT",
+  "analysis_config": "analysis_workflow.json",
+  "units": "t/day",
+  "units_basis": "SO2 mass flux, inferred from the historical COSPEC account",
+  "units_reference": "https://pubs.usgs.gov/pinatubo/daag1/",
+  "reference_date": "1991-06-15",
+  "zoom_start": "1991-05-10",
+  "zoom_end": "1991-06-17",
+  "dpi": 220
+}

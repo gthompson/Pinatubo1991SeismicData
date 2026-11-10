@@ -233,3 +233,8 @@ This project builds on data collected by PHIVOLCS and the USGS Volcano Disaster 
 Special thanks to colleagues who assisted with data discovery, scanning, metadata recovery, and historical insights.
 
 
+
+
+## Notebook configuration and generated outputs
+
+See [CONFIGURATION.md](CONFIGURATION.md). Conversion reads `10_conversion/conversion_config.json`; current analysis reads `20_analysis/analysis_workflow.json`. Derived data, caches and figures are routed outside this Git checkout. Existing in-repository products are not moved or removed automatically.

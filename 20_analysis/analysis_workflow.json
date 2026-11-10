@@ -1,5 +1,5 @@
 {
-  "wav_root": null,
+  "wav_root": "~/Library/CloudStorage/Box-Box/thompsong/DATA/pinatubo1991/FAIR/SEISAN/WAV/PNTBO",
   "selection": {
     "mode": "all",
     "months": [
@@ -54,5 +54,7 @@
     "detected_guard_s": 1.0,
     "detected_fallback": "fixed",
     "event_end": "record_end"
-  }
+  },
+  "output_root": "~/DATA/Pinatubo1991Processing/analysis",
+  "network_history_products": "~/DATA/Pinatubo1991Processing/conversion/network_history"
 }

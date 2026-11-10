@@ -1,0 +1,3 @@
+{
+  "description": "Conversion paths: 10_conversion/conversion_config.json; analysis paths: 20_analysis/analysis_workflow.json. Optional results_root/inputs overrides via PINATUBO_PROJECT_CONFIG."
+}

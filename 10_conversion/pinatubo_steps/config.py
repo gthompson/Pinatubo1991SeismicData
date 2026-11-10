@@ -1,23 +1,54 @@
 """Paths shared by the Pinatubo notebooks; no directories created on import."""
 from pathlib import Path
+import os
+import sys
+_PROJECT = Path(__file__).resolve().parents[2]
+if str(_PROJECT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT))
+from pinatubo_config import read_config, resolve_path, external_output_root
 
-def pipeline_paths(data_top):
-    p = {"HOME": str(Path.home()), "DATA_TOP": str(Path(data_top).expanduser())}
-    p['LEGACY_TOP'] = f"{p['DATA_TOP']}/LEGACY"
+
+def load_conversion_config(config_file=None):
+    path = Path(config_file or os.environ.get('PINATUBO_CONVERSION_CONFIG') or
+                Path(__file__).resolve().parents[1] / 'conversion_config.json').expanduser().resolve()
+    config = read_config(path)
+    config['_config_file'] = str(path)
+    return config
+
+
+def pipeline_paths(data_top=None, *, output_root=None, config_file=None):
+    config = load_conversion_config(config_file)
+    base = Path(config['_config_file']).parent
+    source = resolve_path(data_top if data_top is not None else config['data_top'], relative_to=base)
+    destination = external_output_root(output_root or os.environ.get('PINATUBO_CONVERSION_OUTPUT') or config['output_root'], relative_to=base)
+    legacy = resolve_path(config['legacy_root'], relative_to=base) if config.get('legacy_root') else source / 'LEGACY'
+    if destination == legacy or legacy in destination.parents or destination in legacy.parents:
+        raise ValueError('Conversion output must not overlap the original LEGACY inputs')
+    if os.environ.get('PINATUBO_RESULTS_ROOT') or os.environ.get('PINATUBO_PROJECT_CONFIG'):
+        from pinatubo_project import settings,input_path
+        destination=settings()['results_root']/'10_conversion/products'
+        source=input_path('data_top')
+        legacy=source/'LEGACY'
+        if destination == legacy or legacy in destination.parents or destination in legacy.parents:
+            raise ValueError('Conversion output must not overlap LEGACY inputs')
+    p = {'HOME': str(Path.home()), 'DATA_TOP': str(source), 'OUTPUT_ROOT': str(destination),
+         'CONFIG_FILE': config['_config_file'], 'NETWORK_HISTORY_OUTPUT': str(destination / 'network_history')}
+
+    p['LEGACY_TOP'] = str(legacy)
     p['SUDS_TOP'] = f"{p['LEGACY_TOP']}/WAVEFORM_DATA/SUDS"
-    p['FIX_FS'] = '100.0'
-    p['DMX_GLOB'] = '**/*.DMX'
+    p['FIX_FS'] = str(config.get('waveform', {}).get('sampling_rate', 100.0))
+    p['DMX_GLOB'] = config.get('waveform', {}).get('pattern', '**/*.DMX')
     p['LEGACY_EVENTMETA_DIR'] = f"{p['LEGACY_TOP']}/EVENT_METADATA"
     p['LEGACY_PHA_MONTHLY_DIR'] = f"{p['LEGACY_EVENTMETA_DIR']}/MONTHLY_PHA"
     p['LEGACY_PHA_INDIVIDUAL_DIR'] = f"{p['LEGACY_EVENTMETA_DIR']}/PHA"
     p['LEGACY_HYPO_DIR'] = f"{p['LEGACY_EVENTMETA_DIR']}/HYPOCENTERS"
-    p['FAIR_TOP'] = f"{p['DATA_TOP']}/FAIR"
-    p['DB'] = 'PNTBO'
-    p['NET'] = 'XB'
+    p['FAIR_TOP'] = f"{p['OUTPUT_ROOT']}/FAIR"
+    p['DB'] = config.get('database', 'PNTBO')
+    p['NET'] = config.get('network', 'XB')
     p['SEISAN_TOP'] = f"{p['FAIR_TOP']}/SEISAN"
     p['SEISAN_WAV_DB'] = f"{p['SEISAN_TOP']}/WAV/{p['DB']}"
     p['FAIR_META_DIR'] = f"{p['FAIR_TOP']}/metadata"
-    p['TMP_DIR'] = f"{p['DATA_TOP']}/pipeline_tmp"
+    p['TMP_DIR'] = f"{p['OUTPUT_ROOT']}/pipeline_tmp"
     p['QC_DIR'] = f"{p['TMP_DIR']}/qc"
     p['WAVEFORM_INDEX'] = f"{p['TMP_DIR']}/10_waveform_index.csv"
     p['TRANSLATION_CSV'] = f"{p['FAIR_META_DIR']}/10_trace_id_mapping.csv"

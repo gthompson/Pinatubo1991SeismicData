@@ -5,7 +5,12 @@ import json
 import pandas as pd
 from obspy import read
 
-def scan_headers(data_root,outdir,months=('06','07','08')):
+def scan_headers(data_root,outdir=None,months=('06','07','08')):
+    if outdir is None:
+        import sys
+        sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
+        from pinatubo_project import network_products
+        outdir=network_products()/'data'
     outdir=Path(outdir);outdir.mkdir(parents=True,exist_ok=True)
     root=Path(data_root)/'FAIR/SEISAN/WAV/PNTBO/1991'
     counts=defaultdict(lambda:dict(files=0,first=None,last=None,sample_rates=set(),example_file=None))
@@ -39,6 +44,6 @@ def scan_headers(data_root,outdir,months=('06','07','08')):
 
 if __name__=='__main__':
     import argparse
-    parser=argparse.ArgumentParser();parser.add_argument('--data-root',required=True);parser.add_argument('--outdir',required=True)
+    parser=argparse.ArgumentParser();parser.add_argument('--data-root',required=True);parser.add_argument('--outdir',default=None)
     args=parser.parse_args();frame=scan_headers(args.data_root,args.outdir)
     print(frame.groupby(['file_month','station']).files.sum().to_string())

@@ -11,7 +11,7 @@ class TimeplotTests(unittest.TestCase):
     def setUp(self):
         self.tmp=TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
         self.base=Path(self.tmp.name)/'20_analysis';self.base.mkdir();self.wav=self.base/'WAV';self.wav.mkdir()
-        cfg=json.loads((Path(w.__file__).parent/'analysis_workflow.json').read_text());cfg['wav_root']=str(self.wav)
+        cfg=json.loads((Path(w.__file__).parent/'analysis_workflow.json').read_text());cfg['products_directory']=str(self.base/'products');cfg['wav_root']=str(self.wav)
         cfg['selection']=dict(mode='sample',months=['1991/05','1991/06'],files_per_month=3,explicit_files=[],max_files=None)
         for month in ['1991/05','1991/06']:
             folder=self.wav/month;folder.mkdir(parents=True)
@@ -64,7 +64,7 @@ class TimeplotTests(unittest.TestCase):
     def test_config_change_backs_up_prior_selection(self):
         before=(self.base/'analysis_workflow.json').read_bytes()
         w.configure_selection(self.base,mode='all',files_per_month=50)
-        backups=list(self.base.glob('analysis_workflow.before_*.json'));self.assertEqual(len(backups),1)
+        backups=list(__import__('pinatubo_project').output_path('20_analysis','config_backups').glob('analysis_workflow.before_'+w.digest(before)[:12]+'.json'));self.assertEqual(len(backups),1)
         self.assertEqual(backups[0].read_bytes(),before)
         self.assertEqual(len(w.load_context(self.base)['files']),12)
 

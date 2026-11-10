@@ -12,7 +12,7 @@ class WorkflowTests(unittest.TestCase):
         self.tmp=TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
         root=Path(self.tmp.name);self.base=root/'20_analysis';self.base.mkdir();self.wav=root/'WAV';self.wav.mkdir()
         self.cfg=json.loads((Path(w.__file__).parent/'analysis_workflow.json').read_text())
-        self.cfg['wav_root']=str(self.wav);self.cfg['selection']['explicit_files']=[]
+        self.cfg['products_directory']=str(self.base/'products');self.cfg['wav_root']=str(self.wav);self.cfg['selection']['explicit_files']=[]
         for i in range(2):
             rng=np.random.default_rng(7+i);x=rng.normal(size=4000);x[1000:2500]*=10
             tr=Trace(x,header=dict(network='XB',station='BUG' if i==0 else 'GRN',channel='EHZ',sampling_rate=100.,starttime=UTCDateTime(1991,6,3)+i*.2))

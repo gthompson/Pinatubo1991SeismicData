@@ -28,6 +28,17 @@ from flovopy.processing.detection import PretriggerSettings
 from flovopy.processing.spectrograms import compute_spectrogram_result, SpectrogramResult
 from flovopy.processing.spectral_metrics import compute_spectral_metrics
 
+sys.path.insert(0,str(Path(__file__).resolve().parents[1])) if str(Path(__file__).resolve().parents[1]) not in sys.path else None
+from pinatubo_project import analysis_products, input_path, network_products, network_input, resolve_artifact, runtime_environment, output_path
+
+def _products(ctx):
+    return Path(ctx.get('products',ctx.get('products_root'))) if ctx.get('products',ctx.get('products_root')) else analysis_products(ctx.get('config',{}))
+
+
+def _network_products(ctx):
+    return Path(ctx['network_history_products']) if ctx.get('network_history_products') else network_products()
+
+
 WORKFLOW_VERSION = 'pinatubo-notebooks-1'
 FEATURE_KEYS = tuple(extract_features(np.zeros(16), 100)['values'])
 APPROVAL_FIELDS = ['accepted_noise_start_file_s', 'accepted_noise_end_file_s',
@@ -82,12 +93,16 @@ def save_figure(fig, stem, caption, dpi=300):
     return stem.with_suffix('.png')
 
 
-def load_context(analysis_dir):
+def load_context(analysis_dir, *, selection_override=None, products_directory=None):
     """Resolve only an explicit root or the known Box root; never probe stale disks."""
     base=Path(analysis_dir).resolve()
     cfg=json.loads((base/'analysis_workflow.json').read_text())
-    candidate=os.environ.get('PINATUBO_WAV_ROOT') or cfg.get('wav_root')
-    root=Path(candidate).expanduser() if candidate else Path.home()/'Library/CloudStorage/Box-Box/thompsong/DATA/pinatubo1991/FAIR/SEISAN/WAV/PNTBO'
+    if selection_override:cfg['selection']={**cfg['selection'],**selection_override}
+    products=analysis_products(cfg,override=products_directory)
+    # Analysis config remains authoritative; network products come from conversion configuration.
+    runtime_environment()
+    candidate=os.environ.get('PINATUBO_WAV_ROOT') or (input_path('waveform_root') if os.environ.get('PINATUBO_PROJECT_CONFIG') else cfg.get('wav_root'))
+    root=Path(candidate).expanduser() if candidate else input_path('waveform_root')
     if not root.is_dir():
         raise FileNotFoundError('Set wav_root in analysis_workflow.json or PINATUBO_WAV_ROOT to the WAV/PNTBO directory.')
     selection=cfg['selection']
@@ -133,12 +148,12 @@ def load_context(analysis_dir):
         mod=importlib.import_module(name);module_hashes[name]=digest(Path(mod.__file__).read_bytes())
     payload=dict(version=WORKFLOW_VERSION,config=cfg,scope=scope,files=manifest,
                  helper_sha256=digest(Path(__file__).read_bytes()),flovopy_source_sha256=module_hashes)
-    run_id=digest(payload)[:12];out=base/'products/notebook_workflow'/run_id
+    run_id=digest(payload)[:12];out=products/'notebook_workflow'/run_id
     out.mkdir(parents=True,exist_ok=True)
     write_json(out/'run_manifest.json',payload)
     apply_style()
     return dict(base=base,root=root,config=cfg,files=files,manifest=pd.DataFrame(manifest),
-                out=out,run_id=run_id,scope=scope,history=base.parent/'10_conversion/network_history')
+                out=out,products=products,run_id=run_id,scope=scope,history=base.parent/'10_conversion/network_history')
 
 
 def describe_context(ctx):
@@ -188,7 +203,7 @@ def narrowband_audit(data, fs):
 
 
 def epoch_metadata(ctx, station, channel, start):
-    path=ctx['history']/'products/pinatubo_channel_epochs.csv'
+    path=network_input('pinatubo_channel_epochs.csv',ctx['history']/'products')
     if not path.is_file():return dict(gain_epoch_id='UNKNOWN',attenuation_db=np.nan,epoch_status='missing_history_products')
     if '_epoch_frame' not in ctx:ctx['_epoch_frame']=pd.read_csv(path).fillna('')
     frame=ctx['_epoch_frame'];matches=[]
@@ -214,20 +229,21 @@ def build_inventory(ctx, force=False):
     rows=[];file_rows=[];gaps=[]
     import inspect
     from flovopy.enhanced.serialization import atomic_json
-    epoch_path=ctx['history']/'products/pinatubo_channel_epochs.csv'
+    epoch_path=network_input('pinatubo_channel_epochs.csv',ctx['history']/'products')
     inventory_signature=dict(version='raw-inventory-1',epoch_sha256=digest(epoch_path.read_bytes()) if epoch_path.exists() else None,
         code={name:digest(inspect.getsource(globals()[name]).encode()) for name in ['build_inventory','epoch_metadata','narrowband_audit','finite_data','flat_prefix']})
     # Reuse verified earlier run inventories, avoiding a one-time archive reread.
     legacy_frame=pd.DataFrame();legacy_files=pd.DataFrame();legacy_gaps=pd.DataFrame();covered=set()
     best=None;best_count=0;wanted=set(ctx['manifest'].source_fingerprint)
-    for candidate in (ctx['base']/'products/notebook_workflow').glob('*/trace_inventory.csv'):
+    for candidate in (ctx['products']/'notebook_workflow').glob('*/trace_inventory.csv'):
         if candidate==dest:continue
         manifest_path=candidate.parent/'run_manifest.json';provenance_path=candidate.parent/'inventory_provenance.json'
         if not manifest_path.exists():continue
         metadata=json.loads(manifest_path.read_text())
         trusted=(metadata.get('helper_sha256')=='a91d2051a146fc9dfef663b96cf61cc694c2fb216453ebbdeb4918a4fddab20b')
         if trusted and epoch_path.exists():trusted=epoch_path.stat().st_mtime_ns<=candidate.stat().st_mtime_ns
-        if provenance_path.exists():trusted=json.loads(provenance_path.read_text()).get('signature')==inventory_signature
+        if provenance_path.exists():
+            trusted=json.loads(provenance_path.read_text()).get('signature')==inventory_signature
         if not trusted:continue
         overlap=len(wanted.intersection(row['source_fingerprint'] for row in metadata['files']))
         if overlap>best_count:best=candidate;best_count=overlap
@@ -243,7 +259,7 @@ def build_inventory(ctx, force=False):
     for item in ctx['manifest'].to_dict('records'):
         if item['source_fingerprint'] in covered:continue
         path=Path(item['file']);rid=item['record_id']
-        cache=ctx['base']/'products/file_inventory_cache'/rid/(digest([item['source_fingerprint'],inventory_signature])+'.json')
+        cache=ctx['products']/'file_inventory_cache'/rid/(digest([item['source_fingerprint'],inventory_signature])+'.json')
         if cache.exists() and not force:
             payload=json.loads(cache.read_text());rows.extend(payload['rows']);file_rows.append(payload['file']);gaps.extend(payload['gaps']);continue
         first_row=len(rows);first_gap=len(gaps)
@@ -321,7 +337,7 @@ def review_network(ctx, rebuild=True):
         from network_history.reconstruct import build_all
         build_all(ctx['out']/'network_history')
     else:
-        shutil.copytree(history/'products',ctx['out']/'network_history',dirs_exist_ok=True)
+        shutil.copytree(network_products() if network_products().exists() else history/'products',ctx['out']/'network_history',dirs_exist_ok=True)
     dest=ctx['out']/'network_history';inv=read_inventory(str(dest/'pinatubo_provisional.xml'))
     rows=[]
     for net in inv:
@@ -344,7 +360,7 @@ def configure_selection(analysis_dir, *, mode='sample', files_per_month=50,
     if max_files is not None and (isinstance(max_files,bool) or not isinstance(max_files,int) or max_files<1):raise ValueError('max_files must be positive integer or None')
     selection=dict(mode=mode,months=list(months),files_per_month=files_per_month,explicit_files=[],max_files=max_files)
     if cfg['selection']!=selection:
-        backup=path.with_name('analysis_workflow.before_'+digest(path.read_bytes())[:12]+'.json')
+        backup=output_path('20_analysis','config_backups',create=True)/('analysis_workflow.before_'+digest(path.read_bytes())[:12]+'.json')
         if not backup.exists():shutil.copy2(path,backup)
         cfg['selection']=selection;write_json(path,cfg)
     return cfg
@@ -367,7 +383,7 @@ def run_window_proposals(ctx, settings=None, *, force=False, max_detail_files=No
     batch.mkdir(parents=True,exist_ok=True)
     engine=importlib.import_module('flovopy.processing.event_windows')
     engine_signature=digest([ALGORITHM_VERSION,digest(Path(engine.__file__).read_bytes()),np.__version__,pd.__version__])[:12]
-    file_root=ctx['base']/'products/pretrigger_file_cache'/engine_signature
+    file_root=ctx['products']/'pretrigger_file_cache'/engine_signature
     frames={name:[] for name in ['qc','network','files','evidence']};details={};cache_rows=[]
     cached=failed=0
     def read_table(path):
@@ -644,7 +660,7 @@ def _review_records(ctx):
     """
     inventory,_=build_inventory(ctx)
     sources=inventory[inventory.is_waveform][['trace_key','source_fingerprint','trace_id','record_id','trace_index','file','recorded_starttime']]
-    paths=[ctx['base']/'products/window_review_registry.csv',*sorted((ctx['base']/'products/notebook_workflow').glob('*/window_review.csv'))]
+    paths=[ctx['products']/'window_review_registry.csv',*sorted((ctx['products']/'notebook_workflow').glob('*/window_review.csv'))]
     decisions={};conflicts=set();fields=['review_status',*APPROVAL_FIELDS,'reviewer_notes']
     registry_path=paths[0]
     for path in paths:
@@ -677,7 +693,7 @@ def _review_records(ctx):
 
 
 def _persist_review_registry(ctx, review, updated_keys):
-    path=ctx['base']/'products/window_review_registry.csv'
+    path=ctx['products']/'window_review_registry.csv'
     fields=['trace_key','source_fingerprint','review_status',*APPROVAL_FIELDS,'reviewer_notes']
     incoming=review.loc[review.trace_key.isin(updated_keys),fields]
     old=pd.read_csv(path).fillna('') if path.exists() else pd.DataFrame(columns=fields)
@@ -715,7 +731,7 @@ def load_event_metrics_catalog(ctx, *, include_trace_metrics=True):
     from flovopy.enhanced.catalog import EnhancedCatalog
     path=ctx['out']/'event_metrics_index.csv'
     if not path.exists():return EnhancedCatalog()
-    index=pd.read_csv(path);paths=index.loc[index.status.ne('failed'),'sidecar_path'].dropna().tolist()
+    index=pd.read_csv(path);paths=[str(resolve_artifact(value)) for value in index.loc[index.status.ne('failed'),'sidecar_path'].dropna()]
     if include_trace_metrics:return EnhancedCatalog.from_sidecars(paths,require_quakeml=False)
     return _lightweight_catalog(paths)
 
@@ -764,7 +780,7 @@ def configure_window_policy(analysis_dir, *, policy='fixed', noise_seconds=5., d
                detected_fallback=detected_fallback,event_end='record_end')
     window_policy(dict(config={'windows':value}))
     if cfg.get('windows')!=value:
-        backup=path.with_name('analysis_workflow.before_'+digest(path.read_bytes())[:12]+'.json')
+        backup=output_path('20_analysis','config_backups',create=True)/('analysis_workflow.before_'+digest(path.read_bytes())[:12]+'.json')
         if not backup.exists():shutil.copy2(path,backup)
         cfg['windows']=value;write_json(path,cfg)
     return cfg
@@ -780,7 +796,7 @@ def _automatic_proposals(ctx, policy):
     wanted=dict(zip(ctx['manifest'].record_id,ctx['manifest'].source_fingerprint));best=None;best_ids=set()
     fields=['trace_key','record_id','trace_index','selected_onset_file_s','proposed_noise_start_file_s',
             'proposed_noise_end_file_s','noise_proposal_status','qc_flags']
-    for pointer in (ctx['base']/'products/notebook_workflow').glob('*/window_proposal_run.json'):
+    for pointer in (ctx['products']/'notebook_workflow').glob('*/window_proposal_run.json'):
         manifest_path=pointer.parent/'run_manifest.json'
         if not manifest_path.exists():continue
         info=json.loads(pointer.read_text());manifest=json.loads(manifest_path.read_text())
@@ -789,7 +805,7 @@ def _automatic_proposals(ctx, policy):
         if actual!=desired:continue
         source={v['record_id']:v['source_fingerprint'] for v in manifest['files']}
         ids={key for key,value in wanted.items() if source.get(key)==value}
-        path=Path(info['output'])/'trace_qc_and_candidates.csv'
+        path=resolve_artifact(info['output'])/'trace_qc_and_candidates.csv'
         if len(ids)>len(best_ids) and path.exists():best=path;best_ids=ids
     tables=[]
     if best is not None:
@@ -798,7 +814,7 @@ def _automatic_proposals(ctx, policy):
     inventory,_=build_inventory(ctx);required=set(inventory.loc[inventory.is_waveform,'record_id'])
     seen=set(tables[0].record_id) if tables else set()
     missing=required-seen
-    root=ctx['base']/'products/pretrigger_file_cache'/digest([ALGORITHM_VERSION,engine_sha,np.__version__,pd.__version__])[:12]
+    root=ctx['products']/'pretrigger_file_cache'/digest([ALGORITHM_VERSION,engine_sha,np.__version__,pd.__version__])[:12]
     for item in ctx['manifest'].to_dict('records'):
         if item['record_id'] not in missing:continue
         path=Path(item['file']);stat=path.stat()
@@ -905,7 +921,7 @@ def compute_reviewed_metrics(ctx, *, force=False, write_quakeml=True, selected_w
         rid=item['record_id'];meta_rows=waveform.iloc[trace_groups.get(rid,[])]
         windows=approved.iloc[window_groups.get(rid,[])]
         signature=_metric_signature(ctx,item,windows,meta_rows);key=digest(signature)
-        base=ctx['base']/'products/event_metrics_cache'/rid/key/'event'
+        base=ctx['products']/'event_metrics_cache'/rid/key/'event'
         path=base.with_suffix('.json')
         review_snapshot=current_review.iloc[review_groups.get(rid,[])].to_dict('records') if len(current_review) else []
         try:
@@ -1143,7 +1159,9 @@ def archive_summary(ctx):
 
 def publication_figures(ctx):
     """Explicit frozen draft selection; never silently choose different examples."""
-    selection_path=ctx['base']/'publication_selection.json'
+    selection_path=ctx['products']/'publication/publication_selection.json'
+    if not selection_path.exists() and (ctx['base']/'publication_selection.json').exists():
+        selection_path.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ctx['base']/'publication_selection.json',selection_path)
     if not selection_path.exists():
         inventory,_=build_inventory(ctx);waveform=inventory[inventory.is_waveform]
         selected=waveform.groupby('record_id',sort=False).head(1).head(ctx['config']['plots']['max_examples'])
@@ -1315,7 +1333,7 @@ def _stream_event_exports(ctx, *, write_quakeml=True):
     from flovopy.enhanced.catalog import EnhancedCatalog
     from flovopy.enhanced.serialization import json_compatible
     index=pd.read_csv(ctx['out']/'event_metrics_index.csv')
-    paths=index.loc[index.status.ne('failed'),'sidecar_path'].dropna().tolist()
+    paths=[str(resolve_artifact(value)) for value in index.loc[index.status.ne('failed'),'sidecar_path'].dropna()]
     temporary=ctx['out']/'window_metrics.csv.tmp'
     with open(temporary,'w',newline='') as handle:
         writer=csv.DictWriter(handle,fieldnames=METRIC_FIELDS);writer.writeheader()

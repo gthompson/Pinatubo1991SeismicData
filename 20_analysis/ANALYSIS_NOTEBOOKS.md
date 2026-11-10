@@ -1,6 +1,6 @@
 # Pinatubo analysis notebook sequence
 
-Run in `flovopy_env` with the updated editable FLOVOpy installation. Start notebooks from this directory or the project root. Edit **analysis_workflow.json** once. By default it selects four real files spread across May–August 1991; all products are explicitly scoped to that pilot. `PINATUBO_WAV_ROOT` or `wav_root` can override the known Box WAV/PNTBO location without probing the old external-drive configuration.
+Run in `flovopy_env` with the updated editable FLOVOpy installation. Start notebooks from this directory or the project root. Edit **analysis_workflow.json** once. The current shared configuration selects all discovered waveform candidates with a fixed five-second window policy; the publication selection still identifies an older four-file pilot. Use explicit sample controls for a trial run. `PINATUBO_WAV_ROOT` or `wav_root` can override the known Box WAV/PNTBO location without probing the old external-drive configuration.
 
 | Notebook | Main products |
 |---|---|
@@ -18,7 +18,7 @@ Run in `flovopy_env` with the updated editable FLOVOpy installation. Start noteb
 
 `analysis_workflow.py` is a local orchestration/plotting layer. FLOVOpy owns onset proposals (`processing.detection`, also discoverable through VDAP), descriptive amplitude/SAM/SEM (`EnhancedStream`), shape/temporal/cepstral features (`core.features`), gap-aware Hann PSDs (`processing.spectrograms`) and PSD moments/band powers (`processing.spectral_metrics`). A local density-normalized DPSS estimator supports matched comparisons; the legacy multitaper plotting function is not treated as calibrated PSD.
 
-Products go to `products/notebook_workflow/<run-id>`. Configuration, selected files' absolute paths/size/mtime, workflow code and relevant FLOVOpy source hashes define that ID. This separates changed inputs or processing assumptions; it does not overwrite previous manual reviews. Network source hashes are recorded separately. Size/mtime fingerprints detect ordinary source changes; they are not full waveform-content checksums. Absolute paths intentionally make runs machine-specific.
+Products go to `<output_root>/notebook_workflow/<run-id>`, outside the Git checkout. Configure `output_root` in `analysis_workflow.json`; see `../CONFIGURATION.md`. All `products/` paths below refer to this external root, not a folder inside `20_analysis`. Configuration, selected files' absolute paths/size/mtime, workflow code and relevant FLOVOpy source hashes define that ID. This separates changed inputs or processing assumptions; it does not overwrite previous manual reviews. Network source hashes are recorded separately. Size/mtime fingerprints detect ordinary source changes; they are not full waveform-content checksums. Absolute paths intentionally make runs machine-specific.
 
 ## Window review
 
@@ -73,3 +73,13 @@ Detected mode uses each trace's selected onset and audited noise prefix, with a 
 Restart the kernel after updating code. Run notebook 30, then 40 and 50. Notebook 20 is optional diagnostics in fixed mode; its selection control now defaults to `None` to preserve the shared full-archive selection instead of resetting it to the pilot. Publication notebook 60 still requires deliberate revision if its frozen selection belongs to an older run.
 
 Full numerical results are much larger than metadata-only sidecars. Processing holds one recording's arrays at a time. Ensemble CSV export uses two passes over sidecars, preserving all fields/JSON-valued arrays without loading all spectra into memory. Event-level metadata CSV omits the duplicate trace payload list; all trace/window results remain in canonical JSON and the full trace export. Completed recordings are reusable after interruption; switching back to a prior policy can reuse its cached versions.
+
+## Independent legacy COSPEC plot
+
+`70_cospec_legacy_series.ipynb` and `cospec_plotter.py` read the sparse BOB gas series and descriptive format map. `cospec_config.json` holds source paths and the explicit unit interpretation; outputs use the shared external analysis root. This does not change waveform selection, metrics or review decisions. See [COSPEC_README.md](COSPEC_README.md).
+
+Legacy COSPEC conversion has moved to `10_conversion/60_convert_legacy_bob.ipynb` alongside COUNTS and RAD_FREQ. All three use conversion_config.json and its output_root. The old COSPEC notebook delegates to this conversion step.
+
+## Reconciled Mac mini additions
+
+Notebook 45 and hybrid_diagnostics.py add experimental HF-before-LF diagnostics, with explicit candidate/QC output under the external testing root; they do not relabel the production catalog. The pinatubo_project facade provides runtime/test routing and old artifact lookup while conversion_config.json and analysis_workflow.json retain their configured default output roots.
