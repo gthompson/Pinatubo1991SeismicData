@@ -1,14 +1,22 @@
 import importlib.util,unittest,tempfile,contextlib,io,json,math
 from pathlib import Path
+def _load_pipeline_notebook(filename):
+    import json, types
+    path = Path(__file__).resolve().parents[2] / filename
+    namespace = {}
+    for cell in json.loads(path.read_text())['cells']:
+        if cell['cell_type'] == 'code' and 'pipeline_definitions' in cell.get('metadata', {}).get('tags', []):
+            exec(compile(''.join(cell['source']), str(path), 'exec'), namespace)
+    return types.SimpleNamespace(**namespace)
+
 import pandas as pd
 import numpy as np
 import nbformat
 from obspy import read_events
 root=Path(__file__).resolve().parents[2]
-path=root/'pinatubo_steps/step_50_build_obspy_catalog.py'
 import sys
 sys.path.insert(0, str(root))
-m = importlib.import_module('pinatubo_steps.step_50_build_obspy_catalog')
+m = _load_pipeline_notebook('50_build_obspy_catalog.ipynb')
 base=pd.Timestamp('1991-06-03T12:00:00Z')
 def wave(times,ids=None):return pd.DataFrame({'event_id':ids or [f'w{i}' for i in range(len(times))],'event_time':[base+pd.Timedelta(seconds=t) for t in times]})
 def hypo(times):return pd.DataFrame({'event_id':[f'h{i}' for i in range(len(times))],'preferred_origin_time':[base+pd.Timedelta(seconds=t) for t in times]})

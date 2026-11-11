@@ -11,6 +11,7 @@ The notebooks import adjacent pinatubo_steps modules with explicit keyword-only 
 | Step | Purpose | Main prerequisites |
 |---|---|---|
 | 11 | Waveform diagnostics | Step 10 waveform index |
+| 15 | Post-conversion network history, StationXML and provenance audit | Step 10 converted WAV database; historical source metadata |
 | 20 | Individual-event PHA parsing | Individual PHA directory |
 | 21 | Pinatubo multi-event PHA parsing | Monthly/yearly-format PHA directory |
 | 22 | Merge and suppress duplicate picks | 20 + 21 |
@@ -103,3 +104,17 @@ Optionally set `legacy_bob.rain.source` in conversion_config.json to a RAIN ZIP 
 ### TILT and supporting channels
 
 `61_tilt_read_and_plot.ipynb` provides the TILT class reader, channel/coverage table, source notes, CSV export and separate-panel plots for UBO and PPO. Step 60 also accepts `--products tilt`, writing beneath the shared `output_root/legacy_bob/tilt`. Requires NumPy, pandas and Matplotlib, without an ObsPy or FLOVOpy dependency. TILT deliberately uses composition rather than RSAM inheritance: signed tilt, temperature and battery observables must not inherit amplitude-processing or UTC assumptions. The binary storage layout is the same annual 576-byte-header/10-minute-float layout. Original source notes and hashes are exported.
+
+## DMX failure inspection and partial recovery
+
+`13_inspect_partial_dmx_recovery.ipynb` reads the step-10 failures with ObsPy/FLOVOpy and plots each retained trace separately (no plotting merge of duplicate IDs). Candidate inspection output goes under the configured output_root/recovery_diagnostics. The shared validated-prefix implementation is flovopy.core.dmx_recovery; local step 12 exports diagnostic candidates and delegates structural parsing to that module.
+
+FLOVOpy read_dmx_file tries regular reading first, then recovery by default. A recovery warning and stats.dmx_recovery mark partial reads. Step 10 remains strict by default; set waveform.recover_partial=true in conversion_config.json only after inspecting candidates. Enabled partial exports add partial_recovery and recovery_details to the waveform index. Keep those columns in any downstream or publication provenance. No raw file or clock is repaired. See FLOVOpy docs/dmx_recovery.md.
+
+## Step 15 — final post-conversion network reconstruction
+
+Run `15_network_history_and_stationxml.ipynb` after step 10. Step 05 is retained for an early documentary reconstruction; step 15 scans the exact configured SEISAN_WAV_DB for all selected years and writes under NETWORK_HISTORY_OUTPUT. It never falls back to the old source-tree header inventory. The notebook explains every block and embeds source precedence, helicorder sensor conflicts, all known epoch-boundary issues, PI2 normal/low-gain evidence, independent clocks and BOB time shifts, response-chain/ADC gaps, and questions for VDAP colleagues.
+
+Generated audit products include scan source/file inventory/errors, source metadata and code/config hashes, sensor conflict register, StationXML schema/overlap/undated-channel audits and response completeness. Documentary XML is retained; separate `_selection_safe.xml` copies can encode nonoverlapping shared endpoints, with a change log explaining the one-microsecond selection convention. No date precision or calibration is invented. Full count responses remain an explicit target, not something established by the current nominal voltage file.
+
+The notebook performs a full header scan by default; disable it only to reuse a matching root/year/file fingerprint inventory. It does not modify waveform samples or legacy records. `network_history/finalize_inventory.py` contains the reusable scan, audit, boundary-copy and packaging helpers.

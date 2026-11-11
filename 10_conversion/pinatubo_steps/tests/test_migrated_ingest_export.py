@@ -1,13 +1,41 @@
 import unittest,tempfile,contextlib,io,pickle,shutil
 from pathlib import Path
+def _load_pipeline_notebook(filename):
+    import json, types
+    path = Path(__file__).resolve().parents[2] / filename
+    namespace = {}
+    for cell in json.loads(path.read_text())['cells']:
+        if cell['cell_type'] == 'code' and 'pipeline_definitions' in cell.get('metadata', {}).get('tags', []):
+            exec(compile(''.join(cell['source']), str(path), 'exec'), namespace)
+    return types.SimpleNamespace(**namespace)
+
 import pandas as pd
 from obspy import UTCDateTime
 from obspy.core.event import Catalog,Event,Origin,Pick,WaveformStreamID,Comment,ResourceIdentifier
 from flovopy.core import vdap
-from pinatubo_steps import step_20_parse_individual_phase_files as s20
-from pinatubo_steps import step_40_build_hypocenter_index_pinatubo_all as s40
-from pinatubo_steps import step_43_associate_hypocenters as s43
-from pinatubo_steps import step_52_build_seisan_rea_catalog as s52
+# Exercise the implementation embedded in the canonical notebook.
+import json, types
+_notebook = Path(__file__).resolve().parents[2] / '20_parse_individual_phase_files.ipynb'
+_namespace = {}
+for _cell in json.loads(_notebook.read_text())['cells']:
+    _source = ''.join(_cell.get('source', []))
+    if _cell['cell_type'] == 'code' and 'def run(' in _source:
+        exec(compile(_source, str(_notebook), 'exec'), _namespace)
+s20 = types.SimpleNamespace(run=_namespace['run'])
+_ns_s40 = {}
+for _cell in json.loads((Path(__file__).resolve().parents[2] / '40_build_hypocenter_indexes.ipynb').read_text())['cells']:
+    _source = ''.join(_cell.get('source', []))
+    if _cell['cell_type'] == 'code' and 'def run_summary(' in _source:
+        exec(compile(_source, '40_build_hypocenter_indexes.ipynb', 'exec'), _ns_s40)
+s40 = types.SimpleNamespace(**_ns_s40)
+s40.run = s40.run_summary
+_ns_s43 = {}
+for _cell in json.loads((Path(__file__).resolve().parents[2] / '43_associate_hypocenters.ipynb').read_text())['cells']:
+    _source = ''.join(_cell.get('source', []))
+    if _cell['cell_type'] == 'code' and 'def run(' in _source:
+        exec(compile(_source, '43_associate_hypocenters.ipynb', 'exec'), _ns_s43)
+s43 = types.SimpleNamespace(**_ns_s43)
+s52 = _load_pipeline_notebook('52_build_seisan_rea_catalog.ipynb')
 
 FIXTURES=Path(vdap.__file__).parents[1]/'tests/data/vdap'
 class PipelineMigrationTests(unittest.TestCase):

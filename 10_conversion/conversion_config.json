@@ -8,7 +8,8 @@
     "pattern": "**/*.DMX",
     "max_files": null,
     "overwrite": false,
-    "verbose": false
+    "verbose": false,
+    "recover_partial": true
   },
   "legacy_bob": {
     "products": [
