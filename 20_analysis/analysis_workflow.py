@@ -331,13 +331,18 @@ def plot_inventory(ctx, inventory):
 def review_network(ctx, rebuild=True):
     """Use the existing reconstruction; keep it independent of ASL/FlowLoc."""
     history=ctx['history']
-    if not history.is_dir():raise FileNotFoundError('Expected 10_conversion/network_history')
+    if not (history.parent/'15_network_history_and_stationxml.ipynb').is_file():
+        raise FileNotFoundError('Expected 10_conversion/15_network_history_and_stationxml.ipynb')
     sys.path.insert(0,str(history.parent)) if str(history.parent) not in sys.path else None
     if rebuild:
-        from network_history.reconstruct import build_all
-        build_all(ctx['out']/'network_history')
-    else:
-        shutil.copytree(network_products() if network_products().exists() else history/'products',ctx['out']/'network_history',dirs_exist_ok=True)
+        import json
+        notebook = history.parent / '15_network_history_and_stationxml.ipynb'
+        definitions = {'PIPELINE': history.parent}
+        for cell in json.loads(notebook.read_text())['cells']:
+            if cell['cell_type'] == 'code' and 'pipeline_definitions' in cell.get('metadata', {}).get('tags', []):
+                exec(compile(''.join(cell['source']), str(notebook), 'exec'), definitions)
+        definitions['build_all'](network_products(), header_data_dir=network_products()/'header_scan')
+    shutil.copytree(network_products(),ctx['out']/'network_history',dirs_exist_ok=True)
     dest=ctx['out']/'network_history';inv=read_inventory(str(dest/'pinatubo_provisional.xml'))
     rows=[]
     for net in inv:
@@ -346,7 +351,9 @@ def review_network(ctx, rebuild=True):
                 rows.append(dict(trace_id=f'{net.code}.{sta.code}.{ch.location_code}.{ch.code}',start=str(ch.start_date),
                     end=str(ch.end_date),latitude=ch.latitude,longitude=ch.longitude,elevation_m=ch.elevation,
                     response_present=ch.response is not None,response_status='NO_END_TO_END_COUNTS_RESPONSE'))
-    provenance={p.name:digest(p.read_bytes()) for p in (history/'data').glob('*') if p.is_file()}
+    from pinatubo_steps.config import pipeline_paths
+    reference = Path(pipeline_paths()['NETWORK_HISTORY_INPUT'])
+    provenance={p.name:digest(p.read_bytes()) for p in reference.glob('*') if p.is_file()}
     write_json(dest/'network_source_hashes.json',provenance)
     return pd.DataFrame(rows),inv
 

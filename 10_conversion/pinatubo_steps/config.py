@@ -32,7 +32,7 @@ def pipeline_paths(data_top=None, *, output_root=None, config_file=None):
         if destination == legacy or legacy in destination.parents or destination in legacy.parents:
             raise ValueError('Conversion output must not overlap LEGACY inputs')
     p = {'HOME': str(Path.home()), 'DATA_TOP': str(source), 'OUTPUT_ROOT': str(destination),
-         'CONFIG_FILE': config['_config_file'], 'NETWORK_HISTORY_OUTPUT': str(destination / 'network_history')}
+         'CONFIG_FILE': config['_config_file']}
 
     p['LEGACY_TOP'] = str(legacy)
     p['SUDS_TOP'] = f"{p['LEGACY_TOP']}/WAVEFORM_DATA/SUDS"
@@ -48,6 +48,13 @@ def pipeline_paths(data_top=None, *, output_root=None, config_file=None):
     p['SEISAN_TOP'] = f"{p['FAIR_TOP']}/SEISAN"
     p['SEISAN_WAV_DB'] = f"{p['SEISAN_TOP']}/WAV/{p['DB']}"
     p['FAIR_META_DIR'] = f"{p['FAIR_TOP']}/metadata"
+    reference_subdir = config.get('network_history', {}).get('reference_subdir', 'STATION_METADATA/NETWORK_HISTORY')
+    reference = (legacy / reference_subdir).resolve()
+    if not reference.is_relative_to(legacy.resolve()):
+        raise ValueError('Network-history reference metadata must remain inside LEGACY')
+    p['NETWORK_HISTORY_INPUT'] = str(reference)
+    p['NETWORK_HISTORY_OUTPUT'] = str(Path(p['FAIR_META_DIR']) / 'network_history')
+
     p['TMP_DIR'] = f"{p['OUTPUT_ROOT']}/pipeline_tmp"
     p['QC_DIR'] = f"{p['TMP_DIR']}/qc"
     p['WAVEFORM_INDEX'] = f"{p['TMP_DIR']}/10_waveform_index.csv"

@@ -24,5 +24,8 @@
       "units_basis": "SO2 mass flux inferred from the historical COSPEC account; units not printed in source",
       "units_reference": "https://pubs.usgs.gov/pinatubo/daag1/"
     }
+  },
+  "network_history": {
+    "reference_subdir": "STATION_METADATA/NETWORK_HISTORY"
   }
 }

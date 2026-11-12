@@ -83,7 +83,7 @@ def resolve_artifact(path):
     """
     path=Path(path).expanduser()
     mappings=[(PROJECT_ROOT/'20_analysis/products',output_path('20_analysis')),
-              (PROJECT_ROOT/'10_conversion/network_history/products',output_path('10_conversion','network_history')),
+              (PROJECT_ROOT/'10_conversion/network_history/products',network_products()),
               (input_path('data_top')/'pipeline_tmp',_conversion_artifact('TMP_DIR')),
               (input_path('data_top')/'FAIR/metadata',_conversion_artifact('FAIR_META_DIR'))]
     for old,new in mappings:
@@ -105,14 +105,15 @@ def analysis_products(config=None, *, override=None):
 
 
 def network_products():
-    return output_path('10_conversion','network_history')
+    return _conversion_artifact('NETWORK_HISTORY_OUTPUT')
 
 
 def network_input(name, source_data):
     # Historical evidence remains in source; header refreshes are generated data.
     for generated in [network_products()/name,network_products()/'data'/name]:
         if generated.exists():return generated
-    return Path(source_data)/name
+    reference = _conversion_artifact('NETWORK_HISTORY_INPUT') / name
+    return reference if reference.exists() else network_products()/name
 
 
 def test_directory(*parts, create=True):

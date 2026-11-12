@@ -26,13 +26,21 @@ def main():
     successful = False
     with (run / 'test_report.txt').open('w') as log, contextlib.redirect_stdout(log), contextlib.redirect_stderr(log):
         try:
-            from network_history.reconstruct import build_all
-            build_all()
+            notebook = PROJECT / '10_conversion/15_network_history_and_stationxml.ipynb'
+            definitions = {'PIPELINE': notebook.parent}
+            for cell in json.loads(notebook.read_text())['cells']:
+                if cell['cell_type'] == 'code' and 'pipeline_definitions' in cell.get('metadata', {}).get('tags', []):
+                    exec(compile(''.join(cell['source']), str(notebook), 'exec'), definitions)
+            definitions['build_all']()
             suite = unittest.TestSuite()
             for directory in [PROJECT / '20_analysis/tests', PROJECT / '10_conversion/pinatubo_steps/tests']:
                 suite.addTests(unittest.TestLoader().discover(str(directory), pattern='test_*.py', top_level_dir=str(directory)))
-            directory = PROJECT / '10_conversion/network_history'
-            suite.addTests(unittest.TestLoader().discover(str(directory), pattern='test_reconstruction.py', top_level_dir=str(directory)))
+            validation_notebook = PROJECT / '10_conversion/16_validate_network_history.ipynb'
+            validation_namespace = {'PIPELINE': validation_notebook.parent}
+            for cell in json.loads(validation_notebook.read_text())['cells']:
+                if cell['cell_type'] == 'code' and 'pipeline_definitions' in cell.get('metadata', {}).get('tags', []):
+                    exec(compile(''.join(cell['source']), str(validation_notebook), 'exec'), validation_namespace)
+            suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(validation_namespace['ReconstructionTests']))
             result = unittest.TextTestRunner(stream=log, verbosity=2).run(suite)
             successful = result.wasSuccessful()
             (run / 'summary.json').write_text(json.dumps(dict(tests=result.testsRun, failures=len(result.failures), errors=len(result.errors)), indent=2))

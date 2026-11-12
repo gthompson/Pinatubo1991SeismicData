@@ -85,25 +85,110 @@ Zero valid rows give NaN rates and no_records/invalid_only status. Missing input
 
 Folder-date audits require real source-path metadata. Step 20 now adds pha_path to future outputs; existing CSVs with basenames only cannot establish folder dates. Full filename/folder mismatches are flagged, not corrected. Monthly block grouping, source-priority merging and deduplication are unaffected. The three older root-level converter/verification scripts remain historical; they are not called by this review section.
 
-## Legacy BOB conversion (step 60)
+## Legacy BOB conversion — sequenced FLOVOpy notebooks
 
-Run `60_convert_legacy_bob.ipynb`, or `python 10_conversion/60_convert_legacy_bob.py` from the repository root. Use `--config PATH` for a different shared configuration and `--products counts` (or cospec/radio) for a subset. No waveform processing is required.
+The active workflow is now 60–69 below. Generic format readers come from
+`flovopy.legacy.bob`; paths, channel interpretations and historic clock questions
+remain in the Pinatubo notebooks. Use a kernel with the current editable FLOVOpy
+checkout, pandas, NumPy, Matplotlib and IPython. Code is embedded in each notebook;
+no local BOB parser module is imported by this sequence.
 
-Inputs come from `LEGACY_TOP/BOB/{COSPEC,COUNTS,RAD_FREQ}`, respecting `data_top` and optional `legacy_root`. All CSV, JSON and figure products go beneath the same conversion `output_root`, in `legacy_bob/{cospec,counts,radio}`; the existing external-output and input-overlap guards apply. No additional output-root setting is used. A manifest records input and code hashes and the effective configuration. Missing selected inputs fail preflight; no missing series is silently skipped.
+| Step | Notebook | Product |
+|---|---|---|
+| 60 | `60_prepare_bob_archives.ipynb` | Explicit in-place extraction, archive relocation and inventory |
+| 61 | `61_rsam_and_events.ipynb` | Annual RSAM and historical RSAM EVNT |
+| 62 | `62_ssam.ipynb` | SSAM plus DATA, retained as separate source products |
+| 63 | `63_tilt.ipynb` | Tilt, battery, temperature and unresolved supporting channels |
+| 64 | `64_rain.ipynb` | One combined daily-file rain table |
+| 65 | `65_mudflow.ipynb` | Three positional mudflow fields |
+| 66 | `66_cospec.ipynb` | Sparse SO2 observations and attributed unit inference |
+| 67 | `67_counts.ipynb` | Distinct historical earthquake-count versions |
+| 68 | `68_radio_maps.ipynb` | Dated telemetry-map snapshots |
+| 69 | `69_bob_coverage_and_review.ipynb` | Network-wide daily presence figure, range table and review |
 
-COSPEC retains repeated timestamps; inferred units are labeled in configuration. COUNTS retains missing values, suspected −999 sentinels, duplicate times, unexpected years and malformed dates, without repairs or combining CAB versions. Radio tables retain literal tuning precision, ditto marks and both source copies; the convenience snapshot table is emitted only after checking agreement. MAP.TXT is hashed as context, not interpreted as geographic geometry. These outputs are standardized transcriptions and diagnostics, not calibrated or fully validated scientific products.
+All notebooks use `conversion_config.json` through `pipeline_paths`, including
+external project-result overrides. Inputs are `LEGACY_TOP/BOB`. Outputs are
+`FAIR_TOP/BOB/<product>` under the same external output root. No additional output
+root is introduced. A product can override its source folder with
+`legacy_bob.<product>.source_subdir`, relative to BOB; absolute paths and ZIP
+inputs are deliberately rejected. Product names include `rsam`, `rsam_events`,
+`ssam`, `ssam_data`, `tilt`, `rain`, `mudflow`, `cospec`, `counts`, `radio`.
+Old `legacy_bob.products` and `rain.source` settings belong to the historical CLI
+and are not used by the new notebooks. Run the selected notebook instead.
 
-The older COSPEC entry point in `20_analysis` now delegates to step 60 and uses conversion_config.json. Its former analysis-output configuration is retained only as historical reference.
+Step 60 previews by default (`APPLY=False`). After reviewing its report, set
+`APPLY=True`: files are extracted beside their ZIP and fully handled archives
+are hash-verified and moved to the parallel `LEGACY/bob_zipfiles_obsolete` tree.
+Existing files are never overwritten. Identical existing members are accepted;
+conflicts, damaged members, unsafe paths and relocation clashes retain the active
+archive for review. Nested ZIPs are handled in bounded passes. Reports and the
+source inventory go to `FAIR/BOB/archive_preparation`. Do not delete unresolved
+archives to bypass downstream ZIP guards. Keep an independent source backup.
 
-### RAIN compilation
+Steps 61–68 never unpack ZIPs or alter LEGACY. They export raw and usable values,
+missing flags, source file/line provenance, duplicate-time flags, reader metadata,
+parser errors, per-series coverage, daily coverage and a review summary. Source
+hashes and available BOB/STATIONS.TXT text accompany exports. `OVERWRITE=False`
+protects existing derived products; review before deliberately rerunning with it
+set True. Raw legacy names remain the identifiers for unresolved auxiliary
+channels; waveform SEED IDs/gains are not assigned automatically.
 
-Step 60 now includes `rain`. Run `python 10_conversion/60_convert_legacy_bob.py --products rain`. All daily `.DAT` files in LEGACY/BOB/RAIN compile to `output_root/legacy_bob/rain/rain_records.csv`, plus a coverage/provenance JSON and README. Both spaced and hyphenated date formats are supported. Values remain positional and uncalibrated; −998 flags, original time labels, duplicate times, raw lines and file/line provenance are retained. No timezone is assigned.
+The overview unions observed calendar days across stations, including SSAM/DATA,
+without summing duplicate measurements. Sparse COSPEC dates remain sparse.
+The main figure ends at 1 December 1991; full-range tables retain the 1992 SSAM
+exception. Coverage means finite nonsentinel records exist, not uptime. No
+cross-system clock synchronization, inferred calibration, interpolation, automatic
+source-version selection or drift correction is applied. SSAM band definitions are now ingested from the archived BN descriptions; step 62
+uses FLOVOpy precomputed band results for daily/hourly multi-channel figures.
+BN01–10 are frequency-axis heatmaps; overlapping BN11–16 remain separate traces.
+Verify SSAM averaging duration, RAIN/MUDFLOW field meanings, annual indexing phase
+and historic GMT/local changes
+before quantitative analysis. Each notebook documents those questions.
 
-Optionally set `legacy_bob.rain.source` in conversion_config.json to a RAIN ZIP or another directory. Relative paths resolve against that configuration file. ZIPs are read directly, excluding __MACOSX entries, without extracting files. Default input remains the LEGACY folder.
+The superseded 60/61 notebooks are preserved under `superseded/bob_pre_flovopy`.
+Older `legacy_bob` modules and CLI remain for compatibility with previous exports
+and scripts; their outputs under `output_root/legacy_bob` are historical and are
+not inputs to step 69. Do not mix those products with the new FAIR/BOB outputs.
+The archive CLI now delegates to the safe step-60 definitions.
 
-### TILT and supporting channels
+### QC review of the first BOB executions (12 November 2026)
 
-`61_tilt_read_and_plot.ipynb` provides the TILT class reader, channel/coverage table, source notes, CSV export and separate-panel plots for UBO and PPO. Step 60 also accepts `--products tilt`, writing beneath the shared `output_root/legacy_bob/tilt`. Requires NumPy, pandas and Matplotlib, without an ObsPy or FLOVOpy dependency. TILT deliberately uses composition rather than RSAM inheritance: signed tilt, temperature and battery observables must not inherit amplitude-processing or UTC assumptions. The binary storage layout is the same annual 576-byte-header/10-minute-float layout. Original source notes and hashes are exported.
+The revised notebooks preserve the original saved-run findings in Markdown and
+clear stale output cells. Original executed versions are backed up before install.
+Most products had saved successful reads; MUDFLOW and the overview had not been
+executed. Zero active ZIPs in step 60 means nothing needed extraction at that time,
+not independent verification of already moved archives.
+
+Each product now writes QC-schema-2 outputs. Complete source records retain all
+reported dates/values plus review flags; `date_review.csv` lists invalid and
+out-of-expected-period labels. `coverage_all_recorded_dates.csv` retains the raw
+span, while `coverage.csv` and `daily_coverage.csv` use only valid labels in the
+expected archive period. Defaults are 1991, with 1992 allowed for SSAM/DATA.
+This flags the syntactically valid 1919 date in both CAB count versions without
+inventing a correction. Override `legacy_bob.<product>.expected_dates.start` and
+`end_exclusive` only with evidence.
+
+Other products include `field_quality.csv`, `duplicate_records.csv`,
+`source_roles.csv`, `review.json`, and `export_status.json`. TEST and TEMP path
+names are auxiliary-source candidates, retained and labelled for review, not
+silently dropped or merged. A timestamp is counted once per source series in
+the daily-count plots; source versions still remain separate. Availability
+figures show actual observed days by original series. Value panels crop annual
+padding to usable dates. All series are plotted unless a visible limit is set;
+`plot_manifest.csv` records both generated and explicitly omitted panels. SSAM
+uses availability diagnostics plus its dedicated multichannel plots.
+
+Exports are staged before replacement and completion is marked last. Step 69
+requires complete schema-2 markers with matching run IDs; older, missing or mixed
+products block the full overview. `ALLOW_PARTIAL=True` is an explicit diagnostic
+mode with incomplete-row/figure labels, not a publication-ready completeness
+claim. Radio maps have separate snapshot-equivalence checks.
+
+Set `OVERWRITE=True` deliberately to regenerate previous derived outputs, then
+run the revised notebooks in sequence. Inputs remain untouched except the
+explicit archive-preparation action in step 60. These improvements have been
+checked with fixtures; they do not imply a new full archive execution.
+
 
 ## DMX failure inspection and partial recovery
 
