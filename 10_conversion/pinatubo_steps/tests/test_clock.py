@@ -1,0 +1,77 @@
+"""Checks on the Pinatubo clock table (clock_regimes.csv) against known records."""
+import unittest
+
+import pandas as pd
+from obspy import UTCDateTime
+
+from flovopy.core.clock import dos_mktime_wall_clock
+from pinatubo_steps.clock import (apply_bob_clock, apply_hypocenter_clock, apply_pick_clock,
+                                  regimes, waveform_time_correction)
+
+UTC = dict(time_basis='utc')
+
+
+def wav(t, seq):
+    offset, label = waveform_time_correction(UTC)(None, seq, UTCDateTime(t))
+    return None if offset is None else UTCDateTime(t) + offset, label
+
+
+class PinatuboClockTests(unittest.TestCase):
+    def test_recorded_basis_is_a_no_op(self):
+        self.assertIsNone(waveform_time_correction({}))
+        df = pd.DataFrame(dict(pick_time=['1991-06-03T12:00:00']))
+        self.assertIs(apply_pick_clock(df, {}, 'pick_individual'), df)
+
+    def test_waveform_reset_on_26_may(self):
+        # Last file before and first file after the PC clock was set back.
+        self.assertEqual(wav('1991-05-26T15:41:33', '91052617')[0], UTCDateTime('1991-05-26T00:41:33'))
+        self.assertEqual(wav('1991-05-26T08:40:26', '9105261G')[0], UTCDateTime('1991-05-26T01:40:26'))
+        # PINAALL line 218 (01:40:38 UTC) is the 9105261G event.
+        self.assertEqual(wav('1991-05-10T12:00', '91051000')[0], UTCDateTime('1991-05-09T21:00'))
+
+    def test_header_rows_match_mktime_after_reset(self):
+        for t in ['1991-06-15T03:00', '1991-10-27T08:59', '1991-10-27T09:01', '1991-12-01T00:00']:
+            self.assertEqual(wav(t, '91999999')[0], dos_mktime_wall_clock(t))
+
+    def test_monthly_picks_switch_clock(self):
+        df = pd.DataFrame(dict(pha_file=['pinmay91.pha', 'pinmay91.pha', 'pinjun91.pha', 'pinjul91.pha'],
+                               raw_lineno=[5451, 5542, 100, 10],
+                               pick_time=['1991-05-26T01:43:12.76', '1991-05-26T09:57:29.71',
+                                          '1991-06-03T12:56:36.37', '1991-07-01T00:00:00']))
+        out = apply_pick_clock(df, UTC, 'pick_monthly')
+        self.assertEqual(out.pick_time.tolist(), ['1991-05-25T10:43:12.760000', '1991-05-26T02:57:29.710000',
+                                                  '1991-06-03T05:56:36.370000', '1991-07-01T00:00:00'])
+
+    def test_hypocenters_and_allsum_matching(self):
+        pinaall = pd.DataFrame(dict(source_line=[217, 218], latitude=[15.157, 15.158], longitude=[120.31, 120.32],
+                                    origin_time=['1991-05-26T08:31:25.61', '1991-05-26T01:40:38.67']))
+        allsum = pd.DataFrame(dict(source_line=[1, 2, 3], latitude=[15.158, 15.157, 15.2], longitude=[120.32, 120.31, 120.3],
+                                   origin_time=['1991-05-26T01:40:38.67', '1991-05-26T08:31:25.61', '1991-05-26T05:00:00']))
+        p, a = apply_hypocenter_clock(pinaall, allsum, UTC)
+        self.assertEqual(p.origin_time.tolist(), ['1991-05-26T00:31:25.610000', '1991-05-26T01:40:38.670000'])
+        self.assertEqual(a.origin_time.tolist()[:2], ['1991-05-26T01:40:38.670000', '1991-05-26T00:31:25.610000'])
+        self.assertTrue(pd.isna(a.origin_time[2]))
+        self.assertEqual(a.clock_status[2], 'ambiguous')
+        # A waveform file whose header window holds raw + 7 h decides (pre-reset file 91052617).
+        wav = pd.DataFrame(dict(event_id=['91052617'], raw_starttime=['1991-05-26T11:59:55'],
+                                starttime=['1991-05-25T20:59:55'], endtime=['1991-05-25T21:01:00']))
+        _, a = apply_hypocenter_clock(pinaall, allsum, UTC, wav)
+        self.assertEqual(a.origin_time[2], '1991-05-25T21:00:00')
+        self.assertEqual(a.clock_status[2], 'resolved_by_waveform_91052617')
+
+    def test_bob(self):
+        frame = pd.DataFrame(dict(recorded_time=pd.to_datetime(['1991-05-05 00:00', '1991-06-15 08:00', '1991-10-01 00:00'])))
+        out = apply_bob_clock(frame, UTC, 'rsam')
+        self.assertEqual(out.recorded_time.tolist(), list(pd.to_datetime(['1991-05-04 09:00', '1991-06-15 00:00', '1991-10-01 00:00'])))
+        self.assertEqual(out.clock_confidence.tolist(), ['low', 'high', 'medium'])
+        tilt = apply_bob_clock(frame, UTC, 'tilt')
+        self.assertTrue((tilt.recorded_time == frame.recorded_time).all())
+        self.assertEqual(set(tilt.clock_status), {'unverified'})
+
+    def test_every_stream_has_rules(self):
+        self.assertEqual(regimes().streams, {'waveform', 'pick_individual', 'pick_monthly', 'hypo_pinaall',
+                                             'hypo_allsum', 'bob_seismic'})
+
+
+if __name__ == '__main__':
+    unittest.main()

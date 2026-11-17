@@ -1,0 +1,27 @@
+# Pinatubo 1991 clock regimes. Raw time + utc_offset_h = UTC.
+# Times in start/end are on each stream's OWN raw clock, half-open [start, end).
+# Clocks: H = DMX header epoch (DOS mktime of the PC wall clock with TZ=PST8PDT: H = wall + 7 h PDT / + 8 h PST);
+#         W = seismic PC wall clock (Philippine time UTC+8 until the reset on 26 May ~00:41-01:40 UTC, GMT after);
+#         B = BOB labels (RSAM/EVNT/SSAM PC).
+# seq_min/seq_max: inclusive bounds on a sortable sequence key, used only where raw times repeat after a clock was set back.
+#   A stream that supplies no sequence matches both such rows and is reported "ambiguous".
+#   waveform, pick_individual: DMX/PHA event ID (YYMMDD + base-36 sequence, digits before letters);
+#   pick_monthly: "<file>:<line, 6 digits>"; hypo_pinaall: PINAALL.DAT line number (6 digits).
+# Evidence and method: 10_conversion/CODE_REVIEW_2026-11-17.md, "Clock model".
+stream,regime,clock,start,end,seq_min,seq_max,utc_offset_h,confidence,evidence
+waveform;pick_individual;pick_monthly,H_PHT,H,,1991-05-26T07:40:00,,,-15,high,"Wall clock on PHT before the 26 May reset; hypocenters = H - 7 h; BOB (PHT) = H - 7 h 10-26 May"
+waveform;pick_individual,H_PHT_seq,H,1991-05-26T07:40:00,1991-05-26T16:45:00,,91052617,-15,high,"Last file before the reset is 91052617 (H 15:41:33)"
+waveform;pick_individual,H_UTC_seq,H,1991-05-26T07:40:00,1991-05-26T16:45:00,9105261G,,-7,high,"First file after the reset is 9105261G (H 08:40:26) = PINAALL line 218 + 7 h"
+pick_monthly,H_PHT_seq,H,1991-05-26T07:40:00,1991-05-26T16:45:00,,pinmay91.pha:005541,-15,high,"pinmay91.pha has no pre-reset picks in the repeated window"
+pick_monthly,H_UTC_seq,H,1991-05-26T07:40:00,1991-05-26T16:45:00,pinmay91.pha:005542,,-7,high,"pinmay91.pha line 5542 onward matches post-reset files 9105261H..."
+waveform;pick_individual,H_UTC_PDT,H,1991-05-26T16:45:00,1991-10-27T09:00:00,,,-7,high,"Wall clock on GMT; mktime PDT; filename date = date(H - 7 h); BOB (PHT) = H + 1 h"
+waveform;pick_individual,H_UTC_PST,H,1991-10-27T09:00:00,,,,-8,high,"US DST ended 27 Oct 1991 02:00 PDT; filename date = date(H - 8 h) from 28 Oct; EVNT lag steps -7 h to -8 h"
+pick_monthly,H_UTC_PDT_until_switch,H,1991-05-26T16:45:00,1991-06-10T12:00:00,,,-7,high,"Monthly picks on H up to 10 June 00:06 (100% inside waveform windows)"
+pick_monthly,W_UTC,W,1991-06-20T00:00:00,,,,0,medium,"From 27 June monthly picks are on W (88-100% inside waveforms at +7 h); new HYPO71 control cards in pinjun91.pha lines ~5632-5666; no picks between 10 and 27 June"
+hypo_pinaall;hypo_allsum,W_PHT,W,,1991-05-26T00:40:00,,,-8,high,"Hypocenters = H - 7 h = W; W was PHT before the reset"
+hypo_pinaall;hypo_allsum,W_PHT_seq,W,1991-05-26T00:40:00,1991-05-26T09:45:00,,000217,-8,high,"PINAALL.DAT line 217 (08:31:25) is the last pre-reset record"
+hypo_pinaall;hypo_allsum,W_UTC_seq,W,1991-05-26T00:40:00,1991-05-26T09:45:00,000218,,0,high,"PINAALL.DAT line 218 (01:40:38) is the first post-reset record (= 9105261G - 7 h)"
+hypo_pinaall;hypo_allsum,W_UTC,W,1991-05-26T09:45:00,,,,0,high,"Wall clock on GMT after the reset"
+bob_seismic,B_ahead,B,,1991-05-09T06:00:00,,,-15,low,"2-9 May EVNT/RSAM cross-correlation: B = H (unexplained); switch between 9 May 00-06 and 06-12 B"
+bob_seismic,B_PHT,B,1991-05-09T06:00:00,1991-09-13T09:00:00,,,-8,high,"B = H - 7 h (10-26 May) and H + 1 h (26 May-13 Sep) = PHT; eruption onsets"
+bob_seismic,B_GMT,B,1991-09-13T09:00:00,,,,0,medium,"B = H - 7 h from 13 Sep (06-12 B) and H - 8 h after 28 Oct = UTC; weak correlation after ~7 Nov"

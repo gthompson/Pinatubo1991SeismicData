@@ -747,7 +747,7 @@ def export_event_metrics(ctx, catalog=None, *, write_quakeml=True):
     """Rebuild ensemble exports from active JSON sidecars, without waveform I/O."""
     if catalog is None:return _stream_event_exports(ctx,write_quakeml=write_quakeml)
     rows=[]
-    for event in catalog.records:
+    for event in catalog:
         for trace in event.meta.traces:
             if 'summary' in trace:rows.append(trace['summary'])
     curated=pd.DataFrame(rows,columns=METRIC_FIELDS)
@@ -1332,7 +1332,7 @@ def _lightweight_catalog(paths):
         event.meta.metrics={key:value for key,value in event.meta.metrics.items() if key in
             ['record_reference_recorded_time','status','classification','event_type','mainclass','subclass']}
         events.append(event)
-    return EnhancedCatalog(events=events,records=events)
+    return EnhancedCatalog(events=events)
 
 
 def _stream_event_exports(ctx, *, write_quakeml=True):

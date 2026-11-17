@@ -4,7 +4,8 @@
   "network": "XB",
   "database": "PNTBO",
   "waveform": {
-    "sampling_rate": 100.0,
+    "sampling_rate": null,
+    "rate_max_denominator": 100,
     "pattern": "**/*.DMX",
     "max_files": null,
     "overwrite": false,
