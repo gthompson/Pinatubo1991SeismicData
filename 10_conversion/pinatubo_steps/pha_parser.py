@@ -29,10 +29,13 @@ from flovopy.core.vdap import (
     parse_vdap_phase_line,
     read_vdap_pha_blocks,
     read_vdap_pha_file,
+    split_picks_by_time_gap,
 )
 
 NETWORK = "XB"
 BLOCK_OUTLIER_WINDOW_S = 60.0
+BLOCK_SPLIT_GAP_S = 20.0      # a block with two >=3-station pick clusters this far apart holds two events
+BLOCK_SPLIT_MIN_STATIONS = 3
 
 
 def _dedupe_picks(picks: List[dict], time_eps_s: float = 1e-3) -> List[dict]:
@@ -104,10 +107,14 @@ def _describe(item) -> str:
 def parse_pha_file(path, errors=None):
     """Parse a monthly PHA file into events (origin_time + picks).
 
-    Events are delimited strictly by '10'/'100' separator lines; empty blocks
-    are skipped. ``block_index`` counts every separator block in the file, so
-    it is a stable event key that does not change when parsing improves. Each block is deduplicated and trimmed to ±60 s of its median
-    time. When ``errors`` is a list, every rejected or partly skipped line and
+    Events are delimited by '10'/'100' separator lines; empty blocks are
+    skipped. ``block_index`` counts every separator block in the file, so it
+    is a stable event key that does not change when parsing improves. A block
+    missing its separator can hold two events: it is split where picks are
+    more than 20 s apart and each piece has at least 3 stations
+    (``split_picks_by_time_gap``); ``sub_index`` numbers the pieces (0 for an
+    unsplit block). Each event is deduplicated and trimmed to ±60 s of its
+    median time. When ``errors`` is a list, every rejected or partly skipped line and
     every trimmed pick is appended to it.
     """
     path = Path(path)
@@ -119,19 +126,25 @@ def parse_pha_file(path, errors=None):
     for block in blocks:
         if not block["picks"]:
             continue
-        rejected = []
-        picks = filter_pick_group(block["picks"], max_span_seconds=BLOCK_OUTLIER_WINDOW_S,
-                                  min_picks=1, rejected=rejected)
-        if errors is not None:
-            errors.extend(f"{_describe(p)} (> {BLOCK_OUTLIER_WINDOW_S:g} s from block median)"
-                          for p in rejected)
-        if not picks:
-            continue
-        p_times = [p["time"] for p in picks if p.get("phase") == "P"]
-        origin_time = min(p_times) if p_times else min(p["time"] for p in picks)
-        events.append({"origin_time": origin_time, "picks": picks,
-                       "block_index": block["block_index"],
-                       "first_line": block["first_line"], "last_line": block["last_line"]})
+        groups = split_picks_by_time_gap(block["picks"], BLOCK_SPLIT_GAP_S,
+                                         min_stations=BLOCK_SPLIT_MIN_STATIONS)
+        if len(groups) > 1 and errors is not None:
+            errors.append(f"{path.name}:{block['first_line']}: info: block {block['block_index']} "
+                          f"holds {len(groups)} events (no separator); split at gaps > {BLOCK_SPLIT_GAP_S:g} s")
+        for sub_index, group in enumerate(groups):
+            rejected = []
+            picks = filter_pick_group(group, max_span_seconds=BLOCK_OUTLIER_WINDOW_S,
+                                      min_picks=1, rejected=rejected)
+            if errors is not None:
+                errors.extend(f"{_describe(p)} (> {BLOCK_OUTLIER_WINDOW_S:g} s from block median)"
+                              for p in rejected)
+            if not picks:
+                continue
+            p_times = [p["time"] for p in picks if p.get("phase") == "P"]
+            origin_time = min(p_times) if p_times else min(p["time"] for p in picks)
+            events.append({"origin_time": origin_time, "picks": picks,
+                           "block_index": block["block_index"], "sub_index": sub_index,
+                           "first_line": block["first_line"], "last_line": block["last_line"]})
     return events
 
 

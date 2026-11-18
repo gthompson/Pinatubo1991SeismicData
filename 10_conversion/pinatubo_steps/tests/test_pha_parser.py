@@ -59,5 +59,20 @@ class MonthlyBlockTests(unittest.TestCase):
         self.assertTrue(any('trimmed P XB.CRW..EHZ' in e for e in errors))
 
 
+class SplitBlockTests(unittest.TestCase):
+    def test_block_without_separator_is_split(self):
+        import tempfile
+        from pathlib import Path
+        from pinatubo_steps.pha_parser import parse_pha_file
+        text = '\n'.join(['CABZ PU0 91 7311700 1.00', 'PI2ZIPU0 91 7311700 2.00', 'QADZIPU0 91 7311700 3.00',
+                          'CABZ PU0 91 7311701 1.00', 'PI2ZIPU0 91 7311701 2.00', 'QADZIPU0 91 7311701 3.00', '10', ''])
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'pinjul91.pha'; path.write_text(text)
+            errors = []
+            events = parse_pha_file(path, errors)
+        self.assertEqual([(e['block_index'], e['sub_index'], len(e['picks'])) for e in events], [(0, 0, 3), (0, 1, 3)])
+        self.assertTrue(any('holds 2 events' in e for e in errors))
+
+
 if __name__ == '__main__':
     unittest.main()
