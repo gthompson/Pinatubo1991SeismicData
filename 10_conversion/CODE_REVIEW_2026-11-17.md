@@ -93,17 +93,22 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
   - The 5 `empty` files: `9105080Y` and `91050813` hold an IRIG trace and five flat channels; `9106133O`, `9107077R` and `9108071V` are header-only (1.3–1.5 kB, traces with no samples).
   - Dropped traces are provenance rows with `trace_status` `flat`, `irig` or `no_samples` (no `fixed_id`), and the index has `dropped_traces`/`dropped_trace_ids`: 16,586 flat traces in 12,292 files, 514 IRIG, 25 with no samples. DONZ is flat in 9,543 saved files, then CABZ 1,188, BURZ 940 and BUGZ 854.
   - The index and the kept provenance rows are unchanged (21,459 files; 152,933 traces). Step 11 now uses only kept traces; it had not been rerun since the UTC conversion, so its daily counts are now on UTC dates.
+- **StationXML epochs on UTC (§2.4).** Step 15 rebuilds every channel epoch on UTC:
+  - Field-note dates and times are Philippine local time and are converted: a date-only bound is local midnight (16:00 UTC the day before), ends are exclusive. E.g. PIE ends 15 Jun 16:00 UTC, the CAB attenuation change is 5 May 04:45 UTC.
+  - Post-eruption identities start at their first surviving UTC header; CAB EHN now starts 3 Jul 07:51 UTC (it had inherited CAB's conventional 16 June). CAB/BUG Z continue from 15 Jun 16:00 UTC.
+  - The archive decides the rest. UBO data precede its documented installation, so its start moves to 30 Apr 12:10 UTC. BUR, GRN, PIE, PPO (Z/N/E) and UBO still carry their labels for 6–10 days after their documented ends (to 21–25 Jun), so each gets a `label_after_documented_end` epoch with an unknown sensor; the signal source of those traces is unverified.
+  - Epoch sample rates are 3125/31 Hz (were 100 Hz). 33 epochs (were 26), schema-valid; the only overlaps are shared endpoints, removed in the selection-safe copies.
+  - All 152,933 archived traces fall inside an epoch of their ID; the build fails otherwise. Step 16 has a test for the UTC conversion and the coverage rule.
   - Steps 61–69 were rerun, and their saved outputs were refreshed.
 
 **Remaining**, roughly in priority order:
 
 | # | Item | Section | Notes |
 |---|---|---|---|
-| 1 | StationXML epochs end before the data | §2.4 | Not rechecked after the UTC shift. |
-| 2 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
-| 3 | Tests and docs | §6, §3.8 | `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
-| 4 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
-| 5 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
+| 1 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
+| 2 | Tests and docs | §6, §3.8 | `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
+| 3 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
+| 4 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
 
@@ -252,12 +257,12 @@ Consequences (status in brackets):
 
 ## 2. Waveforms (10, 11, 15, 16)
 
-**Status:** 1, 2, 3 and 5 fixed. 4 and 6 open (see the remaining-items table).
+**Status:** 1–5 fixed. 6 is open.
 
 1. **The header sample rate is overwritten.** Raw DMX = 100.80645 Hz (12500/124), verified on `9105010W.DMX`. `waveform.sampling_rate: 100.0` → FloVoPy `fix_sampling_rate` sets 100 Hz, which stretches each record by 0.8% (~0.3 s over a 4,096-sample record). The original rate isn't kept in the index, provenance or MiniSEED. Settle which rate is true and record the raw one.
 2. [Fixed: dropped traces are provenance rows; see the status list] **Flat (constant) channels are dropped before provenance is built** (`trace_utils.remove_empty_traces`), so they appear nowhere. 98 of 143 sampled files lost at least one channel. This contradicts the "counted, not silently removed" text in nb 10 cell 13.
 3. [Fixed: `10_file_log.csv`] **5 of 21,475 DMX files are unaccounted for**: 2 contain only flat or IRIG traces (`status=empty`, not saved), and 3 truncated files (9106133O, 9107077R, 9108071V) are missing from the failures CSV.
-4. **StationXML epochs end before the data** for BUR, PIE, PPO, UBO and GRN (12–25 June; 336 station-channel-days). Separately, nb 15 cell 6 starts CAB EHN on 06-16, but its first data is 07-03.
+4. [Fixed: epochs rebuilt on UTC and checked against every archived trace] **StationXML epochs end before the data** for BUR, PIE, PPO, UBO and GRN (12–25 June; 336 station-channel-days). Separately, nb 15 cell 6 starts CAB EHN on 06-16, but its first data is 07-03.
 5. **Outputs are older than the config.** The index and failures CSVs were written 10 Nov, but `recover_partial: true` was added 11 Nov, so there are no `partial_recovery` columns.
 6. Minor:
    - `pinatubo_steps/dmx_recovery.recover_file` is more permissive than FloVoPy's `recover_dmx_prefix`.
