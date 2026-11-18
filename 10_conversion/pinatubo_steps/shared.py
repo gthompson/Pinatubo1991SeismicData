@@ -16,6 +16,30 @@ def to_dt(series):
     return pd.to_datetime(series, format='mixed', utc=True, errors='coerce')
 
 
+MISSING_MAGNITUDE_REASON = 'reported_zero_treated_as_missing'
+
+
+def mark_missing_magnitudes(df, column='magnitude'):
+    """Treat a reported magnitude of exactly 0.00 as missing.
+
+    HYPO71 writes 0.00 when no magnitude was computed (39% of Pinatubo_all.sum
+    rows, 27% of PINAALL.DAT rows). Returns a copy in which ``column`` is NaN
+    for those rows, ``reported_magnitude`` keeps the value as written and
+    ``magnitude_missing_reason`` says why a magnitude is absent. Idempotent:
+    an existing ``reported_magnitude`` column is kept.
+    """
+    result = df.copy()
+    value = pd.to_numeric(result[column], errors='coerce')
+    if 'reported_magnitude' not in result.columns:
+        result['reported_magnitude'] = value
+    reported = pd.to_numeric(result['reported_magnitude'], errors='coerce')
+    zero = reported.eq(0)
+    result[column] = value.mask(zero)
+    reason = result['magnitude_missing_reason'] if 'magnitude_missing_reason' in result.columns else pd.Series('', index=result.index)
+    result['magnitude_missing_reason'] = reason.fillna('').astype(str).mask(zero, MISSING_MAGNITUDE_REASON)
+    return result
+
+
 def ensure_cols(df, columns):
     """Return a copy with missing optional columns filled with pd.NA."""
     result = df.copy()
