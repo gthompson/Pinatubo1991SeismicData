@@ -46,7 +46,8 @@ class ExportSemanticsTests(unittest.TestCase):
             for path in info['quakeml_paths']:
                 self.assertGreater(len(read_events(path)), 0)
 
-    def test_css_unlocated_records_have_no_invented_origin(self):
+    @staticmethod
+    def mock_datascope():
         class DB:
             def __init__(self):
                 self.rows, self.ids = {}, {}
@@ -62,7 +63,11 @@ class ExportSemanticsTests(unittest.TestCase):
             dbcreate=lambda path, schema: Path(path).write_text('schema ' + schema),
             dbopen=lambda *args: db,
         )
-        with tempfile.TemporaryDirectory() as tmp, patch.dict('sys.modules', {'antelope': SimpleNamespace(datascope=api)}):
+        return db, patch.dict('sys.modules', {'antelope': SimpleNamespace(datascope=api)})
+
+    def test_css_unlocated_records_have_no_invented_origin(self):
+        db, antelope = self.mock_datascope()
+        with tempfile.TemporaryDirectory() as tmp, antelope:
             path = Path(tmp) / 'pinatubo'
             export_antelope_css3(self.catalog(), path)
             self.assertEqual(len(db.rows['event']), 7)
@@ -73,6 +78,48 @@ class ExportSemanticsTests(unittest.TestCase):
             self.assertNotIn('wfdisc', db.rows)
             with self.assertRaises(FileExistsError):
                 export_antelope_css3(self.catalog(), path)
+
+    def test_css_membership_written_once_after_all_events(self):
+        db, antelope = self.mock_datascope()
+        writes = []
+        real_write_text = Path.write_text
+        def counting_write_text(self, *args, **kwargs):
+            writes.append(self.name)
+            return real_write_text(self, *args, **kwargs)
+        with tempfile.TemporaryDirectory() as tmp, antelope, patch.object(Path, 'write_text', counting_write_text):
+            path = Path(tmp) / 'pinatubo'
+            info = export_antelope_css3(self.catalog(), path)
+            self.assertEqual(writes.count('pinatubo_membership.json'), 1)
+            rows = json.loads(Path(info['membership']).read_text())
+            self.assertEqual(len(rows), 7)
+            self.assertEqual({r['event_class'] for r in rows}, set(EVENT_CLASS_FLAGS))
+            self.assertFalse((Path(tmp) / 'pinatubo_membership_partial.json').exists())
+
+    def test_css_failed_export_leaves_only_partial_membership(self):
+        catalog = self.catalog()
+        # A pick without a station cannot become a CSS arrival: the export must stop.
+        catalog[-2].picks.append(Pick(time=UTCDateTime(1991, 6, 3), phase_hint='P',
+                                      waveform_id=WaveformStreamID(network_code='XB', station_code='')))
+        db, antelope = self.mock_datascope()
+        with tempfile.TemporaryDirectory() as tmp, antelope:
+            path = Path(tmp) / 'pinatubo'
+            with self.assertRaises(ValueError):
+                export_antelope_css3(catalog, path)
+            self.assertFalse((Path(tmp) / 'pinatubo_membership.json').exists())
+            partial = json.loads((Path(tmp) / 'pinatubo_membership_partial.json').read_text())
+            self.assertEqual(partial['status'], 'failed')
+            self.assertEqual(partial['events_written'], len(catalog) - 2)
+
+    def test_css_assoc_rows_share_one_remark_per_event(self):
+        catalog = self.catalog()
+        event = catalog[0]  # W_P_H: located, one pick
+        event.picks.append(Pick(time=UTCDateTime(1991, 6, 3, 0, 0, 1), phase_hint='S',
+                                waveform_id=WaveformStreamID(seed_string='XB.PI2..EHZ')))
+        db, antelope = self.mock_datascope()
+        with tempfile.TemporaryDirectory() as tmp, antelope:
+            export_antelope_css3(Catalog([event]), Path(tmp) / 'pinatubo')
+        self.assertEqual(len(db.rows['assoc']), 2)
+        self.assertEqual(len({row['commid'] for row in db.rows['assoc']}), 1)
 
 
 class InventoryCSSExportTests(unittest.TestCase):

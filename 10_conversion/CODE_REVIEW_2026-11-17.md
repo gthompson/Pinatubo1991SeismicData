@@ -105,7 +105,7 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
 
 | # | Item | Section | Notes |
 |---|---|---|---|
-| 1 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
+| 1 | Minor step 43/50/52/53 issues | §4.10 | Step 54's membership JSON is fixed (§4.8); a native Antelope run is still needed to validate the CSS3 and wfdisc output. |
 | 2 | Tests and docs | §6, §3.8 | `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
 | 3 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
 | 4 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
@@ -233,7 +233,7 @@ Consequences (status in brackets):
 - BOB 2–9 May (`R_ahead`, −15 h) is based only on the cross-correlation and has low confidence.
 - The exact BOB switches are uncertain by about ±3 h: 9 May ~06:00 and 13 Sep ~09:00 (label time).
 
-**Step 54** (CSS3) needs an Antelope Python environment and was not run.
+**Step 54** (CSS3) needs an Antelope Python environment and was not run natively; it has been run on the UTC catalogue with a mock Datascope (§4.8).
 
 **Update (later on 17 Nov): header marker, uncertainty, default.**
 - J. Power (email to R. White, 29 Oct 2026) confirms the model:
@@ -295,7 +295,7 @@ Consequences (status in brackets):
 
 ## 4. Hypocenters and catalog export (40–54)
 
-**Status:** items 1–6 fixed: UTC rerun; step 50 links through picks, then by record window, and uses step 43's preferred origin; Nordic seconds, magnitude type and RMS repaired in FloVoPy. Item 9 fixed: step 51 derives its windows from the data. Item 7 fixed: steps 40 and 42 treat magnitude 0.00 as missing. Items 8 and 10 are open.
+**Status:** items 1–6 fixed: UTC rerun; step 50 links through picks, then by record window, and uses step 43's preferred origin; Nordic seconds, magnitude type and RMS repaired in FloVoPy. Item 9 fixed: step 51 derives its windows from the data. Item 7 fixed: steps 40 and 42 treat magnitude 0.00 as missing. Item 8 fixed: step 54 writes the membership JSON once. Item 10 is open.
 
 1. Clock offset and ±10 s tolerance: see §1.
 2. **Preferred origin**: nb 50 cell 8 uses `ev.origins[0]` and ignores step 43's `preferred_source`. In 607 of the 3,500 two-source groups this picks the PINAALL origin; 203 of those have different times.
@@ -304,7 +304,7 @@ Consequences (status in brackets):
 5. **Nordic RMS is written as 0.0** for every event; the parsed HYPO71 RMS is never passed through.
 6. **Products are out of date**: the step 50, 51 and 52 outputs predate the 11 Nov step-43 rerun. The QuakeML has 0 magnitudes, and the 51 CSV has no P_H column.
 7. [Fixed] Magnitude 0.00 is a missing-value code (39% of summary rows and 27% of PINAALL rows). Step 43 handles it; the step-40/41 indexes and step 42 don't.
-8. **Step 54 rewrites the membership JSON inside the per-event loop.**
+8. [Fixed] **Step 54 rewrites the membership JSON inside the per-event loop.** It is now written once after the loop; a failed export leaves `<prefix>_membership_partial.json` instead. The assoc rows of an event share one remark (was one identical remark per row). With a mock Datascope, the full UTC catalogue exports in about 1 s: 21,753 events, 8,233 origins, 56,655 arrivals, 37,943 assoc and 3,414 netmag rows; 17,063 unlocated events have `prefor = -1`. Native Antelope readback is still untested.
 9. [Fixed] **Step 51 coverage windows are hard-coded** (8 May–9 Jun, 30 Jun–18 Aug) and exclude days that do have waveform data (10–14 Jun, 27–29 Jun, 19 Aug).
 10. Minor issues:
     - The step 53 class labels keep the Nordic padding and trailing "3".
