@@ -129,14 +129,16 @@ The two UTC columns differ only in how step 50 links hypocentres to events:
 
 | Event class | Recorded | UTC, ±10 s | UTC, picks + window |
 |---|---|---|---|
-| W + P + H | 94 | 2,735 | 4,234 |
+| W + P + H | 94 | 2,735 | 4,352 |
 | W + H | 16 | 83 | 155 |
-| P + H | 0 | 258 | 239 |
-| W + P | 2,831 | 4,977 | 3,478 |
-| W only | 16,844 | 13,664 | 13,592 |
-| P only | 5,325 | 224 | 243 |
+| P + H | 0 | 258 | 121 |
+| W + P | 2,831 | 4,977 | 3,355 |
+| W only | 16,844 | 13,664 | 13,597 |
+| P only | 5,325 | 224 | 111 |
 | H only | 1,500 | 1,614 | 62 |
-| **Total events** | 26,610 | 23,555 | 22,003 |
+| **Total events** | 26,610 | 23,555 | 21,753 |
+
+The last column also includes two later fixes. Step 32 attaches whole monthly blocks and suppresses 1,403 duplicate picks: repeated copies of the same event in the phase files, which previously reappeared as pick-only events. Pick-only events fell from 481 to 232, and picks with no waveform from 3,130 to 1,733. Separately, an S reading earlier than its P is now skipped.
 
 **Why the original rule fell short:** records start about 11 s before the first P arrival, so origins fall a median of 9.5 s *after* the start, and about 40% lay outside ±10 s.
 

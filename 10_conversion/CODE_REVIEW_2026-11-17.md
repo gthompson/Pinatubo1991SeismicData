@@ -29,25 +29,34 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
     - 3 S picks dropped: 2 from the single-event PHA files, including event 91060310. The other ~31 had already been trimmed as outliers by the block median filter, and are now logged as skipped instead.
     - The largest station S−P in the merged picks fell from 59.99 s to 17.65 s.
     - Event 91060310 is now a single waveform+picks event; pick-only events dropped from 482 to 481.
+- **Step 32 splits and resurfacing duplicates (§3.7).**
+  - Monthly picks are now attached by whole source block. Each block goes to the record containing most of its picks.
+  - Picks dropped as duplicates are marked as used and written to `32_waveform_pick_event_map_suppressed_duplicates.csv`, with the container they duplicate.
+  - The real cause was duplicates, not window edges. 249 of the 481 pick-only events consisted entirely of copies of picks already in a waveform event: repeated copies of the same event in the monthly files, and overlapping single-event PHA files.
+  - Results:
+    - Suppressed duplicates: 1,403 picks from 250 source groups.
+    - Split blocks: 78 → 0.
+    - Pick-only events: 481 → 232; picks with no waveform: 3,130 → 1,733.
+    - Step 50 classes: W+P+H 4,234 → 4,352; P+H 239 → 121; P only 242 → 111.
+    - Every pick ID now appears exactly once, in the pick map or the suppressed table.
 
 **Remaining**, roughly in priority order:
 
 | # | Item | Section | Notes |
 |---|---|---|---|
-| 1 | Step 32 splits events and leaves duplicates unassigned | §3.7 | 481 pick-only events remain in the UTC run; some are splits. |
-| 2 | Blocks missing a "10" separator | §3.2 | The smaller event in the block is discarded. |
-| 3 | Nordic export: origin seconds truncated, magnitude type "W", RMS 0.0 | §4.3–4.5 | ObsPy 1.5 writer issues; need a FloVoPy workaround or upstream fix. |
-| 4 | Step 51 coverage windows are hard-coded | §4.9 | The dates were chosen on recorded times. Recheck them on UTC, or derive them from the data. |
-| 5 | Magnitude 0.00 means "missing" in the step-40/41 indexes and step 42 | §4.7 | Step 43 handles it; the earlier steps don't. |
-| 6 | All-zero SSAM rows counted as data | §5.1 | Coverage, the overview and the spectrograms are inflated. |
-| 7 | BOB product issues | §5.2–5.6 | `TIME_ANCHOR='start'` though RSAM is end-of-window; rain carried forward; tilt rail value 8192; mudflow `.DA2`–`.DA5` files skipped; auxiliary sources. |
-| 8 | Other BOB clocks | §1 | Tilt, rain, mudflow, COSPEC, counts and radio are flagged `unverified`. Rain/mudflow `CONVERT.FOR` applies `hr-8` with no date roll; tilt switched to local on 18 Nov 91. BOB 2–9 May has low confidence. |
-| 9 | Waveform bookkeeping | §2.2–2.3 | Flat channels are still dropped before provenance is built. Five DMX files are still unaccounted for: `9105080Y` and `91050813` (empty) and `9106133O`, `9107077R`, `9108071V` (truncated). |
-| 10 | StationXML epochs end before the data | §2.4 | Not rechecked after the UTC shift. |
-| 11 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
-| 12 | Tests and docs | §5.7, §6, §3.8 | `tests/test_bob_notebooks.py` lines 51 and 78 need `''.join(c['source'])`. `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
-| 13 | Clock drift within a day | §1 | The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
-| 14 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
+| 1 | Blocks missing a "10" separator | §3.2 | The smaller event in the block is discarded. |
+| 2 | Nordic export: origin seconds truncated, magnitude type "W", RMS 0.0 | §4.3–4.5 | ObsPy 1.5 writer issues; need a FloVoPy workaround or upstream fix. |
+| 3 | Step 51 coverage windows are hard-coded | §4.9 | The dates were chosen on recorded times. Recheck them on UTC, or derive them from the data. |
+| 4 | Magnitude 0.00 means "missing" in the step-40/41 indexes and step 42 | §4.7 | Step 43 handles it; the earlier steps don't. |
+| 5 | All-zero SSAM rows counted as data | §5.1 | Coverage, the overview and the spectrograms are inflated. |
+| 6 | BOB product issues | §5.2–5.6 | `TIME_ANCHOR='start'` though RSAM is end-of-window; rain carried forward; tilt rail value 8192; mudflow `.DA2`–`.DA5` files skipped; auxiliary sources. |
+| 7 | Other BOB clocks | §1 | Tilt, rain, mudflow, COSPEC, counts and radio are flagged `unverified`. Rain/mudflow `CONVERT.FOR` applies `hr-8` with no date roll; tilt switched to local on 18 Nov 91. BOB 2–9 May has low confidence. |
+| 8 | Waveform bookkeeping | §2.2–2.3 | Flat channels are still dropped before provenance is built. Five DMX files are still unaccounted for: `9105080Y` and `91050813` (empty) and `9106133O`, `9107077R`, `9108071V` (truncated). |
+| 9 | StationXML epochs end before the data | §2.4 | Not rechecked after the UTC shift. |
+| 10 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
+| 11 | Tests and docs | §5.7, §6, §3.8 | `tests/test_bob_notebooks.py` lines 51 and 78 need `''.join(c['source'])`. `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
+| 12 | Clock drift within a day | §1 | The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
+| 13 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
 
@@ -216,7 +225,7 @@ Consequences (status in brackets):
   - Step 21 event IDs now use the separator-block position in the source file. The old→new map is in `pipeline_tmp/21_event_id_changes_20261117.csv`.
   - Steps 20–53 have since been rerun on the UTC data.
 - **Fixed since:** item 6 (114 minute-60 lines now rolled over); item 8's blank-component channel bug (FloVoPy maps components explicitly); `pha_parser` now has tests.
-- **Still open:** items 2 and 7, and the stale note in `34_association_review.md`. Item 4 is fixed: an S earlier than P is skipped, not moved a minute later.
+- **Still open:** item 2, and the stale note in `34_association_review.md`. Item 4 is fixed: an S earlier than P is skipped, not moved a minute later. Item 7 is fixed: whole blocks are attached, and duplicates are recorded instead of resurfacing.
 
 1. **S-only lines get the wrong minute** (`pha_parser.py` ~208): `.strip()` runs before blank→0, so `'9108082304'` parses as 23:00:04 instead of 23:04:00 (verified with `strptime`). This affects 62 S picks and 8 fake P picks. Most are removed later as outliers; FNG in `pinaug91_block0862` survives at 21:00:36.42 (should be 21:07:36.42).
 2. **Events in blocks missing a "10" separator are discarded.** The median-time filter drops the smaller event (13 clusters with ≥3 stations, 72 picks). `_split_into_time_clusters` exists but is never called.
