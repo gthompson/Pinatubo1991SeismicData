@@ -74,16 +74,39 @@ class PinatuboClockTests(unittest.TestCase):
         self.assertEqual(out.recorded_time.tolist(), list(pd.to_datetime(['1991-05-04 09:00', '1991-06-15 00:00', '1991-10-01 00:00'])))
         self.assertEqual(out.clock_confidence.tolist(), ['low', 'high', 'medium'])
         self.assertEqual(out.clock_uncertainty_s.tolist(), [10800.0, 300.0, 300.0])
-        # SSAM ran on the MDETECT PC (GMT after 26 May), not on the BOB clock.
+        # SSAM ran on WILLIE (MDETECT; GMT after 26 May), not on the RSAM PC clock.
         ssam = apply_bob_clock(frame, UTC, 'ssam')
         self.assertEqual(ssam.recorded_time.tolist()[1:], list(pd.to_datetime(['1991-06-15 08:00', '1991-10-01 00:00'])))
+        # Tilt labels are PHT (battery charging follows the PHT solar day).
         tilt = apply_bob_clock(frame, UTC, 'tilt')
-        self.assertTrue((tilt.recorded_time == frame.recorded_time).all())
-        self.assertEqual(set(tilt.clock_status), {'unverified'})
+        self.assertEqual(tilt.recorded_time.iloc[1], pd.Timestamp('1991-06-15 00:00'))
+        self.assertEqual(set(tilt.clock_regime), {'T_PHT'})
+
+    def test_ricky_lahar_and_date_only_products(self):
+        frame = pd.DataFrame(dict(series='USAC', recorded_time=pd.to_datetime(
+            ['1991-08-01 12:00', '1991-10-01 12:00', '1991-11-16 12:00'])))
+        for product in ('rain', 'mudflow'):
+            out = apply_bob_clock(frame, UTC, product)
+            # PHT until 13 Sep, GMT until 15 Nov, then untested: label kept and flagged.
+            self.assertEqual(out.recorded_time.tolist(), list(pd.to_datetime(
+                ['1991-08-01 04:00', '1991-10-01 12:00', '1991-11-16 12:00'])))
+            self.assertEqual(out.clock_status.tolist(), ['resolved', 'resolved', 'unverified'])
+            self.assertTrue(out.raw_recorded_time.equals(frame.recorded_time))
+        counts = pd.DataFrame(dict(series=['CAB_CNT.DAT', 'CAB_HR.DAT', 'PIE_CNT.DAT'],
+                                   recorded_time=pd.to_datetime(['1991-08-01 10:30', '1991-10-01 10:30', '1991-05-10 00:00'])))
+        out = apply_bob_clock(counts, UTC, 'counts')
+        self.assertEqual(out.recorded_time.tolist(), list(pd.to_datetime(
+            ['1991-08-01 02:30', '1991-10-01 10:30', '1991-05-10 00:00'])))
+        self.assertEqual(out.clock_status.tolist(), ['resolved', 'resolved', 'date_only'])
+        for product in ('cospec', 'radio'):
+            out = apply_bob_clock(counts.assign(series='X'), UTC, product)
+            self.assertTrue(out.recorded_time.equals(counts.recorded_time))
+            self.assertEqual(set(out.clock_status), {'date_only'})
 
     def test_every_stream_has_rules(self):
         self.assertEqual(regimes().streams, {'waveform', 'pick_individual', 'pick_monthly', 'hypo_pinaall',
-                                             'hypo_allsum', 'bob_seismic', 'ssam'})
+                                             'hypo_allsum', 'tandy_rsam', 'ssam', 'sleepy_tilt', 'ricky_lahar',
+                                             'cab_hourly_counts'})
 
 
 if __name__ == '__main__':

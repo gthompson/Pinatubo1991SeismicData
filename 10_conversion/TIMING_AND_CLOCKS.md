@@ -8,7 +8,7 @@ None of the 1991 recording systems had an external time reference (no GOES or ot
 - waveforms;
 - phase picks;
 - hypocentres;
-- BOB RSAM, EVNT and SSAM.
+- RSAM, EVNT and SSAM, and the other products in the BOB archive.
 
 The hour-scale errors are systematic and documented. We corrected them, and every time in the products is now UTC. Drift of a few seconds per day cannot be corrected.
 
@@ -22,10 +22,16 @@ After correction, the datasets agree with one another:
 
 | Clock | System | Products timed by it |
 |---|---|---|
-| **H**: DMX header time | MDETECT on the seismic PC | SUDS/DMX waveforms; picks read from them (SUDSPICK) |
-| **W**: seismic PC wall clock | the same PC | HYPO71 hypocentres; later monthly picks; SSAM |
-| **B**: BOB labels | BOB/RSAM PC | RSAM, RSAM event counts (EVNT) |
-| other | tilt PC, helicorders, rain, mudflow and COSPEC loggers | not verified (section 6) |
+| **H**: DMX header time | MDETECT on WILLIE (IBM-AT), the seismic PC | SUDS/DMX waveforms; picks read from them (SUDSPICK) |
+| **W**: seismic PC wall clock | WILLIE | HYPO71 hypocentres; later monthly picks; SSAM |
+| **R**: RSAM labels | Tandy Model 100, the RSAM acquisition PC | RSAM, RSAM event counts (EVNT) |
+| **L**: lahar labels | RICKY (IBM-XT), lahar acquisition | mudflow; rain (assumed, see section 3) |
+| **T**: tilt labels | SLEEPY (IBM-XT), tilt acquisition; files rewritten to local time on 18 Nov 1991 | tilt (1–13 June) |
+| **C**: hand-entered times | probably typed in on the BOB PC | hourly CAB counts |
+| dates only | entered by hand | COSPEC, daily PIE counts, radio maps |
+| other | helicorders | not verified (section 6) |
+
+BOB is the archive format and the display software. It ran on the aggregation PC (PORKY, or DAVE/ANDY), which received the RSAM, tilt and lahar products from their own acquisition PCs through a buffered serial printsharer, and SSAM from WILLIE. No data were time-stamped with the BOB PC's clock (PVO system diagram, after Murray). The 17 Nov code review called the RSAM clock "B" (BOB labels); it is the Tandy Model 100's clock.
 
 The MDETECT → SUDSPICK → HYPO71 chain all traces back to one clock, the seismic PC. Within a waveform file the relative timing is good to milliseconds. Picks and hypocentres inherit that PC's drift, so drift does not affect how they associate with each other. It affects only their absolute time.
 
@@ -45,23 +51,43 @@ Evidence:
 - **Waveform files:** `91052617` (H 15:41) is followed by `9105261G` (H 08:40), so the clock went back 8 h.
 - **Hypocentre catalogue:** `PINAALL.DAT` jumps back at the same point, from line 217 (08:31) to line 218 (01:40). Line 218 plus 7 h is file `9105261G`.
 - **DMX headers:** the SUDS trace-descriptor field `localtime` is 0 in every file up to `91052617`. From `9105261G` onward, through December, it is −25200 (−7 h, stored in seconds). This is the new MDETECT version.
-- **BOB comparison:** relative to BOB (on Philippine time), the waveforms step by exactly 8 h at the same time.
+- **RSAM comparison:** relative to the RSAM labels (on Philippine time), the waveforms step by exactly 8 h at the same time.
 
 **Picks switched clocks in June.**
 - The single-event PHA files (3–16 June) and the monthly picks up to 10 June are on H. All of them fall inside waveform records at zero offset.
 - From 27 June, the monthly picks are on W. 88–100% fall inside waveform records once 7 h is added.
 - The switch falls in a gap with no picks, between 10 and 27 June. That gap contains a new set of HYPO71 control cards.
 
-**BOB (RSAM/EVNT), from cross-correlating event counts with the waveform trigger rate:**
+**RSAM and EVNT (Tandy Model 100), from cross-correlating event counts with the waveform trigger rate:**
 - 2–9 May: the labels equal H. This is unexplained.
 - 9 May to about 13 September: Philippine time. This also matches the eruption onsets.
 - From about 09:00 on 13 September (±3 h): GMT.
+- 10 November: Philippine time again for one block of labels (01:20–22:20). See the RSAM–SSAM check below.
 
-**SSAM was on the seismic PC's clock, not BOB's.** Comparing SSAM and SSAM DATA with RSAM, station by station (r = 0.72–0.99):
+**SSAM was on the seismic PC's clock (WILLIE), not the RSAM PC's.** Comparing SSAM and SSAM DATA with RSAM, station by station (r = 0.72–0.99):
 - the SSAM labels are 8 h behind RSAM until 13 September;
 - they match RSAM afterwards.
 
 So SSAM was on GMT from the start of its data (1 June), like the seismic PC after the reset.
+
+**RSAM against summed SSAM, day by day (step 69).** Summing SSAM bands BN01–BN10 gives a 1-minute proxy for RSAM. Each day's RSAM is cross-correlated with its 10-minute mean, station by station, on the UTC times. This compares the RSAM PC (Tandy) with the MDETECT PC directly.
+- Of 465 station-days (1 June – 22 November), 412 have r ≥ 0.5 (most r ≈ 0.9). All but six are within 4 min of zero.
+- The lag moves in a sawtooth: it grows by about 1 min per day, then jumps back (e.g. 0 → 3 min over 1–7 July, 0 → 3 min over 7–10 October). That is drift between the two PCs, reset when one of them was restarted. It is not corrected.
+- **10 November:** all five station pairs are exactly 8 h apart (r = 0.92–0.94), and the EVNT counts match the waveform triggers 8 h earlier (r = 0.59). So the RSAM PC ran on Philippine time that day. RSAM and SSAM both resume at about 17:10 UTC on 9 November after a gap, which suggests the RSAM PC was restarted on local time. A separate rule (`R_PHT_10Nov`) now covers it; with it, all five pairs are at 0 min on 10 November and 411 of the 412 reliable station-days are within 4 min.
+- One station-day (FNG1, 19 October, r = 0.52) has a −58 min lag; no other station shows it.
+
+**Rain, mudflow and the hourly CAB counts: clocks found from the data.** Mudflow was acquired on RICKY. Rain is not in the system diagram; it is assumed to share RICKY's clock because it matches the mudflow records at 0 h throughout and switches with them. The CAB counts were entered by hand. None of their headers can be trusted, so each was cross-correlated with RSAM or EVNT, which are already verified in UTC. RICKY, the Tandy and the CAB counts all switch from Philippine time to GMT on about 13 September. These are separate PCs, so this looks like an operational decision to change the time base, not one shared clock:
+- **Mudflow:** amplitudes match RSAM at −8 h until 12 September (r = 0.4–0.7 for USAC, GUMA and MARL) and at 0 h from 15 September. Every file says "converted from GMT to local", even after the switch.
+- **Rain:** increments match RSAM at −7/−8 h before 13 September and at 0 h after; they match the mudflow records at 0 h throughout.
+- **Hourly CAB counts:** the header says "TIME IN GMT", but against EVNT they match at −8 h until 13 September and at 0 h afterwards. Each hh:30 label is the centre of its hour.
+- Hours 00–07 in the rain and mudflow files carry the correct date. `CONVERT.FOR` subtracts 8 h without rolling the date back, but its output survives only in `MUDFLOW/PROGS/*.DA2`–`.DA5`, which are not read.
+- From 15 November the rain and mudflow files have a new format and no header. There is no lahar signal to test them against, so their labels are kept.
+
+**Tilt is on Philippine time.** Tilt was logged on SLEEPY, its own acquisition PC. The files were shifted by 48 samples (8 h) "from GMT to local" on 18 November 1991 (`TIME.TXT`). The PBAT battery voltage confirms it: solar charging starts at the 07:00 label and peaks between 11:00 and 14:00 every day.
+
+**Dates only.** COSPEC values (header "TIME IN GMT", all at 00:00), the daily PIE counts and the radio maps were entered by hand and carry dates, not times, so the dates are kept. Each uses whatever day the person entering it chose.
+- **COSPEC:** the measurements were made in daylight, so each date is taken as a Philippine day (`window_start` 16:00 UTC the day before, `window_end` 16:00 UTC). A GMT date would be the same for any measurement after 08:00 PHT.
+- **Daily PIE counts:** whether these are Philippine or UTC days cannot be told: they correlate equally well with EVNT summed over either (r = 0.64 and 0.62, 30 April – 4 June).
 
 ## 4. Corrections applied (raw time + correction = UTC)
 
@@ -72,7 +98,10 @@ So SSAM was on GMT from the start of its data (1 June), like the seismic PC afte
 | Monthly picks from 27 June | W | — | 0 | 0 | 5 s |
 | Hypocentres (`PINAALL.DAT`, `Pinatubo_all.sum`) | W | −8 h | 0 | 0 | 60 s / 5 s |
 | SSAM, SSAM DATA | W | (no data) | 0 | 0 | 60 s (1-min labels) |
-| RSAM, EVNT | B | −15 h (2–9 May, low confidence); −8 h from 9 May | −8 h to 13 Sep, then 0 | 0 | 300 s (10-min labels) |
+| RSAM, EVNT | R | −15 h (2–9 May, low confidence); −8 h from 9 May | −8 h to 13 Sep, then 0 | 0, except −8 h for 10 Nov | 300 s (10-min labels) |
+| Hourly CAB counts | C | (no data) | −8 h to 13 Sep, then 0 | 0 (to 6 Nov) | 1800 s |
+| Rain, mudflow | L | (no data) | −8 h to 13 Sep, then 0 | 0 to 15 Nov; unverified after | 600 s |
+| Tilt | T | (no data) | −8 h | (no data) | 1 h |
 
 **Resolving the repeated wall-clock hours on 26 May.** Setting the clock back 8 h made the wall-clock times from about 00:41 to 08:41 on 26 May occur twice. Records in that window are resolved as follows:
 - **Waveforms:** the `localtime` field and the file order must both agree. They do for all 21,459 files.
@@ -91,9 +120,11 @@ Every product keeps the raw time in a `raw_*` column, with the rule applied in `
 
 ## 6. Not corrected or uncertain
 
-- **Other records:** tilt, rain, mudflow, COSPEC, counts and radio keep their recorded labels and are flagged `unverified`. Their clocks were never checked, and the tilt PPO note says it switched "from GMT to local" on 18 November 1991. Helicorder times are a separate clock again.
-- **BOB 2–9 May:** the −15 h rule rests only on the cross-correlation and has low confidence.
-- **BOB switch times:** the switch on 9 May (~06:00) and to GMT on 13 September (~09:00) are each uncertain by about ±3 h.
+- **Rain and mudflow from 15 November 1991:** labels kept and flagged `unverified` (new file format, nothing to test against). The GMT rule for 1–14 November is extrapolated from September–October.
+- **Tilt:** the PHT rule rests on the solar day, so it is good to about an hour.
+- **Helicorders:** a separate clock again.
+- **RSAM 2–9 May:** the −15 h rule rests only on the cross-correlation and has low confidence.
+- **RSAM switch times:** the switch on 9 May (~06:00) and to GMT on 13 September (~09:00) are each uncertain by about ±3 h.
 - **Before the reset:** the clock was set by hand to local time, and some records (21–23 May) are annotated "+1 min". The uncertainty before the reset is therefore 60 s.
 - **Out-of-sequence files:** a few waveform files (e.g. `91051014`–`17`) have header times hours earlier than their neighbours. They are flagged, not changed.
 
@@ -148,7 +179,7 @@ The last column also includes two later fixes. Step 32 attaches whole monthly bl
 - **Against the old rule:** 3,046 of the old rule's 3,076 links are unchanged. Most of the 27 that differ now attach to the record that holds the hypocentre's picks.
 - **Still unlinked (62 hypocentres):** 46 of them fall inside a record already linked to another hypocentre, typically two earthquakes in one file. These keep a comment naming that record. The rest have no record or picks nearby.
 
-**BOB versus waveforms:**
+**RSAM, EVNT and SSAM versus waveforms:**
 - In the UTC products, EVNT matches the waveform trigger rate at zero lag in every window from May to December.
 - SSAM matches RSAM at zero lag (r = 0.71–0.92).
 - Before correction, the offsets ranged from −7 h to +1 h, and SSAM–RSAM was off by 8 h.

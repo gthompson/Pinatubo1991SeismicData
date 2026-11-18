@@ -5,7 +5,7 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
 ## Status (end of 17 Nov 2026)
 
 **Done.** Committed in Pinatubo `b1e68b3`, `5879a32` and FloVoPy `e19c814`, `4fbe942`:
-- **Clocks (§1).** Every seismic time and the RSAM/EVNT/SSAM labels are converted to UTC. UTC is the default configuration; outputs are in `~/work/Pinatubo1991Processing/utc`. See `TIMING_AND_CLOCKS.md`.
+- **Clocks (§1).** Every seismic time and the RSAM/EVNT/SSAM labels are converted to UTC (the other BOB products followed on 18 Nov; see below). UTC is the default configuration; outputs are in `~/work/Pinatubo1991Processing/utc`. See `TIMING_AND_CLOCKS.md`.
 - **Waveforms (§2).**
   - §2.1: the original sampling rate is kept, snapped to 3125/31 Hz, with the raw value in the index.
   - §2.5: the index is current and has `partial_recovery` columns. Ten files are partial recoveries.
@@ -77,22 +77,29 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
   - **RSAM/EVNT window labels.** Each 10-minute value is labelled at the END of its window. EVNT counts match the waveform triggers in the 10 minutes before each label (correlation peaks at 0–60 s lag; the 10 minutes after the label correlate less). RSAM, EVNT and TILT exports now have `window_start` and `window_end` columns. TILT is assumed to follow RSAM (same BOB software and annual layout). The SSAM `TIME_ANCHOR` in nb 62 is a separate question: SSAM was recorded on the MDETECT PC clock, so it cannot be tested against RSAM at the 1-minute level, and it stays an explicit display convention.
   - **Rain carried forward.** Fields 2–7 are now named from `BOB_QPLO.TXT` (CUAD, BUGZ, PIEZ, BALR, FNGZ, SACR). Values equal to the previous row in the same file are flagged `<field>_carried` (CONVERT.FOR repeats every other channel's last value). `field_quality.csv` has a `fresh_values` column, and the plots show only fresh values. For example, CUAD has 3,464 values but 1,300 fresh; PIEZ 8,737 but 5,305 fresh. An unchanged fresh reading looks the same as a carried one, so these are lower bounds on fresh readings.
   - **Tilt saturation.** Values of 8192 (2^13, the digitizer limit) are masked in `value_01` and flagged `value_01_saturated`: 64 samples (46 UBOR, 18 UBOT) from the 12 June 23:00 label. The mudflow maxima 8016 and 8010 are single values, not a repeated limit, so they are left alone.
-  - **Mudflow skipped files.** Files that are not `.DAT` are listed in `skipped_inputs.csv` with a reason (10 files). `PROGS/10AUG91.DA2`–`11AUG91.DA5` are GMT copies of MARL, ABAC, USAC and GUMA: 36–58 of each file's 36–59 records appear in the station file 8 h later. No data are lost. `GUMA/GMT_2LOC.BAS`, a time-conversion program, is also listed.
+  - **Mudflow skipped files.** Files that are not `.DAT` are listed in `skipped_inputs.csv` with a reason (10 files). `PROGS/10AUG91.DA2`–`11AUG91.DA5` are GMT copies of MARL, ABAC, USAC and GUMA written by CONVERT.FOR: 36–58 of each file's 36–59 records appear in the station file 8 h later. For hours 16–23 the DA files keep the local date (one day late); the station files have the correct dates. No data are lost. `GUMA/GMT_2LOC.BAS`, a time-conversion program, is also listed.
   - **Auxiliary sources.** TEST arrays and BUG1/TEMP stay in the records export but no longer count as coverage. The step-69 network totals are unchanged, as expected.
   - **Tests (§5.7).** `tests/test_bob_notebooks.py` now joins the notebook cell source, so both BOB tests pass. New `tests/test_bob_products.py` covers the window columns, auxiliary sources, rain flags and the mudflow file list.
+- **Other BOB clocks (§1).** Each product was tested against RSAM/EVNT, which are already verified in UTC (scripts `bobclk_*.py` in the session scratchpad). New rules in `clock_regimes.csv`, applied by `apply_bob_clock`. Each clock is named after the PC that acquired the data (PVO system diagram, after Murray): RSAM/EVNT on a Tandy Model 100 (stream `tandy_rsam`, clock R, which this review first called "B"), SSAM on WILLIE, tilt on SLEEPY, lahar on RICKY. BOB ran on the aggregation PC (PORKY or DAVE/ANDY) and its clock stamped no data.
+  - **Mudflow and rain** (`ricky_lahar`, clock L: RICKY; rain is assumed to share it, since it matches mudflow at 0 h throughout): the rule comes from the data, whatever the "converted from GMT to local" headers say. Mudflow matches RSAM at −8 h until 12 Sep (r = 0.4–0.7 for USAC, GUMA, MARL) and at 0 h from 15 Sep; rain matches RSAM at −7/−8 h and mudflow at 0 h. Hours 00–07 carry the correct date, so the `CONVERT.FOR` rollover bug did not reach these files. The GMT rule runs to 14 Nov; the new-format files from 15 Nov have nothing to test against and keep their labels (`unverified`).
+  - **Hourly CAB counts** (`cab_hourly_counts`, clock C; entered by hand, probably on the BOB PC): despite the "TIME IN GMT" header, they match EVNT at −8 h until 13 Sep (weekly r up to 0.49) and at 0 h after (r up to 0.64). Each hh:30 label is the centre of its hour (best match with EVNT summed over label ± 30 min), so `window_start`/`window_end` are set for CAB.
+  - **Tilt** (`sleepy_tilt`, SLEEPY, −8 h, 1 h uncertainty): the files were rewritten to local time on 18 Nov 91, and PBAT solar charging starts at the 07:00 label and peaks at 11:00–14:00 every day, so the labels are PHT.
+  - **COSPEC, daily PIE counts and radio maps** were entered by hand and carry dates only; they keep them (`clock_status` `date_only`). COSPEC dates are taken as Philippine days (daylight measurements), with `window_start`/`window_end` from 16:00 UTC the day before. Whether the PIE counts use Philippine or UTC days cannot be told (r = 0.64 vs 0.62 against EVNT).
+  - **RSAM against summed SSAM (step 69).** SSAM bands BN01–BN10 summed give a 1-minute RSAM proxy; the daily lag per station pair is in `overview/ssam_rsam_lag_by_day.csv`. Of 412 reliable station-days (r ≥ 0.5), all but six lie within 4 min, with a sawtooth drift of about 1 min/day between the Tandy and WILLIE. On 10 Nov all five pairs were exactly 8 h apart, and EVNT vs waveform triggers agrees: the RSAM PC (Tandy) ran on PHT for that block (labels 01:20–22:20), now rule `R_PHT_10Nov`. After the rerun, 411 of 412 station-days are within 4 min; the exception is FNG1 on 19 Oct (−58 min, r = 0.52), seen on no other station.
+  - Labels that no rule covers now keep their recorded value with `clock_status` `unverified` instead of becoming invalid.
+  - Effect in step 69 (UTC days): tilt 13 → 14 days (from 31 May), rain 120 → 122 (from 15 Jul), counts 176 → 178. Tilt now has 432 `outside_expected_dates` rows: the empty padded first 8 h of 1 Jan, moved into 1990.
   - Steps 61–69 were rerun, and their saved outputs were refreshed.
 
 **Remaining**, roughly in priority order:
 
 | # | Item | Section | Notes |
 |---|---|---|---|
-| 1 | Other BOB clocks | §1 | Tilt, rain, mudflow, COSPEC, counts and radio are flagged `unverified`. Rain/mudflow `CONVERT.FOR` applies `hr-8` with no date roll; tilt switched to local on 18 Nov 91. BOB 2–9 May has low confidence. |
-| 2 | Waveform bookkeeping | §2.2–2.3 | Flat channels are still dropped before provenance is built. Five DMX files are still unaccounted for: `9105080Y` and `91050813` (empty) and `9106133O`, `9107077R`, `9108071V` (truncated). |
-| 3 | StationXML epochs end before the data | §2.4 | Not rechecked after the UTC shift. |
-| 4 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
-| 5 | Tests and docs | §6, §3.8 | `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
-| 6 | Clock drift within a day | §1 | The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
-| 7 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
+| 1 | Waveform bookkeeping | §2.2–2.3 | Flat channels are still dropped before provenance is built. Five DMX files are still unaccounted for: `9105080Y` and `91050813` (empty) and `9106133O`, `9107077R`, `9108071V` (truncated). |
+| 2 | StationXML epochs end before the data | §2.4 | Not rechecked after the UTC shift. |
+| 3 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
+| 4 | Tests and docs | §6, §3.8 | `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
+| 5 | Clock drift and residual clock questions | §1 | BOB 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
+| 6 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
 
@@ -123,7 +130,7 @@ These checks used the converted index (`10_waveform_index.csv`) and the hypocent
 The data use three clocks:
 - **H**: the DMX header epoch, as ObsPy reads it.
 - **W**: the seismic PC's wall clock.
-- **B**: the BOB labels.
+- **B**: the BOB labels. [Corrected 18 Nov: these are the RSAM labels from the Tandy Model 100 RSAM PC, now clock R; no data were stamped by the BOB PC.]
 
 The scripts are in the session scratchpad (`pickclock.py`, `bobxc.py`).
 
@@ -165,10 +172,10 @@ The scripts are in the session scratchpad (`pickclock.py`, `bobxc.py`).
 | Monthly PHA, 27 June onward | W (88–100% at +7 h). The switch falls in a gap in `pinjun91.pha` (10–27 June) that contains new HYPO71 header/control cards at lines ~5632–5666 |
 | Hypocenters, `Pinatubo_all.sum` and `PINAALL.DAT`, all dates | W. `Pinatubo_all.sum` is in time order, so records in the duplicated 26 May window must be resolved by matching |
 
-**BOB labels:**
+**RSAM labels ("B" here; clock R from 18 Nov):**
 - PHT from 10 May to about 13 September. This matches the RSAM eruption-onset check.
-- Equal to H − 7 h (= UTC) from about 14 September, and H − 8 h (= UTC) after 28 October, so BOB switched to GMT around 14 September.
-- 2–10 May: B = H, not yet explained. The seismic clocks are consistent there (hypocenters = H − 7 h), so this is on the BOB side.
+- Equal to H − 7 h (= UTC) from about 14 September, and H − 8 h (= UTC) after 28 October, so the RSAM PC switched to GMT around 14 September.
+- 2–10 May: B = H, not yet explained. The seismic clocks are consistent there (hypocenters = H − 7 h), so this is on the RSAM side.
 - Tilt PPO `TIME.TXT`: "phased over 48 … from GMT to local, 18 Nov 91".
 
 **Other findings:**
@@ -213,8 +220,8 @@ Consequences (status in brackets):
 | BOB EVNT vs waveform trigger rate | — | best lag 0 in every window from May to December (one weak window in October, r = 0.08) |
 
 **Not converted:**
-- Tilt, rain, mudflow, COSPEC, counts and radio labels are kept as recorded and flagged `unverified`. No clock has been established for these products; the tilt note says it switched from GMT to local on 18 Nov 91.
-- BOB 2–9 May (`B_ahead`, −15 h) is based only on the cross-correlation and has low confidence.
+- [Fixed later: see the status list] Tilt, rain, mudflow, COSPEC, counts and radio labels were kept as recorded and flagged `unverified`.
+- BOB 2–9 May (`R_ahead`, −15 h) is based only on the cross-correlation and has low confidence.
 - The exact BOB switches are uncertain by about ±3 h: 9 May ~06:00 and 13 Sep ~09:00 (label time).
 
 **Step 54** (CSS3) needs an Antelope Python environment and was not run.
@@ -233,9 +240,9 @@ Consequences (status in brackets):
 - Each rule carries a nominal `uncertainty_s`, written to `clock_uncertainty_s` in every index and to the QuakeML origin `time_errors` (step 50):
   - 5 s after the reset: MDETECT keeps time by counting samples, about 2 s/day, and the PC was rebooted daily.
   - 60 s before the reset.
-  - 300 s for BOB labels; 3 h for the 2–9 May BOB rule.
+  - 300 s for RSAM labels; 3 h for the 2–9 May RSAM rule.
 - The analysis config (`20_analysis/analysis_workflow.json`) now reads the UTC MiniSEED and network history.
-- **SSAM correction fixed.** SSAM and SSAM DATA ran on the MDETECT PC, not the BOB PC. Their labels are 8 h behind RSAM until 13 Sep and match it afterwards (station-matched r = 0.72–0.99), so they are GMT throughout. The first UTC run had applied the BOB rule and put SSAM 8 h early for 11 Jun–13 Sep. SSAM now has its own `ssam` rule (0 h); in the UTC products SSAM matches RSAM at zero lag.
+- **SSAM correction fixed.** SSAM and SSAM DATA ran on the MDETECT PC (WILLIE), not the RSAM PC. Their labels are 8 h behind RSAM until 13 Sep and match it afterwards (station-matched r = 0.72–0.99), so they are GMT throughout. The first UTC run had applied the BOB rule and put SSAM 8 h early for 11 Jun–13 Sep. SSAM now has its own `ssam` rule (0 h); in the UTC products SSAM matches RSAM at zero lag.
 - Summary for the paper: `TIMING_AND_CLOCKS.md`.
 - Clock drift within a day is not corrected. The IRIG traces are still removed in step 10; decoding them first would give a measured offset per file.
 
@@ -299,7 +306,7 @@ Consequences (status in brackets):
 
 ## 5. BOB (60–69)
 
-**Status:** items 1–7 fixed: all-zero SSAM rows are dropouts; RSAM/EVNT/TILT carry window-end labels; rain carried-forward values, tilt saturation, mudflow skipped files and auxiliary sources are handled; the BOB tests pass. Item 2's time bases are fixed for RSAM/EVNT/SSAM (SSAM had been put on the BOB clock by mistake and is now on the MDETECT PC clock); the other BOB clocks remain open (see the remaining-items table). Item 8 is open.
+**Status:** items 1–7 fixed: all-zero SSAM rows are dropouts; RSAM/EVNT/TILT carry window-end labels; rain carried-forward values, tilt saturation, mudflow skipped files and auxiliary sources are handled; the BOB tests pass. Item 2's time bases are fixed for every product: RSAM/EVNT/SSAM first (SSAM had been put on the BOB clock by mistake and is now on the MDETECT PC clock), then tilt, rain, mudflow and counts (§1 status). Item 8 is open.
 
 1. [Fixed] **All-zero SSAM rows count as data.** The SSAM files use 0 in all 16 bands for dropouts, but only −998/−999 are masked. That is about 34k SSAM rows plus 1.2k DATA rows (e.g. BUR1 1,400 of 1,667 rows, and DON1 has 8 entirely zero days counted as valid). Coverage, the 69 overview and the spectrograms are all inflated.
 2. [Fixed] **Time bases**: see §1. nb 62 sets `TIME_ANCHOR='start'`, but RSAM is end-of-window.

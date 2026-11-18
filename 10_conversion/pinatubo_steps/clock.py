@@ -12,10 +12,13 @@ where it reads them and keeps the raw value next to the corrected one:
 - step 21: monthly PHA picks, stream ``pick_monthly`` (sequence = file:line)
 - step 40: hypocenters, streams ``hypo_pinaall`` (sequence = line) and
   ``hypo_allsum`` (repeated 26 May window resolved by matching PINAALL.DAT)
-- steps 61-62: BOB RSAM and EVNT labels (stream ``bob_seismic``, the BOB PC)
-  and SSAM labels (stream ``ssam``, the MDETECT PC). Other
-  BOB products (tilt, rain, mudflow, COSPEC, counts, radio) have no verified
-  clock and keep their recorded labels, flagged ``unverified``.
+- steps 61-62: RSAM and EVNT labels (stream ``tandy_rsam``, the Tandy Model 100
+  RSAM PC) and SSAM labels (stream ``ssam``, MDETECT on WILLIE)
+- steps 63-67: tilt (stream ``sleepy_tilt``, SLEEPY), rain and mudflow
+  (``ricky_lahar``, RICKY; rain assumed) and the hand-entered hourly CAB counts (``cab_hourly_counts``). COSPEC, the daily PIE counts and
+  the radio maps carry dates only and keep them (``clock_status`` ``date_only``).
+  A label that no rule covers (rain and mudflow from 15 Nov) keeps its recorded
+  value, flagged ``unverified``.
 
 Every converted record also gets ``clock_uncertainty_s`` (nominal absolute-time
 uncertainty of its rule). With ``time_basis: "recorded"`` every helper here is
@@ -31,8 +34,26 @@ import pandas as pd
 from flovopy.core.clock import ClockRegimes
 
 TABLE = Path(__file__).resolve().parents[1] / "clock_regimes.csv"
-# BOB product -> clock-table stream. RSAM/EVNT labels come from the BOB PC; SSAM ran on the MDETECT PC.
-BOB_PRODUCT_STREAMS = {"rsam": "bob_seismic", "rsam_events": "bob_seismic", "ssam": "ssam", "ssam_data": "ssam"}
+# Marker for products whose labels are calendar dates (no time of day): kept as written.
+DATE_ONLY = "date_only"
+# BOB product -> clock-table stream, or {series: stream} where series differ. "BOB" names the archive;
+# no data were time-stamped by the BOB PC. Each stream is the clock of the PC that acquired the data:
+# RSAM/EVNT on the Tandy Model 100, SSAM on WILLIE (MDETECT), tilt on SLEEPY, lahar (and, by inference,
+# rain) on RICKY. The hourly CAB counts were entered by hand and have their own rule.
+BOB_PRODUCT_STREAMS = {
+    "rsam": "tandy_rsam", "rsam_events": "tandy_rsam", "ssam": "ssam", "ssam_data": "ssam",
+    "tilt": "sleepy_tilt", "rain": "ricky_lahar", "mudflow": "ricky_lahar",
+    "counts": {"CAB_CNT.DAT": "cab_hourly_counts", "CAB_HR.DAT": "cab_hourly_counts", "PIE_CNT.DAT": DATE_ONLY},
+    "cospec": DATE_ONLY, "radio": DATE_ONLY,
+}
+
+
+def bob_stream(product: str, series=None):
+    """Clock-table stream for a BOB product (and series), DATE_ONLY, or None if no rule exists."""
+    stream = BOB_PRODUCT_STREAMS.get(product)
+    if isinstance(stream, dict):
+        return stream.get(str(series).split("/")[-1])
+    return stream
 
 
 def time_basis(config) -> str:
@@ -157,36 +178,49 @@ def apply_hypocenter_clock(pinaall: pd.DataFrame, allsum: pd.DataFrame, config,
 
 
 def apply_bob_clock(frame: pd.DataFrame, config, product: str) -> pd.DataFrame:
-    """Convert BOB ``recorded_time`` labels to UTC where the clock is verified."""
+    """Convert BOB ``recorded_time`` labels to UTC where a clock rule exists.
+
+    Labels that no rule covers keep their recorded value (``clock_status`` ``unverified``);
+    date-only labels are kept as written (``date_only``). The raw label is always kept in
+    ``raw_recorded_time``.
+    """
     if not utc_enabled(config):
         return frame
     out = frame.copy()
-    if product not in BOB_PRODUCT_STREAMS:
-        out["raw_recorded_time"] = out["recorded_time"]
-        out["clock_regime"] = "unverified_label_retained"
-        out["clock_offset_s"] = float("nan")
-        out["clock_uncertainty_s"] = float("nan")
-        out["clock_confidence"] = None
-        out["clock_status"] = "unverified"
-        return out
     times = pd.to_datetime(out["recorded_time"], errors="coerce")
-    labels = times.dropna().unique()
+    series = out["series"] if "series" in out else pd.Series(None, index=out.index)
+    streams = series.map(lambda s: bob_stream(product, s))
     table = _regimes(config)
-    stream = BOB_PRODUCT_STREAMS[product]
-    lookup = {t: table.lookup(stream, pd.Timestamp(t).isoformat()) for t in labels}
+    lookup = {}
+    for stream, t in set(zip(streams, times)):
+        if pd.isna(t):
+            info = dict(regime="no_time", offset_s=None, uncertainty_s=None, confidence=None, status="no_time")
+        elif stream == DATE_ONLY:
+            info = dict(regime="date_label_retained", offset_s=None, uncertainty_s=None, confidence=None,
+                        status="date_only")
+        elif stream is None:
+            info = dict(regime="unverified_label_retained", offset_s=None, uncertainty_s=None, confidence=None,
+                        status="unverified")
+        else:
+            info = table.lookup(stream, pd.Timestamp(t).isoformat())
+            if info["offset_s"] is None:  # outside every rule for this stream
+                info = dict(info, regime="unverified_label_retained", status="unverified")
+        lookup[(stream, t)] = info
+    infos = [lookup[(s, t)] for s, t in zip(streams, times)]
+    offsets = pd.Series([i["offset_s"] for i in infos], index=out.index, dtype=float)
     out["raw_recorded_time"] = out["recorded_time"]
-    offsets = times.map(lambda t: lookup[t]["offset_s"] if pd.notna(t) else None)
-    out["recorded_time"] = times + pd.to_timedelta(offsets.astype(float), unit="s")
-    out["clock_regime"] = times.map(lambda t: lookup[t]["regime"] if pd.notna(t) else "no_time")
-    out["clock_offset_s"] = offsets.astype(float)
-    out["clock_uncertainty_s"] = times.map(lambda t: lookup[t]["uncertainty_s"] if pd.notna(t) else None).astype(float)
-    out["clock_confidence"] = times.map(lambda t: lookup[t]["confidence"] if pd.notna(t) else None)
-    out["clock_status"] = times.map(lambda t: lookup[t]["status"] if pd.notna(t) else "no_time")
+    out["recorded_time"] = times + pd.to_timedelta(offsets.fillna(0), unit="s")
+    out["clock_regime"] = [i["regime"] for i in infos]
+    out["clock_offset_s"] = offsets
+    out["clock_uncertainty_s"] = pd.Series([i["uncertainty_s"] for i in infos], index=out.index, dtype=float)
+    out["clock_confidence"] = [i["confidence"] for i in infos]
+    out["clock_status"] = [i["status"] for i in infos]
     return out
 
 
 TIME_POLICY = {
     "recorded": "Recorded labels retained; no timezone or drift correction",
     "utc": ("Times converted to UTC with 10_conversion/clock_regimes.csv; raw labels kept in "
-            "raw_* columns; BOB tilt/rain/mudflow/COSPEC/counts/radio labels retained (unverified)"),
+            "raw_* columns; COSPEC, daily PIE counts and radio maps keep their dates; rain and mudflow "
+            "labels from 15 Nov 1991 are retained (unverified)"),
 }
