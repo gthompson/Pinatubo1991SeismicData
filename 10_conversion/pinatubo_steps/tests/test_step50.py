@@ -70,6 +70,22 @@ class Tests(unittest.TestCase):
     reread=read_events(str(r['output_paths']['all_xml']))
     self.assertEqual(len(reread),4)
     self.assertTrue(all(path.is_file() for path in r['output_paths'].values()))
+ def test_nearest_shared_hypocenter_gets_unique_origin_ids(self):
+  with tempfile.TemporaryDirectory() as tmp,contextlib.redirect_stdout(io.StringIO()):
+   p=Path(tmp);args=self.fixture(p)
+   r=m.run(**args,out_prefix=p/'nearest',association_policy='nearest',origin_time_tol=2)
+   linked=[e for e in r['catalog_all'] if e.origins and 'event/0' in str(e.resource_id)]
+   self.assertEqual(len(linked),2)
+   ids=[str(o.resource_id) for e in r['catalog_all'] for o in e.origins]
+   self.assertEqual(len(ids),len(set(ids)))
+   for e in linked:
+    self.assertEqual(e.preferred_origin_id,e.origins[0].resource_id)
+    self.assertTrue(any(c.text.startswith('hypocenter_shared:01; also_linked_to_events:') for c in e.comments))
+   reread=read_events(str(r['output_paths']['all_xml']))
+   self.assertEqual(len({str(o.resource_id) for e in reread for o in e.origins}),len(ids))
+   # The default one-to-one policies keep the plain origin IDs.
+   r=m.run(**args,out_prefix=p/'one',association_policy='one_to_one',origin_time_tol=2)
+   self.assertIn('origin/o01',[str(o.resource_id) for e in r['catalog_all'] for o in e.origins])
  def test_default_and_empty_hypocenters(self):
   with tempfile.TemporaryDirectory() as tmp,contextlib.redirect_stdout(io.StringIO()):
    p=Path(tmp);args=self.fixture(p)

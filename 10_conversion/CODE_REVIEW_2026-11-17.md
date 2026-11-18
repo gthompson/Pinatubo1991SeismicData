@@ -105,7 +105,7 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
 
 | # | Item | Section | Notes |
 |---|---|---|---|
-| 1 | Minor step 43/50/52/53 issues | §4.10 | Step 54's membership JSON is fixed (§4.8); a native Antelope run is still needed to validate the CSS3 and wfdisc output. |
+| 1 | FloVoPy REA manifest | §4.10 | `export_catalog_to_rea` (`seisanio/rea_export.py`) rewrites the whole manifest after every written S-file, so a full rewrite grows with the square of the event count (33 min for 21,753 events). Write it once after the loop and on failure, as in step 54. ObsPy's "Evaluation mode None is not mappable" warning is also printed once per event. |
 | 2 | Tests and docs | §6, §3.8 | `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
 | 3 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
 | 4 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
@@ -295,7 +295,7 @@ Consequences (status in brackets):
 
 ## 4. Hypocenters and catalog export (40–54)
 
-**Status:** items 1–6 fixed: UTC rerun; step 50 links through picks, then by record window, and uses step 43's preferred origin; Nordic seconds, magnitude type and RMS repaired in FloVoPy. Item 9 fixed: step 51 derives its windows from the data. Item 7 fixed: steps 40 and 42 treat magnitude 0.00 as missing. Item 8 fixed: step 54 writes the membership JSON once. Item 10 is open.
+**Status:** items 1–6 fixed: UTC rerun; step 50 links through picks, then by record window, and uses step 43's preferred origin; Nordic seconds, magnitude type and RMS repaired in FloVoPy. Item 9 fixed: step 51 derives its windows from the data. Item 7 fixed: steps 40 and 42 treat magnitude 0.00 as missing. Item 8 fixed: step 54 writes the membership JSON once. Item 10 fixed (18 Nov): steps 43–53 were rerun.
 
 1. Clock offset and ±10 s tolerance: see §1.
 2. **Preferred origin**: nb 50 cell 8 uses `ev.origins[0]` and ignores step 43's `preferred_source`. In 607 of the 3,500 two-source groups this picks the PINAALL origin; 203 of those have different times.
@@ -306,11 +306,12 @@ Consequences (status in brackets):
 7. [Fixed] Magnitude 0.00 is a missing-value code (39% of summary rows and 27% of PINAALL rows). Step 43 handles it; the step-40/41 indexes and step 42 don't.
 8. [Fixed] **Step 54 rewrites the membership JSON inside the per-event loop.** It is now written once after the loop; a failed export leaves `<prefix>_membership_partial.json` instead. The assoc rows of an event share one remark (was one identical remark per row). With a mock Datascope, the full UTC catalogue exports in about 1 s: 21,753 events, 8,233 origins, 56,655 arrivals, 37,943 assoc and 3,414 netmag rows; 17,063 unlocated events have `prefor = -1`. Native Antelope readback is still untested.
 9. [Fixed] **Step 51 coverage windows are hard-coded** (8 May–9 Jun, 30 Jun–18 Aug) and exclude days that do have waveform data (10–14 Jun, 27–29 Jun, 19 Aug).
-10. Minor issues:
-    - The step 53 class labels keep the Nordic padding and trailing "3".
-    - `PICKS_PRESENT` can disagree between steps 50 and 52.
-    - The `nearest` policy can reuse origin IDs.
-    - The unstable sort in step 43 can change event IDs between runs.
+10. [Fixed] Minor issues:
+    - **Step 53 class labels** kept the Nordic padding and the trailing line type "3" (columns such as `W_P   …   3` in `53_daily_counts.csv`). The label is now read from columns 1–79 only, and the W/P/H flags come from the class table rather than from letters in the label.
+    - **`PICKS_PRESENT` between steps 50 and 52.** Step 50 counts a step-32 pick container as picks even when no pick could be rebuilt; step 52 used `bool(event.picks)`. Step 52 now copies step 50's three presence flags, so they always agree with EVENT_CLASS, and writes the picks actually exported as `N_PICKS`. On the UTC catalogue the two had agreed for every event.
+    - **`nearest` reused origin IDs.** When one hypocentre links to several events, each event now gets its own copy of the origins, with IDs `origin/<id>/copy-for/<event>` and a `hypocenter_shared:` comment. The default policy is one-to-one and was not affected.
+    - **Unstable sort in step 43.** The default quicksort could reorder origins with equal times (1,608 of the 8,233 UTC origins share a time with another). Step 43 now uses a stable sort: equal times keep input order (summary file first, then line order). The groups and event IDs are unchanged, but the preferred origin changes in 3 events where the summary file repeats a time with a different solution (events 1547, 3305 and 3306; in 1547 the depth goes from 2.84 to 4.49 km). The order of origins within 822 groups also changes.
+    - Rerun 18 Nov (steps 43, 44, 50–53): class counts are unchanged (W_P_H 4,353, W_P 3,362, W_H 154, W_ONLY 13,590, P_H 121, P_ONLY 111, H_ONLY 62), steps 50 and 53 agree on every class, and no origin ID is repeated. Step 52 rewrote all 21,753 S-files (each gained `N_PICKS`) with `overwrite=True`; it took 33 min, because FloVoPy `export_catalog_to_rea` rewrites its whole manifest (8 MB) after every S-file. A run that only reuses files is fast.
 11. Verified correct: HYPO71 column positions, N/E signs, km depth, minute/second rollover, CSS3 units and ID wiring.
 
 ## 5. BOB (60–69)
