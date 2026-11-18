@@ -68,20 +68,24 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
   - 1,806 of 4,632 `Pinatubo_all.sum` rows and 960 of 3,601 `PINAALL.DAT` rows.
   - Step 42 applies the same rule, so it also handles indexes written before the fix. Its mismatch counts are unchanged (3,354 and 4,384), because 0.00 had matched 0.00 just as missing now matches missing.
   - Step 43 reads `reported_magnitude` and keeps its `zero_magnitude_is_missing` switch. Its outputs are byte-identical, so steps 50–53 did not need rerunning.
+- **All-zero SSAM rows (§5.1).** Step 62 flags a row with 0 in all 16 bands as `qc_all_zero` (a dropout) and leaves it out of coverage, the daily counts, the value plots and the spectrograms. The rows stay in the records export.
+  - 36,037 of 635,862 SSAM rows and 1,188 of 41,632 DATA rows. Usable SSAM rows: 635,862 → 599,825.
+  - Station days: DON1 38 → 30, BUR1 2 → 1. BUR1, PPE1 and PPO1 are 83–84% zeros.
+  - The step-69 network total is unchanged (SSAM 135 days), because other stations cover the days DON1 and BUR1 lose.
+  - 4,233 rows (DON1 and PI21) have every band 0 except BN01 = 1 or 2. They look like dead channels; they are flagged `qc_near_zero` and counted in `review.json`, but kept.
 
 **Remaining**, roughly in priority order:
 
 | # | Item | Section | Notes |
 |---|---|---|---|
-| 1 | All-zero SSAM rows counted as data | §5.1 | Coverage, the overview and the spectrograms are inflated. |
-| 2 | BOB product issues | §5.2–5.6 | `TIME_ANCHOR='start'` though RSAM is end-of-window; rain carried forward; tilt rail value 8192; mudflow `.DA2`–`.DA5` files skipped; auxiliary sources. |
-| 3 | Other BOB clocks | §1 | Tilt, rain, mudflow, COSPEC, counts and radio are flagged `unverified`. Rain/mudflow `CONVERT.FOR` applies `hr-8` with no date roll; tilt switched to local on 18 Nov 91. BOB 2–9 May has low confidence. |
-| 4 | Waveform bookkeeping | §2.2–2.3 | Flat channels are still dropped before provenance is built. Five DMX files are still unaccounted for: `9105080Y` and `91050813` (empty) and `9106133O`, `9107077R`, `9108071V` (truncated). |
-| 5 | StationXML epochs end before the data | §2.4 | Not rechecked after the UTC shift. |
-| 6 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
-| 7 | Tests and docs | §5.7, §6, §3.8 | `tests/test_bob_notebooks.py` lines 51 and 78 need `''.join(c['source'])`. `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
-| 8 | Clock drift within a day | §1 | The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
-| 9 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
+| 1 | BOB product issues | §5.2–5.6 | `TIME_ANCHOR='start'` though RSAM is end-of-window; rain carried forward; tilt rail value 8192; mudflow `.DA2`–`.DA5` files skipped; auxiliary sources. |
+| 2 | Other BOB clocks | §1 | Tilt, rain, mudflow, COSPEC, counts and radio are flagged `unverified`. Rain/mudflow `CONVERT.FOR` applies `hr-8` with no date roll; tilt switched to local on 18 Nov 91. BOB 2–9 May has low confidence. |
+| 3 | Waveform bookkeeping | §2.2–2.3 | Flat channels are still dropped before provenance is built. Five DMX files are still unaccounted for: `9105080Y` and `91050813` (empty) and `9106133O`, `9107077R`, `9108071V` (truncated). |
+| 4 | StationXML epochs end before the data | §2.4 | Not rechecked after the UTC shift. |
+| 5 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
+| 6 | Tests and docs | §5.7, §6, §3.8 | `tests/test_bob_notebooks.py` lines 51 and 78 need `''.join(c['source'])`. `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
+| 7 | Clock drift within a day | §1 | The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
+| 8 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
 
@@ -288,9 +292,9 @@ Consequences (status in brackets):
 
 ## 5. BOB (60–69)
 
-**Status:** item 2's time bases are fixed for RSAM/EVNT/SSAM. SSAM had been put on the BOB clock by mistake and is now on the MDETECT PC clock. All other items are open.
+**Status:** item 1 fixed (all-zero SSAM rows are dropouts). Item 2's time bases are fixed for RSAM/EVNT/SSAM; SSAM had been put on the BOB clock by mistake and is now on the MDETECT PC clock. All other items are open.
 
-1. **All-zero SSAM rows count as data.** The SSAM files use 0 in all 16 bands for dropouts, but only −998/−999 are masked. That is about 34k SSAM rows plus 1.2k DATA rows (e.g. BUR1 1,400 of 1,667 rows, and DON1 has 8 entirely zero days counted as valid). Coverage, the 69 overview and the spectrograms are all inflated.
+1. [Fixed] **All-zero SSAM rows count as data.** The SSAM files use 0 in all 16 bands for dropouts, but only −998/−999 are masked. That is about 34k SSAM rows plus 1.2k DATA rows (e.g. BUR1 1,400 of 1,667 rows, and DON1 has 8 entirely zero days counted as valid). Coverage, the 69 overview and the spectrograms are all inflated.
 2. **Time bases**: see §1. nb 62 sets `TIME_ANCHOR='start'`, but RSAM is end-of-window.
 3. **Rain values are carried forward** (`blank(chid)=data` in CONVERT.FOR), so "value present" overstates fresh readings. BOB_QPLO.TXT names the rain channel columns, but the notebook doesn't use them.
 4. **Tilt rail value 8192 (2^13) is treated as data**: 46 UBOR and 18 UBOT samples from 12 Jun 23:00. Mudflow maxima of 8016 and 8010 suggest the same limit.
