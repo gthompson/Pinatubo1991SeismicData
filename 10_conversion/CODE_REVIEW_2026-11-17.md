@@ -88,18 +88,22 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
   - **RSAM against summed SSAM (step 69).** SSAM bands BN01–BN10 summed give a 1-minute RSAM proxy; the daily lag per station pair is in `overview/ssam_rsam_lag_by_day.csv`. Of 412 reliable station-days (r ≥ 0.5), all but six lie within 4 min, with a sawtooth drift of about 1 min/day between the Tandy and WILLIE. On 10 Nov all five pairs were exactly 8 h apart, and EVNT vs waveform triggers agrees: the RSAM PC (Tandy) ran on PHT for that block (labels 01:20–22:20), now rule `R_PHT_10Nov`. After the rerun, 411 of 412 station-days are within 4 min; the exception is FNG1 on 19 Oct (−58 min, r = 0.52), seen on no other station.
   - Labels that no rule covers now keep their recorded value with `clock_status` `unverified` instead of becoming invalid.
   - Effect in step 69 (UTC days): tilt 13 → 14 days (from 31 May), rain 120 → 122 (from 15 Jul), counts 176 → 178. Tilt now has 432 `outside_expected_dates` rows: the empty padded first 8 h of 1 Jan, moved into 1990.
+- **Waveform bookkeeping (§2.2–2.3).** FloVoPy `convert_dmx_to_seisan` now accounts for every DMX file and every trace it does not write:
+  - `10_file_log.csv` has one row per DMX file (21,475): 21,459 `existing`, 11 `failed`, 5 `empty`. The converter refuses to finish if the rows do not add up to the files found.
+  - The 5 `empty` files: `9105080Y` and `91050813` hold an IRIG trace and five flat channels; `9106133O`, `9107077R` and `9108071V` are header-only (1.3–1.5 kB, traces with no samples).
+  - Dropped traces are provenance rows with `trace_status` `flat`, `irig` or `no_samples` (no `fixed_id`), and the index has `dropped_traces`/`dropped_trace_ids`: 16,586 flat traces in 12,292 files, 514 IRIG, 25 with no samples. DONZ is flat in 9,543 saved files, then CABZ 1,188, BURZ 940 and BUGZ 854.
+  - The index and the kept provenance rows are unchanged (21,459 files; 152,933 traces). Step 11 now uses only kept traces; it had not been rerun since the UTC conversion, so its daily counts are now on UTC dates.
   - Steps 61–69 were rerun, and their saved outputs were refreshed.
 
 **Remaining**, roughly in priority order:
 
 | # | Item | Section | Notes |
 |---|---|---|---|
-| 1 | Waveform bookkeeping | §2.2–2.3 | Flat channels are still dropped before provenance is built. Five DMX files are still unaccounted for: `9105080Y` and `91050813` (empty) and `9106133O`, `9107077R`, `9108071V` (truncated). |
-| 2 | StationXML epochs end before the data | §2.4 | Not rechecked after the UTC shift. |
-| 3 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
-| 4 | Tests and docs | §6, §3.8 | `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
-| 5 | Clock drift and residual clock questions | §1 | BOB 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
-| 6 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
+| 1 | StationXML epochs end before the data | §2.4 | Not rechecked after the UTC shift. |
+| 2 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
+| 3 | Tests and docs | §6, §3.8 | `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
+| 4 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
+| 5 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
 
@@ -248,11 +252,11 @@ Consequences (status in brackets):
 
 ## 2. Waveforms (10, 11, 15, 16)
 
-**Status:** 1 and 5 fixed. 2, 3, 4 and 6 open (status table, items 12–13).
+**Status:** 1, 2, 3 and 5 fixed. 4 and 6 open (see the remaining-items table).
 
 1. **The header sample rate is overwritten.** Raw DMX = 100.80645 Hz (12500/124), verified on `9105010W.DMX`. `waveform.sampling_rate: 100.0` → FloVoPy `fix_sampling_rate` sets 100 Hz, which stretches each record by 0.8% (~0.3 s over a 4,096-sample record). The original rate isn't kept in the index, provenance or MiniSEED. Settle which rate is true and record the raw one.
-2. **Flat (constant) channels are dropped before provenance is built** (`trace_utils.remove_empty_traces`), so they appear nowhere. 98 of 143 sampled files lost at least one channel. This contradicts the "counted, not silently removed" text in nb 10 cell 13.
-3. **5 of 21,475 DMX files are unaccounted for**: 2 contain only flat or IRIG traces (`status=empty`, not saved), and 3 truncated files (9106133O, 9107077R, 9108071V) are missing from the failures CSV.
+2. [Fixed: dropped traces are provenance rows; see the status list] **Flat (constant) channels are dropped before provenance is built** (`trace_utils.remove_empty_traces`), so they appear nowhere. 98 of 143 sampled files lost at least one channel. This contradicts the "counted, not silently removed" text in nb 10 cell 13.
+3. [Fixed: `10_file_log.csv`] **5 of 21,475 DMX files are unaccounted for**: 2 contain only flat or IRIG traces (`status=empty`, not saved), and 3 truncated files (9106133O, 9107077R, 9108071V) are missing from the failures CSV.
 4. **StationXML epochs end before the data** for BUR, PIE, PPO, UBO and GRN (12–25 June; 336 station-channel-days). Separately, nb 15 cell 6 starts CAB EHN on 06-16, but its first data is 07-03.
 5. **Outputs are older than the config.** The index and failures CSVs were written 10 Nov, but `recover_partial: true` was added 11 Nov, so there are no `partial_recovery` columns.
 6. Minor:
