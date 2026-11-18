@@ -11,16 +11,25 @@ from pinatubo_steps.clock import (apply_bob_clock, apply_hypocenter_clock, apply
 UTC = dict(time_basis='utc')
 
 
-def wav(t, seq):
-    offset, label = waveform_time_correction(UTC)(None, seq, UTCDateTime(t))
+def wav(t, seq, marker=None):
+    offset, label = waveform_time_correction(UTC)(None, seq, UTCDateTime(t), {'localtime': marker})
     return None if offset is None else UTCDateTime(t) + offset, label
 
 
 class PinatuboClockTests(unittest.TestCase):
-    def test_recorded_basis_is_a_no_op(self):
-        self.assertIsNone(waveform_time_correction({}))
+    def test_recorded_basis_is_a_no_op_and_utc_is_default(self):
+        recorded = dict(time_basis='recorded')
+        self.assertIsNone(waveform_time_correction(recorded))
         df = pd.DataFrame(dict(pick_time=['1991-06-03T12:00:00']))
-        self.assertIs(apply_pick_clock(df, {}, 'pick_individual'), df)
+        self.assertIs(apply_pick_clock(df, recorded, 'pick_individual'), df)
+        self.assertIsNotNone(waveform_time_correction({}))
+
+    def test_header_marker_must_agree_with_sequence(self):
+        self.assertEqual(wav('1991-05-26T15:41:33', '91052617', 0)[0], UTCDateTime('1991-05-26T00:41:33'))
+        self.assertEqual(wav('1991-05-26T08:40:26', '9105261G', -25200)[0], UTCDateTime('1991-05-26T01:40:26'))
+        # Old-version marker after the reset, or new-version marker before it: no rule, file fails visibly.
+        self.assertIsNone(wav('1991-06-01T00:00', '91060100', 0)[0])
+        self.assertIsNone(wav('1991-05-20T00:00', '91052000', -25200)[0])
 
     def test_waveform_reset_on_26_may(self):
         # Last file before and first file after the PC clock was set back.
@@ -64,13 +73,17 @@ class PinatuboClockTests(unittest.TestCase):
         out = apply_bob_clock(frame, UTC, 'rsam')
         self.assertEqual(out.recorded_time.tolist(), list(pd.to_datetime(['1991-05-04 09:00', '1991-06-15 00:00', '1991-10-01 00:00'])))
         self.assertEqual(out.clock_confidence.tolist(), ['low', 'high', 'medium'])
+        self.assertEqual(out.clock_uncertainty_s.tolist(), [10800.0, 300.0, 300.0])
+        # SSAM ran on the MDETECT PC (GMT after 26 May), not on the BOB clock.
+        ssam = apply_bob_clock(frame, UTC, 'ssam')
+        self.assertEqual(ssam.recorded_time.tolist()[1:], list(pd.to_datetime(['1991-06-15 08:00', '1991-10-01 00:00'])))
         tilt = apply_bob_clock(frame, UTC, 'tilt')
         self.assertTrue((tilt.recorded_time == frame.recorded_time).all())
         self.assertEqual(set(tilt.clock_status), {'unverified'})
 
     def test_every_stream_has_rules(self):
         self.assertEqual(regimes().streams, {'waveform', 'pick_individual', 'pick_monthly', 'hypo_pinaall',
-                                             'hypo_allsum', 'bob_seismic'})
+                                             'hypo_allsum', 'bob_seismic', 'ssam'})
 
 
 if __name__ == '__main__':

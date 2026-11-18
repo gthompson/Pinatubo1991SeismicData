@@ -1,21 +1,25 @@
-"""Pinatubo clock corrections to UTC (used only when ``time_basis`` is "utc").
+"""Pinatubo clock corrections to UTC (``time_basis: "utc"``, the default in conversion_config.json).
 
 The rules live in ``10_conversion/clock_regimes.csv`` (one row per clock
 period, with evidence and confidence) and are applied by
 ``flovopy.core.clock.ClockRegimes``. Each step converts its own raw times
 where it reads them and keeps the raw value next to the corrected one:
 
-- step 10: waveform start times (``waveform_time_correction``), stream ``waveform``
+- step 10: waveform start times (``waveform_time_correction``), stream ``waveform``;
+  the rule must agree with both the DMX header ``localtime`` field written by
+  MDETECT (the marker) and the file sequence
 - step 20: individual PHA picks, stream ``pick_individual`` (sequence = event ID)
 - step 21: monthly PHA picks, stream ``pick_monthly`` (sequence = file:line)
 - step 40: hypocenters, streams ``hypo_pinaall`` (sequence = line) and
   ``hypo_allsum`` (repeated 26 May window resolved by matching PINAALL.DAT)
-- steps 61-62: BOB RSAM, EVNT and SSAM labels, stream ``bob_seismic``. Other
+- steps 61-62: BOB RSAM and EVNT labels (stream ``bob_seismic``, the BOB PC)
+  and SSAM labels (stream ``ssam``, the MDETECT PC). Other
   BOB products (tilt, rain, mudflow, COSPEC, counts, radio) have no verified
   clock and keep their recorded labels, flagged ``unverified``.
 
-With the default ``time_basis: "recorded"`` every helper here is a no-op, so
-the normal run is unchanged.
+Every converted record also gets ``clock_uncertainty_s`` (nominal absolute-time
+uncertainty of its rule). With ``time_basis: "recorded"`` every helper here is
+a no-op and recorded times are kept.
 """
 from __future__ import annotations
 
@@ -27,11 +31,12 @@ import pandas as pd
 from flovopy.core.clock import ClockRegimes
 
 TABLE = Path(__file__).resolve().parents[1] / "clock_regimes.csv"
-BOB_SEISMIC_PRODUCTS = {"rsam", "rsam_events", "ssam", "ssam_data"}
+# BOB product -> clock-table stream. RSAM/EVNT labels come from the BOB PC; SSAM ran on the MDETECT PC.
+BOB_PRODUCT_STREAMS = {"rsam": "bob_seismic", "rsam_events": "bob_seismic", "ssam": "ssam", "ssam_data": "ssam"}
 
 
 def time_basis(config) -> str:
-    basis = str(config.get("time_basis", "recorded")).lower()
+    basis = str(config.get("time_basis", "utc")).lower()
     if basis not in ("recorded", "utc"):
         raise ValueError('time_basis must be "recorded" or "utc"')
     return basis
@@ -64,8 +69,9 @@ def waveform_time_correction(config):
         return None
     table = _regimes(config)
 
-    def correct(path, event_id, starttime):
-        info = table.lookup("waveform", starttime, event_id)
+    def correct(path, event_id, starttime, header=None):
+        marker = (header or {}).get("localtime")
+        info = table.lookup("waveform", starttime, event_id, marker)
         return info["offset_s"], info["regime"] if info["offset_s"] is not None else info["status"]
     return correct
 
@@ -118,11 +124,11 @@ def apply_hypocenter_clock(pinaall: pd.DataFrame, allsum: pd.DataFrame, config,
             (pd.to_datetime(waveform_index.endtime, format="ISO8601") -
              pd.to_datetime(waveform_index.starttime, format="ISO8601")))
 
-    def resolve(idx, offset, regime, how):
+    def resolve(idx, offset, uncertainty, regime, how):
         raw = pd.Timestamp(allsum.at[idx, "raw_origin_time"])
         allsum.loc[idx, "origin_time"] = (raw + pd.Timedelta(seconds=offset)).isoformat()
-        allsum.loc[idx, ["clock_regime", "clock_offset_s", "clock_confidence", "clock_status"]] = [
-            regime, offset, "high", how]
+        allsum.loc[idx, ["clock_regime", "clock_offset_s", "clock_uncertainty_s", "clock_confidence",
+                         "clock_status"]] = [regime, offset, uncertainty, "high", how]
 
     for idx in allsum.index[allsum.clock_status.eq("ambiguous")]:
         row = allsum.loc[idx]
@@ -132,17 +138,20 @@ def apply_hypocenter_clock(pinaall: pd.DataFrame, allsum: pd.DataFrame, config,
                   ((ref.longitude - row.longitude).abs() <= 0.05) &
                   ref.clock_status.eq("resolved")]
         if len(hit) == 1:
-            resolve(idx, float(hit.clock_offset_s.iloc[0]), hit.clock_regime.iloc[0] + "_matched",
+            resolve(idx, float(hit.clock_offset_s.iloc[0]), float(hit.clock_uncertainty_s.iloc[0]),
+                    hit.clock_regime.iloc[0] + "_matched",
                     f"resolved_by_pinaall_line_{int(hit.source_line.iloc[0])}")
             continue
         if wav is not None:
             h = raw + pd.Timedelta(hours=7)
             files = wav[(wav._start - pd.Timedelta(seconds=10) <= h) & (h <= wav._end)]
             if len(files) == 1:
-                info = table.lookup("waveform", files._start.iloc[0].isoformat(), files.event_id.iloc[0])
+                marker = files.dmx_localtime.iloc[0] if "dmx_localtime" in files else None
+                info = table.lookup("waveform", files._start.iloc[0].isoformat(), files.event_id.iloc[0],
+                                    None if pd.isna(marker) or ";" in str(marker) else marker)
                 if info["offset_s"] is not None:
                     # Hypocenter offset = waveform offset + 7 h (W = H - 7 h in May).
-                    resolve(idx, info["offset_s"] + 7 * 3600.0, "W_from_" + info["regime"],
+                    resolve(idx, info["offset_s"] + 7 * 3600.0, info["uncertainty_s"], "W_from_" + info["regime"],
                             f"resolved_by_waveform_{files.event_id.iloc[0]}")
     return pinaall, allsum
 
@@ -152,22 +161,25 @@ def apply_bob_clock(frame: pd.DataFrame, config, product: str) -> pd.DataFrame:
     if not utc_enabled(config):
         return frame
     out = frame.copy()
-    if product not in BOB_SEISMIC_PRODUCTS:
+    if product not in BOB_PRODUCT_STREAMS:
         out["raw_recorded_time"] = out["recorded_time"]
         out["clock_regime"] = "unverified_label_retained"
         out["clock_offset_s"] = float("nan")
+        out["clock_uncertainty_s"] = float("nan")
         out["clock_confidence"] = None
         out["clock_status"] = "unverified"
         return out
     times = pd.to_datetime(out["recorded_time"], errors="coerce")
     labels = times.dropna().unique()
     table = _regimes(config)
-    lookup = {t: table.lookup("bob_seismic", pd.Timestamp(t).isoformat()) for t in labels}
+    stream = BOB_PRODUCT_STREAMS[product]
+    lookup = {t: table.lookup(stream, pd.Timestamp(t).isoformat()) for t in labels}
     out["raw_recorded_time"] = out["recorded_time"]
     offsets = times.map(lambda t: lookup[t]["offset_s"] if pd.notna(t) else None)
     out["recorded_time"] = times + pd.to_timedelta(offsets.astype(float), unit="s")
     out["clock_regime"] = times.map(lambda t: lookup[t]["regime"] if pd.notna(t) else "no_time")
     out["clock_offset_s"] = offsets.astype(float)
+    out["clock_uncertainty_s"] = times.map(lambda t: lookup[t]["uncertainty_s"] if pd.notna(t) else None).astype(float)
     out["clock_confidence"] = times.map(lambda t: lookup[t]["confidence"] if pd.notna(t) else None)
     out["clock_status"] = times.map(lambda t: lookup[t]["status"] if pd.notna(t) else "no_time")
     return out

@@ -49,6 +49,12 @@ The scripts are in the session scratchpad (`pickclock.py`, `bobxc.py`).
 - EVNT and RSAM cross-correlation, with B in PHT (verified against eruption onsets):
   - B = H − 7 h for 10–26 May, which gives W = PHT.
   - B = H + 1 h for 26 May to mid-September, which gives W = PHT − 8 h = UTC.
+- The DMX headers mark the same reset. The SUDS trace descriptor field `localtime` is 0 in every file up to `91052617`, and -25200 (-7 h, in seconds) from `9105261G` onward. It is -25200 in all files checked to December, so it does not follow the 27 Oct DST change. The acquisition software (or its setup) changed at the reset. `timecorrect` and `rate_correct` are 0 throughout.
+- MDETECT documentation (Lee, Tottingham & Ellis 1988, OFR 88-751):
+  - The PC/AT clock is read when MDETECT starts. After that, time is kept by counting A/D samples ("good to about 2 seconds per day").
+  - The digitized time signal is not used.
+  - Absolute header times can therefore drift by seconds between restarts; the IRIG trace is the only way to correct this.
+  - SUDS (OFR 89-188) defines all times as GMT seconds since 1970.
 - The PINAALL annotation "LOCAL until 91 530, then GMT" describes this reset, but the waveforms put it on 26 May, not 30 May.
 - No other 8 h jump appears in the waveform sequence for the rest of 1991.
 - Implied UTC:
@@ -88,7 +94,7 @@ Consequences:
 **Implementation.**
 - Rules: `clock_regimes.csv`, applied through `pinatubo_steps/clock.py` and FloVoPy `flovopy.core.clock` (`ClockRegimes`, `dos_mktime_wall_clock`).
 - FloVoPy's `convert_dmx_to_seisan` gains a `time_correction=` hook.
-- Selected with `conversion_config.utc.json`; outputs go to `~/work/Pinatubo1991Processing/utc`.
+- Now the default in `conversion_config.json` (`conversion_config.utc.json` was retired); outputs go to `~/work/Pinatubo1991Processing/utc`.
 - Raw times are kept in `raw_*` columns and the applied rule in `clock_*` columns.
 - Step 10 was re-converted from the DMX files once, which also applies the original sampling rate (3125/31 Hz).
 
@@ -120,6 +126,26 @@ Consequences:
 - The exact BOB switches are uncertain by about ±3 h: 9 May ~06:00 and 13 Sep ~09:00 (label time).
 
 **Step 54** (CSS3) needs an Antelope Python environment and was not run.
+
+**Update (later on 17 Nov): header marker, uncertainty, default.**
+- J. Power (email to R. White, 29 Oct 2026) confirms the model:
+  - MDETECT "always assumed that the computer was in California and corrected the time to GMT".
+  - The PC was rebooted daily.
+  - Harlow installed a new MDETECT version and set the clock to GMT "on or about May 25".
+  - The published account is *Fire and Mud*, p. 227 ("local versus GMT").
+- Step 10 now records the SUDS descriptor fields `dmx_localtime` and `dmx_timecorrect` in the waveform index.
+- The waveform rules in `clock_regimes.csv` require both the header marker and the file order:
+  - `localtime` 0 and an ID up to `91052617` gives the old version on PHT.
+  - `localtime` −25200 and an ID from `9105261G` gives the new version on GMT.
+  - A file where the two disagree gets no rule and fails visibly.
+- Each rule carries a nominal `uncertainty_s`, written to `clock_uncertainty_s` in every index and to the QuakeML origin `time_errors` (step 50):
+  - 5 s after the reset: MDETECT keeps time by counting samples, about 2 s/day, and the PC was rebooted daily.
+  - 60 s before the reset.
+  - 300 s for BOB labels; 3 h for the 2–9 May BOB rule.
+- The analysis config (`20_analysis/analysis_workflow.json`) now reads the UTC MiniSEED and network history.
+- **SSAM correction fixed.** SSAM and SSAM DATA ran on the MDETECT PC, not the BOB PC. Their labels are 8 h behind RSAM until 13 Sep and match it afterwards (station-matched r = 0.72–0.99), so they are GMT throughout. The first UTC run had applied the BOB rule and put SSAM 8 h early for 11 Jun–13 Sep. SSAM now has its own `ssam` rule (0 h); in the UTC products SSAM matches RSAM at zero lag.
+- Summary for the paper: `TIMING_AND_CLOCKS.md`.
+- Clock drift within a day is not corrected. The IRIG traces are still removed in step 10; decoding them first would give a measured offset per file.
 
 ## 2. Waveforms (10, 11, 15, 16)
 

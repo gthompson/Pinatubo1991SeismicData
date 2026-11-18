@@ -48,27 +48,28 @@ Set `CONFIG_FILE` in the setup cell to use another configuration, or set
 Restart the kernel after updating code so stale modules are not retained.
 Per-stage scientific parameters remain visible in notebook SETTINGS.
 
-### UTC run
+### Times are converted to UTC
 
-`10_conversion/conversion_config.utc.json` is the same configuration with
-`"time_basis": "utc"` and a separate `output_root`
-(`~/work/Pinatubo1991Processing/utc`). With it, every time is converted to UTC
-where it is read, using the clock periods in `10_conversion/clock_regimes.csv`:
+`conversion_config.json` sets `"time_basis": "utc"` (the default), writes to
+`~/work/Pinatubo1991Processing/utc`, and reads the clock periods from
+`10_conversion/clock_regimes.csv`. Every time is converted where it is read:
 
 | Step | Times converted |
 |---|---|
-| 10 | waveform start times (and SEISAN names) |
+| 10 | waveform start times (and SEISAN names); the rule must agree with the DMX header `localtime` field and the file order |
 | 20, 21 | pick times |
 | 40 | origin times |
 | 61, 62 | BOB RSAM, EVNT and SSAM labels |
 
-Raw values are kept in `raw_*` columns, and the rule applied is recorded in the
-`clock_*` columns. Records that cannot be placed are written to
-`*_clock_unresolved.csv` instead of the index. Tilt, rain, mudflow, COSPEC,
-counts and radio labels have no verified clock, so they are left as recorded
-and flagged `unverified`. The default `"time_basis": "recorded"` leaves all
-times unchanged. Select the UTC run with
-`PINATUBO_CONVERSION_CONFIG=10_conversion/conversion_config.utc.json`.
+Raw values are kept in `raw_*` columns. The rule applied, and a nominal
+absolute-time uncertainty, are recorded in `clock_*` columns; step 50 copies the
+uncertainty into each QuakeML origin's `time_errors`. Records that cannot be
+placed are written to `*_clock_unresolved.csv` (or, for waveforms, the failures
+table) instead of the index. Tilt, rain, mudflow, COSPEC, counts and radio
+labels have no verified clock, so they are left as recorded and flagged
+`unverified`. Set `"time_basis": "recorded"` (and a different `output_root`)
+only to reproduce the uncorrected products, such as the earlier run in
+`~/work/Pinatubo1991Processing/converted`.
 
 ## Analysis
 

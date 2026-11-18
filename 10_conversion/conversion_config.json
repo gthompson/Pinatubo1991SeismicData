@@ -1,6 +1,8 @@
 {
   "data_top": "~/Library/CloudStorage/Box-Box/thompsong/DATA/pinatubo1991",
-  "output_root": "~/work/Pinatubo1991Processing/converted",
+  "output_root": "~/work/Pinatubo1991Processing/utc",
+  "time_basis": "utc",
+  "clock_regimes": "clock_regimes.csv",
   "network": "XB",
   "database": "PNTBO",
   "waveform": {
