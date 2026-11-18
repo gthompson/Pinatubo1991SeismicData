@@ -57,22 +57,28 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
   - Step 52 now raises an error if any event fails.
   - Same-second events get a shifted S-file *name* (`collision="shift"`, 4 events) instead of failing; origin and pick times are unchanged.
   - The stale folder was moved to `FAIR/SEISAN/REA_stale_first_utc_run_20261117`, and all 21,753 S-files were regenerated.
+- **Step 51 reporting windows (§4.9).** The windows are now derived from the UTC catalogue instead of typed in.
+  - Rule: a day is covered when it has at least one event with a waveform record, one with picks and one with a hypocentre. Covered days with gaps of at most 3 uncovered days form one window. Edge days where any source is below 25% of the window's daily median are trimmed.
+  - Result: 8 May–10 Jun and 29 Jun–18 Aug 1991 (previously 8 May–9 Jun and 30 Jun–18 Aug, chosen on recorded times). 11,753 events fall in the windows (11,552 with the old dates).
+  - The trimmed edges: 6–7 May (1–2 hypocentres a day), 11 Jun (1 pick event) and 19 Aug (7 hypocentres).
+  - Days inside a window that lack a source are listed and kept: six May days with no hypocentre, and 6 July with no monthly picks or hypocentres.
+  - New output `51_daily_source_coverage.csv` gives W, P and H counts for every day. The daily-counts CSV now has a row for every window day, including days with no events.
+  - The waveform-only days 12–28 Jun and from 20 Aug are outside the windows by design, since they have no picks or hypocentres.
 
 **Remaining**, roughly in priority order:
 
 | # | Item | Section | Notes |
 |---|---|---|---|
-| 1 | Step 51 coverage windows are hard-coded | §4.9 | The dates were chosen on recorded times. Recheck them on UTC, or derive them from the data. |
-| 2 | Magnitude 0.00 means "missing" in the step-40/41 indexes and step 42 | §4.7 | Step 43 handles it; the earlier steps don't. |
-| 3 | All-zero SSAM rows counted as data | §5.1 | Coverage, the overview and the spectrograms are inflated. |
-| 4 | BOB product issues | §5.2–5.6 | `TIME_ANCHOR='start'` though RSAM is end-of-window; rain carried forward; tilt rail value 8192; mudflow `.DA2`–`.DA5` files skipped; auxiliary sources. |
-| 5 | Other BOB clocks | §1 | Tilt, rain, mudflow, COSPEC, counts and radio are flagged `unverified`. Rain/mudflow `CONVERT.FOR` applies `hr-8` with no date roll; tilt switched to local on 18 Nov 91. BOB 2–9 May has low confidence. |
-| 6 | Waveform bookkeeping | §2.2–2.3 | Flat channels are still dropped before provenance is built. Five DMX files are still unaccounted for: `9105080Y` and `91050813` (empty) and `9106133O`, `9107077R`, `9108071V` (truncated). |
-| 7 | StationXML epochs end before the data | §2.4 | Not rechecked after the UTC shift. |
-| 8 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
-| 9 | Tests and docs | §5.7, §6, §3.8 | `tests/test_bob_notebooks.py` lines 51 and 78 need `''.join(c['source'])`. `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
-| 10 | Clock drift within a day | §1 | The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
-| 11 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
+| 1 | Magnitude 0.00 means "missing" in the step-40/41 indexes and step 42 | §4.7 | Step 43 handles it; the earlier steps don't. |
+| 2 | All-zero SSAM rows counted as data | §5.1 | Coverage, the overview and the spectrograms are inflated. |
+| 3 | BOB product issues | §5.2–5.6 | `TIME_ANCHOR='start'` though RSAM is end-of-window; rain carried forward; tilt rail value 8192; mudflow `.DA2`–`.DA5` files skipped; auxiliary sources. |
+| 4 | Other BOB clocks | §1 | Tilt, rain, mudflow, COSPEC, counts and radio are flagged `unverified`. Rain/mudflow `CONVERT.FOR` applies `hr-8` with no date roll; tilt switched to local on 18 Nov 91. BOB 2–9 May has low confidence. |
+| 5 | Waveform bookkeeping | §2.2–2.3 | Flat channels are still dropped before provenance is built. Five DMX files are still unaccounted for: `9105080Y` and `91050813` (empty) and `9106133O`, `9107077R`, `9108071V` (truncated). |
+| 6 | StationXML epochs end before the data | §2.4 | Not rechecked after the UTC shift. |
+| 7 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
+| 8 | Tests and docs | §5.7, §6, §3.8 | `tests/test_bob_notebooks.py` lines 51 and 78 need `''.join(c['source'])`. `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
+| 9 | Clock drift within a day | §1 | The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
+| 10 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
 
@@ -259,7 +265,7 @@ Consequences (status in brackets):
 
 ## 4. Hypocenters and catalog export (40–54)
 
-**Status:** items 1–6 fixed: UTC rerun; step 50 links through picks, then by record window, and uses step 43's preferred origin; Nordic seconds, magnitude type and RMS repaired in FloVoPy. Items 7–10 are open.
+**Status:** items 1–6 fixed: UTC rerun; step 50 links through picks, then by record window, and uses step 43's preferred origin; Nordic seconds, magnitude type and RMS repaired in FloVoPy. Item 9 fixed: step 51 derives its windows from the data. Items 7, 8 and 10 are open.
 
 1. Clock offset and ±10 s tolerance: see §1.
 2. **Preferred origin**: nb 50 cell 8 uses `ev.origins[0]` and ignores step 43's `preferred_source`. In 607 of the 3,500 two-source groups this picks the PINAALL origin; 203 of those have different times.
@@ -269,7 +275,7 @@ Consequences (status in brackets):
 6. **Products are out of date**: the step 50, 51 and 52 outputs predate the 11 Nov step-43 rerun. The QuakeML has 0 magnitudes, and the 51 CSV has no P_H column.
 7. Magnitude 0.00 is a missing-value code (39% of summary rows and 27% of PINAALL rows). Step 43 handles it; the step-40/41 indexes and step 42 don't.
 8. **Step 54 rewrites the membership JSON inside the per-event loop.**
-9. **Step 51 coverage windows are hard-coded** (8 May–9 Jun, 30 Jun–18 Aug) and exclude days that do have waveform data (10–14 Jun, 27–29 Jun, 19 Aug).
+9. [Fixed] **Step 51 coverage windows are hard-coded** (8 May–9 Jun, 30 Jun–18 Aug) and exclude days that do have waveform data (10–14 Jun, 27–29 Jun, 19 Aug).
 10. Minor issues:
     - The step 53 class labels keep the Nordic padding and trailing "3".
     - `PICKS_PRESENT` can disagree between steps 50 and 52.
