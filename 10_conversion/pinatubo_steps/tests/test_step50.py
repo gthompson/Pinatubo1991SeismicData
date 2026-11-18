@@ -76,7 +76,7 @@ class Tests(unittest.TestCase):
    for key in ('hypo_event_index','hypo_origin_index'):
     df=pd.read_csv(args[key]);df.iloc[:0].to_csv(args[key],index=False)
    r=m.run(**args,out_prefix=p/'empty')
-   self.assertEqual(r['association_policy'],'one_to_one')
+   self.assertEqual(r['association_policy'],'picks_then_window')
    self.assertEqual(len(r['catalog_all']),3)
    self.assertEqual(r['class_counts']['W_ONLY'],2)
    self.assertTrue(r['matches'].empty)
@@ -90,3 +90,60 @@ class Tests(unittest.TestCase):
    cli.extend(['--out-prefix',str(p/'cli'),'--association-policy','nearest','--origin-time-tol','2'])
    self.assertEqual(m.main(cli)['association_policy'],'nearest')
 if __name__=='__main__':unittest.main()
+
+
+class PicksThenWindowTests(unittest.TestCase):
+ def setUp(self):
+  from pinatubo_steps.shared import associate_hypocenters
+  self.f=associate_hypocenters
+  T=lambda s:(base+pd.Timedelta(seconds=s)).isoformat()
+  # w1: record 0-60 s with picks from 11 s; w2: record 100-160 s, no picks; p3: pick-only event at 300 s.
+  self.evt=pd.DataFrame([dict(event_id='w1',starttime=T(0),endtime=T(60),event_class='WAV+PICKS'),
+                         dict(event_id='w2',starttime=T(100),endtime=T(160),event_class='WAV_ONLY'),
+                         dict(event_id='p3',starttime=T(300),endtime=T(301),event_class='PICKS_ONLY')])
+  self.map=pd.DataFrame([dict(event_id='w1',pick_time=T(11),phase='P'),dict(event_id='w1',pick_time=T(12),phase='S'),
+                         dict(event_id='p3',pick_time=T(301.5),phase='P')])
+  self.T=T
+ def hyp(self,times):return pd.DataFrame({'event_id':[f'h{i}' for i in range(len(times))],'preferred_origin_time':[self.T(t) for t in times]})
+ def test_picks_then_window(self):
+  # h0 9.5 s into w1 (picks), h1 15 s into w2 (window; outside ±10 s of start), h2 just before p3's pick,
+  # h3 inside w1 but w1 already taken, h4 nowhere.
+  m,inside=self.f(self.evt,self.map,self.hyp([9.5,115,300,40,500]))
+  got={r.event_id_h:(r.event_id_w,r.method) for r in m.itertuples()}
+  self.assertEqual(got,{'h0':('w1','picks'),'h1':('w2','window'),'h2':('p3','picks')})
+  self.assertEqual(inside,{'h3':'w1'})
+  self.assertAlmostEqual(m.set_index('event_id_h').loc['h1','origin_minus_start_s'],15.0)
+ def test_window_lead_and_bounds(self):
+  m,_=self.f(self.evt,self.map.iloc[:0],self.hyp([92]))   # 8 s before w2 starts: inside the 10-s lead
+  self.assertEqual(m.event_id_w.tolist(),['w2'])
+  m,_=self.f(self.evt,self.map.iloc[:0],self.hyp([85]))   # 15 s before: no link
+  self.assertTrue(m.empty)
+  with self.assertRaises(ValueError):self.f(self.evt,self.map,self.hyp([0]),origin_lead_s=-1)
+  with self.assertRaises(ValueError):self.f(pd.concat([self.evt,self.evt]),self.map,self.hyp([0]))
+ def test_catalog_default_policy(self):
+  with tempfile.TemporaryDirectory() as tmp,contextlib.redirect_stdout(io.StringIO()):
+   p=Path(tmp);args=Tests.fixture(self,p)
+   r=m.run(**args,out_prefix=p/'ptw')
+   self.assertEqual(r['association_policy'],'picks_then_window')
+   self.assertEqual(r['matches'].event_id_h.tolist(),['01'])
+
+
+class PreferredOriginTests(unittest.TestCase):
+ def test_step43_choice_is_preferred(self):
+  with tempfile.TemporaryDirectory() as tmp,contextlib.redirect_stdout(io.StringIO()):
+   p=Path(tmp);args=Tests.fixture(self,p)
+   ho=pd.read_csv(args['hypo_origin_index'],dtype=str)
+   extra=ho.iloc[[0]].assign(origin_id='o01b',origin_time=(base+pd.Timedelta(seconds=0.5)).isoformat())
+   pd.concat([ho,extra]).to_csv(args['hypo_origin_index'],index=False)
+   he=pd.read_csv(args['hypo_event_index'],dtype=str)
+   he['preferred_origin_id']=['o01b','o02'];he['preferred_origin_source']=['hypo40','hypo40']
+   he.to_csv(args['hypo_event_index'],index=False)
+   r=m.run(**args,out_prefix=p/'pref')
+   linked=next(e for e in r['catalog_all'] if len(e.origins)==2)
+   self.assertEqual(str(linked.preferred_origin_id),'origin/o01b')
+   self.assertIn('preferred_origin:step43_origin_id; source:hypo40',[c.text for c in linked.comments])
+   # Without an ID column the time decides; the H-only event keeps its only origin.
+   he.drop(columns=['preferred_origin_id']).to_csv(args['hypo_event_index'],index=False)
+   r=m.run(**args,out_prefix=p/'pref2')
+   linked=next(e for e in r['catalog_all'] if len(e.origins)==2)
+   self.assertEqual(str(linked.preferred_origin_id),'origin/o01')  # preferred_origin_time = base

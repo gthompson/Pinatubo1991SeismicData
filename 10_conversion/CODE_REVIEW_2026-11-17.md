@@ -1,6 +1,53 @@
 # 10_conversion code review — 17 Nov 2026
 
-Read-only review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant FloVoPy readers, checked against the legacy archive and the outputs in `~/work/Pinatubo1991Processing/converted`. Nothing in the repo or data was changed. "Verified" means reproduced independently during the review, not only reported by one reviewer.
+Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant FloVoPy readers, checked against the legacy archive and the outputs in `~/work/Pinatubo1991Processing/converted`. The review itself changed nothing. Fixes made afterwards are recorded in the status table below and in each section. "Verified" means reproduced independently during the review, not only reported by one reviewer.
+
+## Status (end of 17 Nov 2026)
+
+**Done.** Committed in Pinatubo `b1e68b3`, `5879a32` and FloVoPy `e19c814`, `4fbe942`:
+- **Clocks (§1).** Every seismic time and the RSAM/EVNT/SSAM labels are converted to UTC. UTC is the default configuration; outputs are in `~/work/Pinatubo1991Processing/utc`. See `TIMING_AND_CLOCKS.md`.
+- **Waveforms (§2).**
+  - §2.1: the original sampling rate is kept, snapped to 3125/31 Hz, with the raw value in the index.
+  - §2.5: the index is current and has `partial_recovery` columns. Ten files are partial recoveries.
+- **Picks (§3).** All phase-card decoding is in FloVoPy, and `pha_parser` has tests. This fixed:
+  - §3.1 (S-only minute), §3.3 (trimming logged), §3.5 (S quality kept) and §3.6 (minute 60 rolled over);
+  - the blank-component channel bug from §3.8.
+- **Catalogue (§4.6).** Steps 23–53 were rerun on the UTC data. The QuakeML now has magnitudes (3,414 events), and the step-51 table has a P_H column.
+- **Hypocentre linking (§4.1).** Step 50 links hypocentres through their picks first (first P 0–10 s after the origin), then by record window (10 s before the start to the record end), one-to-one.
+  - The policy is `picks_then_window`, in `pinatubo_steps.shared.associate_hypocenters`.
+  - 4,628 of 4,690 hypocentres are now linked (previously 3,076): 4,446 through picks, 182 by window.
+  - Only 62 remain H-only; 46 of those lie inside a record already linked to another hypocentre.
+- **Preferred origin (§4.2).** Step 43 now records `preferred_origin_id` and `preferred_origin_source`, and step 50 marks that origin as preferred. Each event gets a `preferred_origin:` comment; steps 51–52 already read `preferred_origin()`.
+  - The preferred origin changed in 608 of the 3,507 two-source events.
+  - 134 of those have a different time, by up to 1.5 s.
+  - 85 events have only a `PINAALL.DAT` origin.
+- **S earlier than P (§3.4).** FloVoPy no longer moves an S reading one minute later when its seconds are below the P seconds.
+  - None of the 34 such cards in the 1991 files is a genuine minute wrap. Each S lies 0.01–5.6 s before its P, and the forward roll gave S−P of 54–60 s.
+  - Analysts wrote S times past the minute as seconds ≥ 60 (506 cards), following the HYPO71 convention.
+  - Such S readings are now skipped and logged ("S … earlier than P; S skipped"), and the P is kept.
+  - Effect:
+    - 3 S picks dropped: 2 from the single-event PHA files, including event 91060310. The other ~31 had already been trimmed as outliers by the block median filter, and are now logged as skipped instead.
+    - The largest station S−P in the merged picks fell from 59.99 s to 17.65 s.
+    - Event 91060310 is now a single waveform+picks event; pick-only events dropped from 482 to 481.
+
+**Remaining**, roughly in priority order:
+
+| # | Item | Section | Notes |
+|---|---|---|---|
+| 1 | Step 32 splits events and leaves duplicates unassigned | §3.7 | 481 pick-only events remain in the UTC run; some are splits. |
+| 2 | Blocks missing a "10" separator | §3.2 | The smaller event in the block is discarded. |
+| 3 | Nordic export: origin seconds truncated, magnitude type "W", RMS 0.0 | §4.3–4.5 | ObsPy 1.5 writer issues; need a FloVoPy workaround or upstream fix. |
+| 4 | Step 51 coverage windows are hard-coded | §4.9 | The dates were chosen on recorded times. Recheck them on UTC, or derive them from the data. |
+| 5 | Magnitude 0.00 means "missing" in the step-40/41 indexes and step 42 | §4.7 | Step 43 handles it; the earlier steps don't. |
+| 6 | All-zero SSAM rows counted as data | §5.1 | Coverage, the overview and the spectrograms are inflated. |
+| 7 | BOB product issues | §5.2–5.6 | `TIME_ANCHOR='start'` though RSAM is end-of-window; rain carried forward; tilt rail value 8192; mudflow `.DA2`–`.DA5` files skipped; auxiliary sources. |
+| 8 | Other BOB clocks | §1 | Tilt, rain, mudflow, COSPEC, counts and radio are flagged `unverified`. Rain/mudflow `CONVERT.FOR` applies `hr-8` with no date roll; tilt switched to local on 18 Nov 91. BOB 2–9 May has low confidence. |
+| 9 | Waveform bookkeeping | §2.2–2.3 | Flat channels are still dropped before provenance is built. Five DMX files are still unaccounted for: `9105080Y` and `91050813` (empty) and `9106133O`, `9107077R`, `9108071V` (truncated). |
+| 10 | StationXML epochs end before the data | §2.4 | Not rechecked after the UTC shift. |
+| 11 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
+| 12 | Tests and docs | §5.7, §6, §3.8 | `tests/test_bob_notebooks.py` lines 51 and 78 need `''.join(c['source'])`. `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
+| 13 | Clock drift within a day | §1 | The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
+| 14 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
 
@@ -83,11 +130,11 @@ The scripts are in the session scratchpad (`pickclock.py`, `bobxc.py`).
 - Some files are out of sequence (`91051014`–`17`, `9105161 0`–`14`). Their H is hours earlier than their neighbours, with no lasting clock change.
 - The annotated "LOCAL_PLUS_1MIN" records (21–23 May) show no 60 s step relative to the waveforms. If the PC clock was 1 min off, it affected all seismic streams equally.
 
-Consequences:
-- Step 50 matches waveform events to hypocenters with ±10 s and no clock offset, so almost no waveform–hypocenter pairs are found before ~21 May. After a 7 h correction, the ~9 s pretrigger still leaves only ~2,900 of ~4,500 pairs within ±10 s.
-- The annotated PINAALL parser's local→UTC switch (`LOCAL_UTC_OFFSET=8`) would move pre-30-May origins to 15 h from the waveforms.
+Consequences (status in brackets):
+- [Fixed: UTC run, and step 50 now links through picks, then by record window] Step 50 matches waveform events to hypocenters with ±10 s and no clock offset, so almost no waveform–hypocenter pairs are found before ~21 May. After a 7 h correction, the ~9 s pretrigger still leaves only ~2,900 of ~4,500 pairs within ±10 s.
+- [Avoided: the UTC run uses the original parser and the clock table] The annotated PINAALL parser's local→UTC switch (`LOCAL_UTC_OFFSET=8`) would move pre-30-May origins to 15 h from the waveforms.
 - The committed `pinatubo_hypocenters.csv` contains −8 h times, but `pinatubo_parse_summary.txt` says offset None, so the two files come from different runs.
-- Notebook 69 overlays series that are on different time bases.
+- [Fixed for RSAM/EVNT/SSAM in the UTC run; other BOB products remain unverified] Notebook 69 overlays series that are on different time bases.
 
 ### UTC run (17 Nov)
 
@@ -149,6 +196,8 @@ Consequences:
 
 ## 2. Waveforms (10, 11, 15, 16)
 
+**Status:** 1 and 5 fixed. 2, 3, 4 and 6 open (status table, items 12–13).
+
 1. **The header sample rate is overwritten.** Raw DMX = 100.80645 Hz (12500/124), verified on `9105010W.DMX`. `waveform.sampling_rate: 100.0` → FloVoPy `fix_sampling_rate` sets 100 Hz, which stretches each record by 0.8% (~0.3 s over a 4,096-sample record). The original rate isn't kept in the index, provenance or MiniSEED. Settle which rate is true and record the raw one.
 2. **Flat (constant) channels are dropped before provenance is built** (`trace_utils.remove_empty_traces`), so they appear nowhere. 98 of 143 sampled files lost at least one channel. This contradicts the "counted, not silently removed" text in nb 10 cell 13.
 3. **5 of 21,475 DMX files are unaccounted for**: 2 contain only flat or IRIG traces (`status=empty`, not saved), and 3 truncated files (9106133O, 9107077R, 9108071V) are missing from the failures CSV.
@@ -165,8 +214,9 @@ Consequences:
 - **Fixed by moving all phase-card decoding into FloVoPy** (`flovopy.core.vdap`): items 1, 3 and 5 below, plus minute-60 cards and P seconds ≥ 60.
   - The new pieces are `parse_vdap_phase_line`, `read_vdap_pha_blocks`, `dedupe_picks` and `filter_picks_near_median`. `pinatubo_steps/pha_parser.py` is now a thin wrapper around them.
   - Step 21 event IDs now use the separator-block position in the source file. The old→new map is in `pipeline_tmp/21_event_id_changes_20261117.csv`.
-  - Steps 21 and 22 were rerun; steps 23 onward are stale.
-- **Still open**: items 2, 4, 6–9.
+  - Steps 20–53 have since been rerun on the UTC data.
+- **Fixed since:** item 6 (114 minute-60 lines now rolled over); item 8's blank-component channel bug (FloVoPy maps components explicitly); `pha_parser` now has tests.
+- **Still open:** items 2 and 7, and the stale note in `34_association_review.md`. Item 4 is fixed: an S earlier than P is skipped, not moved a minute later.
 
 1. **S-only lines get the wrong minute** (`pha_parser.py` ~208): `.strip()` runs before blank→0, so `'9108082304'` parses as 23:00:04 instead of 23:04:00 (verified with `strptime`). This affects 62 S picks and 8 fake P picks. Most are removed later as outliers; FNG in `pinaug91_block0862` survives at 21:00:36.42 (should be 21:07:36.42).
 2. **Events in blocks missing a "10" separator are discarded.** The median-time filter drops the smaller event (13 clusters with ≥3 stations, 72 picks). `_split_into_time_clusters` exists but is never called.
@@ -183,6 +233,8 @@ Consequences:
    - `34_association_review.md` says step 32 is stale, but it has since been rerun.
 
 ## 4. Hypocenters and catalog export (40–54)
+
+**Status:** items 1, 2 and 6 fixed (UTC rerun; step 50 links through picks, then by record window, and uses step 43's preferred origin). Items 3–5 and 7–10 are open.
 
 1. Clock offset and ±10 s tolerance: see §1.
 2. **Preferred origin**: nb 50 cell 8 uses `ev.origins[0]` and ignores step 43's `preferred_source`. In 607 of the 3,500 two-source groups this picks the PINAALL origin; 203 of those have different times.
@@ -202,6 +254,8 @@ Consequences:
 
 ## 5. BOB (60–69)
 
+**Status:** item 2's time bases are fixed for RSAM/EVNT/SSAM. SSAM had been put on the BOB clock by mistake and is now on the MDETECT PC clock. All other items are open.
+
 1. **All-zero SSAM rows count as data.** The SSAM files use 0 in all 16 bands for dropouts, but only −998/−999 are masked. That is about 34k SSAM rows plus 1.2k DATA rows (e.g. BUR1 1,400 of 1,667 rows, and DON1 has 8 entirely zero days counted as valid). Coverage, the 69 overview and the spectrograms are all inflated.
 2. **Time bases**: see §1. nb 62 sets `TIME_ANCHOR='start'`, but RSAM is end-of-window.
 3. **Rain values are carried forward** (`blank(chid)=data` in CONVERT.FOR), so "value present" overstates fresh readings. BOB_QPLO.TXT names the rain channel columns, but the notebook doesn't use them.
@@ -217,5 +271,7 @@ Consequences:
    - SSAM band edges
 
 ## 6. Documentation
+
+**Status:** open.
 
 - `NOTEBOOKS_README.md` describes `12_*` and `13_inspect_partial_dmx_recovery.ipynb` and `network_history/finalize_inventory.py`, none of which are in the repo. The `10_conversion/network_history/` package was deleted in commit 4f58990.

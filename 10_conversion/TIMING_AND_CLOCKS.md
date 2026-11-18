@@ -16,6 +16,7 @@ After correction, the datasets agree with one another:
 - **Hypocentres:** 95–99.6% of origins fall inside a waveform record, compared with 6–14% before.
 - **Picks:** the number of picks with no waveform fell from 38,997 to 3,141.
 - **Catalogue:** the number of catalogue events with both a waveform and a hypocentre rose from 110 to 2,818.
+- **Hypocentre linking:** with a new step-50 rule that links hypocentres through their picks first, 4,628 of 4,690 hypocentres are linked to a waveform or pick event. 4,389 of those events have a waveform.
 
 ## 2. The clocks
 
@@ -120,18 +121,30 @@ All products were regenerated in UTC (`~/work/Pinatubo1991Processing/utc`). The 
 
 **Step 50 catalogue (W = waveform, P = picks, H = hypocentre).** The recorded-time catalogue was built before the 17 Nov phase-card parser fix, which added about 225 picks; the effect on these counts is small.
 
-| Event class | Recorded | UTC |
-|---|---|---|
-| W + P + H | 94 | 2,735 |
-| W + H | 16 | 83 |
-| P + H | 0 | 258 |
-| W + P | 2,831 | 4,977 |
-| W only | 16,844 | 13,664 |
-| P only | 5,325 | 224 |
-| H only | 1,500 | 1,614 |
-| **Total events** | 26,610 | 23,555 |
+The two UTC columns differ only in how step 50 links hypocentres to events:
+- **"±10 s"** is the original rule: the origin must be within 10 s of the record start.
+- **"picks + window"** is the new default:
+  1. A hypocentre links to the event whose first P pick comes 0–10 s after the origin.
+  2. Otherwise it links to the record whose window contains the origin, from 10 s before the record start to the record end.
 
-Linking hypocentres now depends mainly on the step-50 matching rule, which requires the origin to be within ±10 s of the record start. Records start about 11 s before the first P arrival, so origins fall a median of 9.5 s after the start. About 40% of them lie outside ±10 s. A window running from 10 s before the record start to its end, or linking each hypocentre through its picks, would link most of the 1,614 H-only events.
+| Event class | Recorded | UTC, ±10 s | UTC, picks + window |
+|---|---|---|---|
+| W + P + H | 94 | 2,735 | 4,234 |
+| W + H | 16 | 83 | 155 |
+| P + H | 0 | 258 | 239 |
+| W + P | 2,831 | 4,977 | 3,478 |
+| W only | 16,844 | 13,664 | 13,592 |
+| P only | 5,325 | 224 | 243 |
+| H only | 1,500 | 1,614 | 62 |
+| **Total events** | 26,610 | 23,555 | 22,003 |
+
+**Why the original rule fell short:** records start about 11 s before the first P arrival, so origins fall a median of 9.5 s *after* the start, and about 40% lay outside ±10 s.
+
+**Under the new rule:**
+- **Through picks (4,446 links):** the first P arrives a median 2.3 s after the origin (99th percentile 4.8 s).
+- **By record window (182 links):** the origin falls a median 10.3 s after the record start.
+- **Against the old rule:** 3,046 of the old rule's 3,076 links are unchanged. Most of the 27 that differ now attach to the record that holds the hypocentre's picks.
+- **Still unlinked (62 hypocentres):** 46 of them fall inside a record already linked to another hypocentre, typically two earthquakes in one file. These keep a comment naming that record. The rest have no record or picks nearby.
 
 **BOB versus waveforms:**
 - In the UTC products, EVNT matches the waveform trigger rate at zero lag in every window from May to December.
