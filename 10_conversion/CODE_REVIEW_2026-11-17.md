@@ -101,14 +101,15 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
   - All 152,933 archived traces fall inside an epoch of their ID; the build fails otherwise. Step 16 has a test for the UTC conversion and the coverage rule.
   - Steps 61–69 were rerun, and their saved outputs were refreshed.
 
+- **FloVoPy REA manifest (§4.10).** `export_catalog_to_rea` saves its manifest once per run, with 60 s checkpoints, instead of after every S-file: a full step-52 rewrite takes 38 s instead of 33 min, with identical output. Repeated ObsPy writer warnings are summarised once with a count.
+
 **Remaining**, roughly in priority order:
 
 | # | Item | Section | Notes |
 |---|---|---|---|
-| 1 | FloVoPy REA manifest | §4.10 | `export_catalog_to_rea` (`seisanio/rea_export.py`) rewrites the whole manifest after every written S-file, so a full rewrite grows with the square of the event count (33 min for 21,753 events). Write it once after the loop and on failure, as in step 54. ObsPy's "Evaluation mode None is not mappable" warning is also printed once per event. |
-| 2 | Tests and docs | §6, §3.8 | `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
-| 3 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
-| 4 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
+| 1 | Tests and docs | §6, §3.8 | `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
+| 2 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
+| 3 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
 
@@ -311,7 +312,7 @@ Consequences (status in brackets):
     - **`PICKS_PRESENT` between steps 50 and 52.** Step 50 counts a step-32 pick container as picks even when no pick could be rebuilt; step 52 used `bool(event.picks)`. Step 52 now copies step 50's three presence flags, so they always agree with EVENT_CLASS, and writes the picks actually exported as `N_PICKS`. On the UTC catalogue the two had agreed for every event.
     - **`nearest` reused origin IDs.** When one hypocentre links to several events, each event now gets its own copy of the origins, with IDs `origin/<id>/copy-for/<event>` and a `hypocenter_shared:` comment. The default policy is one-to-one and was not affected.
     - **Unstable sort in step 43.** The default quicksort could reorder origins with equal times (1,608 of the 8,233 UTC origins share a time with another). Step 43 now uses a stable sort: equal times keep input order (summary file first, then line order). The groups and event IDs are unchanged, but the preferred origin changes in 3 events where the summary file repeats a time with a different solution (events 1547, 3305 and 3306; in 1547 the depth goes from 2.84 to 4.49 km). The order of origins within 822 groups also changes.
-    - Rerun 18 Nov (steps 43, 44, 50–53): class counts are unchanged (W_P_H 4,353, W_P 3,362, W_H 154, W_ONLY 13,590, P_H 121, P_ONLY 111, H_ONLY 62), steps 50 and 53 agree on every class, and no origin ID is repeated. Step 52 rewrote all 21,753 S-files (each gained `N_PICKS`) with `overwrite=True`; it took 33 min, because FloVoPy `export_catalog_to_rea` rewrites its whole manifest (8 MB) after every S-file. A run that only reuses files is fast.
+    - Rerun 18 Nov (steps 43, 44, 50–53): class counts are unchanged (W_P_H 4,353, W_P 3,362, W_H 154, W_ONLY 13,590, P_H 121, P_ONLY 111, H_ONLY 62), steps 50 and 53 agree on every class, and no origin ID is repeated. Step 52 rewrote all 21,753 S-files (each gained `N_PICKS`) with `overwrite=True`; it took 33 min, because FloVoPy `export_catalog_to_rea` rewrote its whole manifest (8 MB) after every S-file. **Fixed in FloVoPy:** the manifest is now saved once at the end (also after an exception or interrupt) and checkpointed at most every 60 s, so a hard kill loses at most a minute of tracking and those S-files are left untracked, never overwritten. A full rewrite now takes 38 s; it gives the same 21,753 S-files (identical apart from the write-time stamp on the type-I line) and the same manifest entries. ObsPy's "Evaluation mode None is not mappable" warning is now issued once with a count (7,947 events have a pick with no evaluation mode, written blank).
 11. Verified correct: HYPO71 column positions, N/E signs, km depth, minute/second rollover, CSS3 units and ID wiring.
 
 ## 5. BOB (60–69)
