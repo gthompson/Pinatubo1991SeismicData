@@ -18,7 +18,7 @@ def test_bob_notebook_workflow():
     print('Syntax: 10 notebooks passed')
     j=json.loads((root/'60_prepare_bob_archives.ipynb').read_text())
     for c in j['cells']:
-     if 'pipeline_definitions' in c['metadata'].get('tags',[]):exec(c['source'],ns)
+     if 'pipeline_definitions' in c['metadata'].get('tags',[]):exec(''.join(c['source']),ns)
     with tempfile.TemporaryDirectory() as tmp:
      b=Path(tmp)/'BOB';b.mkdir();ob=b.parent/'obsolete'
      def z(name,files):
@@ -48,7 +48,7 @@ def test_bob_notebook_workflow():
      # Exercise actual library + local exports/plots with a small text fixture.
      j=json.loads((root/'66_cospec.ipynb').read_text())
      for c in j['cells']:
-      if 'pipeline_definitions' in c['metadata'].get('tags',[]):exec(c['source'],ns)
+      if 'pipeline_definitions' in c['metadata'].get('tags',[]):exec(''.join(c['source']),ns)
      source=b/'COSPEC';source.mkdir();(source/'COS_PEC.DAT').write_text('13 MAY 91 00:00 100\n14 MAY 91 00:00 -998\n')
      ns.update(BOB_ROOT=b,BOB_OUTPUT=b.parent/'FAIR/BOB',BOB_CONFIG={},CONFIG={},OVERWRITE=False)
      ds=ns['read_cospec'](source)
@@ -75,7 +75,7 @@ def test_bob_qc_date_filter_and_overview():
       if c['cell_type']=='code':ast.parse(''.join(c['source']),filename=p.name)
     print('Syntax passed for all 10 notebooks')
     for c in json.loads((root/'67_counts.ipynb').read_text())['cells']:
-     if c['cell_type']=='code' and 'def export_product(' in c['source']:exec(c['source'],ns)
+     if c['cell_type']=='code' and 'def export_product(' in ''.join(c['source']):exec(''.join(c['source']),ns)
     with tempfile.TemporaryDirectory() as tmp:
      base=Path(tmp);source=base/'BOB/COUNTS';source.mkdir(parents=True)
      (source/'CAB_CNT.DAT').write_text('13 JUL 19 06:30 5\n13 JUL 91 06:30 7\n13 JUL 91 06:30 8\n20 SEO 91 04:30 1\n14 JUL 91 00:30 0\n')
@@ -96,7 +96,7 @@ def test_bob_qc_date_filter_and_overview():
      except FileExistsError:pass
      else:raise AssertionError('overwrite guard')
      for c in json.loads((root/'69_bob_coverage_and_review.ipynb').read_text())['cells']:
-      if 'pipeline_definitions' in c.get('metadata',{}).get('tags',[]):exec(c['source'],ns)
+      if 'pipeline_definitions' in c.get('metadata',{}).get('tags',[]):exec(''.join(c['source']),ns)
      assemble=ns['assemble_coverage']
      _,tab,_,missing,_=assemble(base/'FAIR/BOB',{'COUNTS':['counts']},'1991-04-01','1991-12-01')
      assert tab.observed_days.iloc[0]==2 and not missing

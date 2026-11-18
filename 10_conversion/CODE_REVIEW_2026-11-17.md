@@ -73,19 +73,26 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
   - Station days: DON1 38 → 30, BUR1 2 → 1. BUR1, PPE1 and PPO1 are 83–84% zeros.
   - The step-69 network total is unchanged (SSAM 135 days), because other stations cover the days DON1 and BUR1 lose.
   - 4,233 rows (DON1 and PI21) have every band 0 except BN01 = 1 or 2. They look like dead channels; they are flagged `qc_near_zero` and counted in `review.json`, but kept.
+- **BOB products (§5.2–5.7).** One change to the helper cell shared by notebooks 61–68, plus product-specific fixes:
+  - **RSAM/EVNT window labels.** Each 10-minute value is labelled at the END of its window. EVNT counts match the waveform triggers in the 10 minutes before each label (correlation peaks at 0–60 s lag; the 10 minutes after the label correlate less). RSAM, EVNT and TILT exports now have `window_start` and `window_end` columns. TILT is assumed to follow RSAM (same BOB software and annual layout). The SSAM `TIME_ANCHOR` in nb 62 is a separate question: SSAM was recorded on the MDETECT PC clock, so it cannot be tested against RSAM at the 1-minute level, and it stays an explicit display convention.
+  - **Rain carried forward.** Fields 2–7 are now named from `BOB_QPLO.TXT` (CUAD, BUGZ, PIEZ, BALR, FNGZ, SACR). Values equal to the previous row in the same file are flagged `<field>_carried` (CONVERT.FOR repeats every other channel's last value). `field_quality.csv` has a `fresh_values` column, and the plots show only fresh values. For example, CUAD has 3,464 values but 1,300 fresh; PIEZ 8,737 but 5,305 fresh. An unchanged fresh reading looks the same as a carried one, so these are lower bounds on fresh readings.
+  - **Tilt saturation.** Values of 8192 (2^13, the digitizer limit) are masked in `value_01` and flagged `value_01_saturated`: 64 samples (46 UBOR, 18 UBOT) from the 12 June 23:00 label. The mudflow maxima 8016 and 8010 are single values, not a repeated limit, so they are left alone.
+  - **Mudflow skipped files.** Files that are not `.DAT` are listed in `skipped_inputs.csv` with a reason (10 files). `PROGS/10AUG91.DA2`–`11AUG91.DA5` are GMT copies of MARL, ABAC, USAC and GUMA: 36–58 of each file's 36–59 records appear in the station file 8 h later. No data are lost. `GUMA/GMT_2LOC.BAS`, a time-conversion program, is also listed.
+  - **Auxiliary sources.** TEST arrays and BUG1/TEMP stay in the records export but no longer count as coverage. The step-69 network totals are unchanged, as expected.
+  - **Tests (§5.7).** `tests/test_bob_notebooks.py` now joins the notebook cell source, so both BOB tests pass. New `tests/test_bob_products.py` covers the window columns, auxiliary sources, rain flags and the mudflow file list.
+  - Steps 61–69 were rerun, and their saved outputs were refreshed.
 
 **Remaining**, roughly in priority order:
 
 | # | Item | Section | Notes |
 |---|---|---|---|
-| 1 | BOB product issues | §5.2–5.6 | `TIME_ANCHOR='start'` though RSAM is end-of-window; rain carried forward; tilt rail value 8192; mudflow `.DA2`–`.DA5` files skipped; auxiliary sources. |
-| 2 | Other BOB clocks | §1 | Tilt, rain, mudflow, COSPEC, counts and radio are flagged `unverified`. Rain/mudflow `CONVERT.FOR` applies `hr-8` with no date roll; tilt switched to local on 18 Nov 91. BOB 2–9 May has low confidence. |
-| 3 | Waveform bookkeeping | §2.2–2.3 | Flat channels are still dropped before provenance is built. Five DMX files are still unaccounted for: `9105080Y` and `91050813` (empty) and `9106133O`, `9107077R`, `9108071V` (truncated). |
-| 4 | StationXML epochs end before the data | §2.4 | Not rechecked after the UTC shift. |
-| 5 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
-| 6 | Tests and docs | §5.7, §6, §3.8 | `tests/test_bob_notebooks.py` lines 51 and 78 need `''.join(c['source'])`. `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
-| 7 | Clock drift within a day | §1 | The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
-| 8 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
+| 1 | Other BOB clocks | §1 | Tilt, rain, mudflow, COSPEC, counts and radio are flagged `unverified`. Rain/mudflow `CONVERT.FOR` applies `hr-8` with no date roll; tilt switched to local on 18 Nov 91. BOB 2–9 May has low confidence. |
+| 2 | Waveform bookkeeping | §2.2–2.3 | Flat channels are still dropped before provenance is built. Five DMX files are still unaccounted for: `9105080Y` and `91050813` (empty) and `9106133O`, `9107077R`, `9108071V` (truncated). |
+| 3 | StationXML epochs end before the data | §2.4 | Not rechecked after the UTC shift. |
+| 4 | Step 54 rewrites membership JSON inside the loop; minor step 43/50/52/53 issues | §4.8, §4.10 | Step 54 also needs an Antelope environment to run. |
+| 5 | Tests and docs | §6, §3.8 | `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
+| 6 | Clock drift within a day | §1 | The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
+| 7 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
 
@@ -292,15 +299,15 @@ Consequences (status in brackets):
 
 ## 5. BOB (60–69)
 
-**Status:** item 1 fixed (all-zero SSAM rows are dropouts). Item 2's time bases are fixed for RSAM/EVNT/SSAM; SSAM had been put on the BOB clock by mistake and is now on the MDETECT PC clock. All other items are open.
+**Status:** items 1–7 fixed: all-zero SSAM rows are dropouts; RSAM/EVNT/TILT carry window-end labels; rain carried-forward values, tilt saturation, mudflow skipped files and auxiliary sources are handled; the BOB tests pass. Item 2's time bases are fixed for RSAM/EVNT/SSAM (SSAM had been put on the BOB clock by mistake and is now on the MDETECT PC clock); the other BOB clocks remain open (see the remaining-items table). Item 8 is open.
 
 1. [Fixed] **All-zero SSAM rows count as data.** The SSAM files use 0 in all 16 bands for dropouts, but only −998/−999 are masked. That is about 34k SSAM rows plus 1.2k DATA rows (e.g. BUR1 1,400 of 1,667 rows, and DON1 has 8 entirely zero days counted as valid). Coverage, the 69 overview and the spectrograms are all inflated.
-2. **Time bases**: see §1. nb 62 sets `TIME_ANCHOR='start'`, but RSAM is end-of-window.
-3. **Rain values are carried forward** (`blank(chid)=data` in CONVERT.FOR), so "value present" overstates fresh readings. BOB_QPLO.TXT names the rain channel columns, but the notebook doesn't use them.
-4. **Tilt rail value 8192 (2^13) is treated as data**: 46 UBOR and 18 UBOT samples from 12 Jun 23:00. Mudflow maxima of 8016 and 8010 suggest the same limit.
-5. **MUDFLOW `.DA2`–`.DA5` files** (10–11 Aug) are skipped without notice because only `*.DAT` is read.
-6. **TEST, BUG1 and TEMP auxiliary sources feed coverage**; today they add no new network days.
-7. **The two failing tests are bugs in the test file**: notebook cell `source` is a list of lines, so `tests/test_bob_notebooks.py` lines 51 and 78 need `''.join(c['source'])` (verified).
+2. [Fixed] **Time bases**: see §1. nb 62 sets `TIME_ANCHOR='start'`, but RSAM is end-of-window.
+3. [Fixed] **Rain values are carried forward** (`blank(chid)=data` in CONVERT.FOR), so "value present" overstates fresh readings. BOB_QPLO.TXT names the rain channel columns, but the notebook doesn't use them.
+4. [Fixed] **Tilt rail value 8192 (2^13) is treated as data**: 46 UBOR and 18 UBOT samples from 12 Jun 23:00. Mudflow maxima of 8016 and 8010 suggest the same limit.
+5. [Fixed] **MUDFLOW `.DA2`–`.DA5` files** (10–11 Aug) are skipped without notice because only `*.DAT` is read.
+6. [Fixed] **TEST, BUG1 and TEMP auxiliary sources feed coverage**; today they add no new network days.
+7. [Fixed] **The two failing tests are bugs in the test file**: notebook cell `source` is a list of lines, so `tests/test_bob_notebooks.py` lines 51 and 78 need `''.join(c['source'])` (verified).
 8. Older `legacy_bob` modules differ slightly from the notebooks (−998 handling in counts, tilt labelled local, radio ditto column).
 9. Verified correct:
    - annual float32 layout (52,560 and 52,704 samples, 576-byte header, little-endian)
