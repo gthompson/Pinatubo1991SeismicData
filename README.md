@@ -23,12 +23,16 @@ However:
 This repository provides:
 
 <pre>
-✔ A seven-stage Python pipeline for full FAIR reconstruction
-✔ Modern MiniSEED + QuakeML + SEISAN REA outputs
-✔ A unified, cross-referenced event catalog
-✔ Scripts designed for transparency, modularity, and reproducibility
-✔ Self-contained helper functions (no FLOVOPY dependency)
+✔ Jupyter notebooks that convert the whole surviving archive, step by step (10_conversion)
+✔ MiniSEED (SEISAN WAV), StationXML, QuakeML, SEISAN REA and Antelope CSS3.0 outputs
+✔ A unified event catalogue that records which of waveforms, picks and hypocentres survive for each event
+✔ UTC times throughout, with the clock rule and uncertainty recorded for every record
+✔ Tabular BOB monitoring products (RSAM, SSAM, tilt, rain, mudflow, COSPEC, counts)
+✔ Analysis notebooks for the converted archive (20_analysis)
 </pre>
+
+Generic readers and writers for VDAP data (DMX, PHA, HYPO71, BOB, Nordic REA) live in
+[FloVoPy](https://github.com/gthompson/flovopy); Pinatubo-specific choices stay in this repository.
 
 A companion JOSS submission will document the pipeline as research-grade software.
 
@@ -47,157 +51,95 @@ A companion JOSS submission will document the pipeline as research-grade softwar
 <pre>
 Pinatubo1991SeismicData/
 │
-├── README.md
-├── LICENSE
-├── environment.yml            # Conda environment for full pipeline
+├── README.md, LICENSE, CITATION.cff
+├── CONFIGURATION.md           # Input/output locations and the UTC time basis
+├── RESULTS_LAYOUT.md          # External output layout
+├── environment.yml
 │
-├── pipeline/                  # Standalone processing scripts
-│   ├── 01_dmx_to_seisanWAV.py
-│   ├── 02_index_waveforms.py
-│   ├── 03_parse_phase.py
-│   ├── 04_parse_hypo71.py
-│   ├── 05_associate_phase_hypo71_waveforms.py
-│   ├── 06_build_unified_catalog.py
-│   ├── 07_qc_and_exports.py
-│   ├── flovopy_functions.py   # Self-contained helper library
-│   └── run_pinatubo_pipeline.sh
+├── 10_conversion/             # Conversion notebooks, steps 10–69 (see NOTEBOOKS_README.md)
+│   ├── conversion_config.json # data_top, output_root, time_basis, clock_regimes
+│   ├── clock_regimes.csv      # Clock rule per data stream and period
+│   ├── TIMING_AND_CLOCKS.md   # Evidence for the clock rules
+│   ├── CODE_REVIEW_2026-11-17.md
+│   ├── pinatubo_steps/        # Small shared helpers (paths, clocks, IDs, PHA wrapper) and tests
+│   └── tests/                 # BOB notebook and product tests
 │
-├── metadata/                  # Derived catalogs & intermediate metadata
-│   ├── wfdisc_catalog.csv
-│   ├── wfdisc_catalog.xml
-│   ├── trace_id_mapping.csv
-│   ├── pha/
-│   ├── hypo71/
-│   ├── association/
-│   └── qc/
-│
-├── docs/                      # Documentation and figures
-│   ├── overview.md
-│   ├── pipeline_diagram.png
-│   ├── data_structure.md
-│   └── figures/
-│
-├── notebooks/                 # Analysis, visualization & exploration
-│   ├── exploratory/
-│   ├── figures/
-│   └── legacy/
-│
-├── papers/                    # Manuscripts (Volcanica, DI&B, JOSS)
-│   ├── Volcanica/
-│   ├── DataInBrief/
-│   └── JOSS/
-│
-└── tests/                     # Unit tests for key components
-    ├── test_parse_phase.py
-    ├── test_parse_hypo71.py
-    ├── test_associate.py
-    ├── data/
-    └── utils/
+├── 20_analysis/               # Analysis notebooks (see ANALYSIS_NOTEBOOKS.md)
+├── papers/                    # Manuscripts (JOSS)
+└── tests/                     # Configuration tests
 </pre>
+
+Generated data are written outside the repository (see [CONFIGURATION.md](CONFIGURATION.md)).
 
 ⸻
 
 ## Installation
 
-This repository uses a conda environment for maximum reproducibility.
+Create a conda environment with Python ≥ 3.11, ObsPy, pandas, NumPy, Matplotlib,
+JupyterLab and pytest (`environment.yml` lists these), then install FloVoPy from a
+checkout in editable mode:
 
+```bash
 mamba env create -f environment.yml
+```
+
+```bash
 mamba activate pinatubo_fair
+```
+
+```bash
+pip install -e ../flovopy
+```
 
 ⸻
 
-## Pipeline Overview (01–07)
+## Pipeline Overview
 
-The FAIR reconstruction workflow is divided into seven modular steps:
+The conversion runs as numbered notebooks in `10_conversion`; the full table of steps,
+inputs and products is in [10_conversion/NOTEBOOKS_README.md](10_conversion/NOTEBOOKS_README.md).
 
-01 — Convert DMX → MiniSEED
-	•	Reads ~21.5k legacy DMX waveform files
-	•	Removes telemetry offsets, IRIG channels, empty traces
-	•	Normalizes station/channel IDs (short-period EH? codes)
-	•	Writes SEISAN-style WAV MiniSEED archive
+- **10–16 Waveforms and network.** Convert the 21,475 surviving DMX files to MiniSEED in a SEISAN WAV
+  database (IRIG traces removed, 2048-count offset subtracted, legacy station IDs mapped,
+  damaged files partly recovered), then rebuild the network history and StationXML.
+- **20–35 Picks.** Parse the individual-event and monthly PHA phase files, merge them, and
+  associate picks with waveform files.
+- **40–45 Hypocentres.** Parse `Pinatubo_all.sum` and `PINAALL.DAT`, compare them and group
+  their origins.
+- **50–54 Catalogue.** Build one ObsPy catalogue whose events record which of waveforms (W),
+  picks (P) and hypocentre (H) survive, and export it to QuakeML, SEISAN REA and Antelope CSS3.0.
+- **60–69 BOB.** Unpack and convert the BOB monitoring products and summarise their coverage.
 
-02 — Index Waveforms & Build wfdisc Catalog
-	•	Scans the MiniSEED WAV/ tree
-	•	Builds a wfdisc_catalog.csv
-	•	Generates a QuakeML wrapper (wfdisc_catalog.xml)
-
-03 — Parse PHA Phase-Arrival Files
-	•	Reads manually picked P/S arrivals from:
-pinmay91.pha, pinjun91.pha, pinjul91.pha, pinaug91.pha
-	•	Normalizes station/channel codes
-	•	Handles inconsistent formatting and missing delimiters
-	•	Clusters picks into candidate events
-
-04 — Parse HYPO71 Summary Catalog
-	•	Reads and parses Pinatubo_all.sum
-	•	Outputs Event objects in QuakeML format
-	•	Stores clean metadata tables
-
-05 — Associate Picks, Hypocenters & Waveforms
-	•	Matches HYPO71 origins to pick clusters via time-window logic
-	•	Associates waveform files via start–end time overlaps
-	•	Flags ambiguous or unmatched events
-
-06 — Build Unified Catalog
-	•	Constructs a consolidated dataset of:
-	•	waveform-only events
-	•	pick-only events
-	•	hypocenter-only events
-	•	fully merged events
-	•	Outputs:
-	•	QuakeML
-	•	SEISAN REA
-	•	metadata tables
-
-07 — Quality Control & Export
-	•	Summaries, plots, and consistency checks
-	•	Daily event rates, coverage heatmaps
-	•	Clock drift diagnostics
-	•	Export of research-ready files
+Every time is converted to UTC where it is read. Each acquisition PC had its own clock,
+switched between Philippine time and GMT during 1991; the rules are in
+`10_conversion/clock_regimes.csv` and the evidence in `10_conversion/TIMING_AND_CLOCKS.md`.
 
 ⸻
+
 ## Data directories
 
-Based on the default settings in the run_pinatubo_pipeline.sh file, the directory tree built will look like:
+`conversion_config.json` sets `data_top`, the archive to read, and `output_root`, where
+everything is written. The legacy inputs are expected under `data_top`:
 <pre>
-~/Dropbox/PROFESSIONAL/DATA/Pinatubo/
-└── ASSEMBLED-25-028-THOMPSON-PINATUBO1991/       [DATA_TOP]
-    │
-    ├── LEGACY/                                    [LEGACY_TOP]
-    │   │
-    │   ├── WAVEFORM_DATA/
-    │   │   └── SUDS/                             [SUDS_TOP]
-    │   │       └── .../*.DMX                     Legacy waveform files
-    │   │
-    │   └── EVENT_METADATA/                       [LEGACY_EVENTMETA_DIR]
-    │       ├── MONTHLY_PHA/                      [LEGACY_PHA_MONTHLY_DIR]
-    │       │   └── ...                           Monthly phase arrivals
-    │       │
-    │       ├── PHA/                              [LEGACY_PHA_INDIVIDUAL_DIR]
-    │       │   └── ...                           Individual phase files
-    │       │
-    │       └── HYPOCENTERS/                      [LEGACY_HYPO_DIR]
-    │           └── ...                           Legacy hypocenter data
-    │
-    ├── FAIR/                                      [FAIR_TOP]
-    │   │
-    │   ├── SEISAN/                               [SEISAN_TOP]
-    │   │   └── WAV/
-    │   │       └── PNTBO/                        [SEISAN_WAV_DB]
-    │   │           └── YYYY/
-    │   │               └── MM/
-    │   │                   └── ...               Converted waveform files
-    │   │
-    │   └── metadata/                             [FAIR_META_DIR]
-    │       └── ...                               Catalogs and metadata
-    │
-    └── pipeline_tmp/                             [TMP_DIR]
-        └── qc/                                   [QC_DIR]
-            └── ...                               Diagnostics and QC outputs
-	
+data_top/
+└── LEGACY/                               [LEGACY_TOP]
+    ├── WAVEFORM_DATA/SUDS/.../*.DMX      Legacy waveform files
+    ├── EVENT_METADATA/
+    │   ├── PHA/                          Individual-event phase files
+    │   ├── MONTHLY_PHA/                  Monthly phase files
+    │   └── HYPOCENTERS/                  Pinatubo_all.sum, PINAALL.DAT
+    ├── STATION_METADATA/NETWORK_HISTORY/ Station evidence for step 15
+    └── BOB/                              BOB monitoring products
 </pre>
-
-Organize the legacy data as shown in the LEGACY/ folder above. Other directories will be created.
+Outputs go under `output_root`:
+<pre>
+output_root/
+├── FAIR/
+│   ├── SEISAN/WAV/PNTBO/YYYY/MM/         MiniSEED waveforms
+│   ├── SEISAN/REA/YYYY/MM/               Nordic S-files
+│   ├── metadata/                         Catalogue (QuakeML, pickle), StationXML, network history
+│   └── BOB/<product>/                    BOB products and QC
+└── pipeline_tmp/                         Indexes, logs and QC between steps
+</pre>
 
 ⸻
 
@@ -214,10 +156,17 @@ A citation entry will be provided once the JOSS article is published.
 
 ## Testing
 
-Tests live in tests/ and can be executed via:
+From `10_conversion` (conversion notebooks, clock rules, parsers, exporters, BOB products):
 
-pytest -v
+```bash
+python -m pytest -q pinatubo_steps/tests tests
+```
 
+From the repository root (configuration checks):
+
+```bash
+python -m unittest discover -s tests -p test_pipeline_configuration.py -v
+```
 
 ⸻
 

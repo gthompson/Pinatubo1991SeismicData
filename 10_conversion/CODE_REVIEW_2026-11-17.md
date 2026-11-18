@@ -102,14 +102,14 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
   - Steps 61–69 were rerun, and their saved outputs were refreshed.
 
 - **FloVoPy REA manifest (§4.10).** `export_catalog_to_rea` saves its manifest once per run, with 60 s checkpoints, instead of after every S-file: a full step-52 rewrite takes 38 s instead of 33 min, with identical output. Repeated ObsPy writer warnings are summarised once with a count.
+- **Tests and docs (§6, §3.8).** `NOTEBOOKS_README.md`, the top-level `README.md`, `CONFIGURATION.md` and `34_association_review.md` now describe the current UTC pipeline. A stale configuration test is corrected. Notebooks still showing outputs from the old root were rerun with byte-identical results.
 
 **Remaining**, roughly in priority order:
 
 | # | Item | Section | Notes |
 |---|---|---|---|
-| 1 | Tests and docs | §6, §3.8 | `NOTEBOOKS_README.md` describes `12_*`, `13_*` and `network_history/finalize_inventory.py`, which are not in the repo. `34_association_review.md` still calls step 32 stale. |
-| 2 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
-| 3 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
+| 1 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
+| 2 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
 
@@ -278,7 +278,7 @@ Consequences (status in brackets):
   - Step 21 event IDs now use the separator-block position in the source file. The old→new map is in `pipeline_tmp/21_event_id_changes_20261117.csv`.
   - Steps 20–53 have since been rerun on the UTC data.
 - **Fixed since:** item 6 (114 minute-60 lines now rolled over); item 8's blank-component channel bug (FloVoPy maps components explicitly); `pha_parser` now has tests.
-- **Still open:** the stale note in `34_association_review.md`. Item 2 is fixed: blocks holding two events are split. Item 4 is fixed: an S earlier than P is skipped, not moved a minute later. Item 7 is fixed: whole blocks are attached, and duplicates are recorded instead of resurfacing.
+- **Fixed 18 Nov:** the stale note in `34_association_review.md` (see §6). Item 2 is fixed: blocks holding two events are split. Item 4 is fixed: an S earlier than P is skipped, not moved a minute later. Item 7 is fixed: whole blocks are attached, and duplicates are recorded instead of resurfacing.
 
 1. **S-only lines get the wrong minute** (`pha_parser.py` ~208): `.strip()` runs before blank→0, so `'9108082304'` parses as 23:00:04 instead of 23:04:00 (verified with `strptime`). This affects 62 S picks and 8 fake P picks. Most are removed later as outliers; FNG in `pinaug91_block0862` survives at 21:00:36.42 (should be 21:07:36.42).
 2. **Events in blocks missing a "10" separator are discarded.** The median-time filter drops the smaller event (13 clusters with ≥3 stations, 72 picks). `_split_into_time_clusters` exists but is never called.
@@ -292,7 +292,7 @@ Consequences (status in brackets):
 8. Latent issues:
    - `'' in 'ZNE'` is True (`pha_parser` line 222), so a blank column 4 would give channel `EH`.
    - `pha_parser` has no tests.
-   - `34_association_review.md` says step 32 is stale, but it has since been rerun.
+   - `34_association_review.md` says step 32 is stale, but it has since been rerun. [Fixed 18 Nov: refreshed from the UTC run.]
 
 ## 4. Hypocenters and catalog export (40–54)
 
@@ -335,6 +335,15 @@ Consequences (status in brackets):
 
 ## 6. Documentation
 
-**Status:** open.
+**Status:** [Fixed 18 Nov].
 
-- `NOTEBOOKS_README.md` describes `12_*` and `13_inspect_partial_dmx_recovery.ipynb` and `network_history/finalize_inventory.py`, none of which are in the repo. The `10_conversion/network_history/` package was deleted in commit 4f58990.
+- `NOTEBOOKS_README.md` described `12_*` and `13_inspect_partial_dmx_recovery.ipynb` and `network_history/finalize_inventory.py`, none of which are in the repo. The `10_conversion/network_history/` package was deleted in commit 4f58990.
+
+**Fixed 18 Nov:**
+- `NOTEBOOKS_README.md` is rewritten from the current repo: every step 10–69 with its purpose and inputs, the UTC clock rules, the settings that matter (step 10 recovery, step 40 parser, step 50 policies, step 52 collisions and manifest, BOB QC and clocks), how to run the tests, and what the leftover files are. Older text described a script-to-module refactor that was later undone, `one_to_one` as the step-50 default (it is `picks_then_window`), step-52 collision suffixes (replaced by filename shifts), and superseded folders that no longer exist.
+- `34_association_review.md` is refreshed from the UTC outputs. The "stale outputs" finding is resolved. All 119 step-30 groups are enclosed, including `91060310`. Step 32 now has 7,715 WAV+PICKS, 13,744 WAV_ONLY and 232 PICKS_ONLY containers, and no source group is split. All 58,068 step-22 picks are accounted for (56,655 mapped, 1,413 suppressed duplicates). The channel screen and multi-group counts are recomputed, and the example times are now UTC.
+- The top-level `README.md` described `pipeline/01–07` scripts, `metadata/` and `docs/` folders, a Dropbox data tree and "no FLOVOPY dependency", none of which is true now. Its structure, installation, pipeline, data-directory and testing sections are rewritten.
+- `CONFIGURATION.md` gave the old output roots, "Notebook 05" (now step 15) and a 100 Hz rate, and said tilt, rain, mudflow and counts have no clock rule. All are corrected. Step 10's introduction no longer mentions a command-line conversion or a 100 Hz rate. Step 32's markdown example times are UTC.
+- `tests/test_pipeline_configuration.py` expected the network history directly under the output root; it is under `FAIR/metadata/` (since commit 28f382f). The test is corrected, and all 9 configuration tests pass.
+- Notebooks 20–23, 30–33, 35, 40 and 42 had saved outputs from the old `converted` root. They were rerun on the UTC root. Every CSV and log they write is byte-identical to before, so nothing downstream needed rerunning. Step 35 now selects 221 files; the saved notebook keeps 4 of its 221 inline figures, and all are in the review folder.
+

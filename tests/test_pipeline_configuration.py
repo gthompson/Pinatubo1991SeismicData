@@ -30,7 +30,7 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(Path(p['SUDS_TOP']),self.inputs/'LEGACY/WAVEFORM_DATA/SUDS')
         self.assertEqual(Path(p['FAIR_TOP']),self.out/'FAIR')
         self.assertEqual(Path(p['TMP_DIR']),self.out/'pipeline_tmp')
-        self.assertEqual(Path(p['NETWORK_HISTORY_OUTPUT']),self.out/'network_history')
+        self.assertEqual(Path(p['NETWORK_HISTORY_OUTPUT']),self.out/'FAIR/metadata/network_history')
         self.assertEqual(p['NET'],'XY');self.assertIn('/TEST',p['SEISAN_WAV_DB'])
         self.assertFalse(self.out.exists())
         for key in ['WAVEFORM_INDEX','TRANSLATION_CSV','MERGED_PICK_INDEX','CATALOG_PREFIX','FAIR_REA_DIR','SEISAN_DIAG_DIR']:

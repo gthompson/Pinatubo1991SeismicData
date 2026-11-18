@@ -10,10 +10,10 @@ No archive conversion or analysis is started by editing or loading configuration
 | Setting | Default |
 |---|---|
 | Conversion `data_top` (existing archive, read inputs) | `~/Library/CloudStorage/Box-Box/thompsong/DATA/pinatubo1991` |
-| Conversion `output_root` | `~/DATA/Pinatubo1991Processing/conversion` |
-| Analysis `wav_root` (existing recordings) | `~/Library/CloudStorage/Box-Box/thompsong/DATA/pinatubo1991/FAIR/SEISAN/WAV/PNTBO` |
+| Conversion `output_root` | `~/work/Pinatubo1991Processing/utc` |
+| Analysis `wav_root` (converted recordings) | `~/work/Pinatubo1991Processing/utc/FAIR/SEISAN/WAV/PNTBO` |
 | Analysis `output_root` | `~/DATA/Pinatubo1991Processing/analysis` |
-| Analysis `network_history_products` (read metadata) | `~/DATA/Pinatubo1991Processing/conversion/network_history` |
+| Analysis `network_history_products` (read metadata) | `~/work/Pinatubo1991Processing/utc/FAIR/metadata/network_history` |
 
 The Box input directories exist on the inspected machine. Change these settings
 for another machine, drive, selected archive version or deliberately separate run.
@@ -27,14 +27,17 @@ notebook SETTINGS are expert escape hatches and still require deliberate paths.
 
 ## Conversion
 
-Notebook 05 writes network maps, StationXML, chronology and timing/epoch tables to
-`<conversion-output>/network_history`. Optional header rescans write under its
-`header_scan` subdirectory, leaving the shipped evidence files unchanged.
-
 Notebook 10 writes MiniSEED under `<conversion-output>/FAIR/SEISAN/WAV/PNTBO`.
-`waveform` options in the JSON control the sampling-rate argument, glob, file limit,
-overwrite and verbosity. The retained 100-Hz setting is an existing choice requiring
-the scientific check already identified; this path change does not validate it.
+`waveform` options in the JSON control the sampling rate, glob, file limit,
+overwrite, verbosity and partial-file recovery. `sampling_rate: null` keeps the DMX
+header rate (3125/31 Hz = 100.80645 Hz); a number would overwrite the header rate
+without resampling. `recover_partial: true` keeps the complete traces before the
+first defect of a damaged file and records it in the waveform index.
+
+Notebook 15 writes network history, channel epochs, StationXML and audits to
+`<conversion-output>/FAIR/metadata/network_history`, reading the station evidence
+under `LEGACY/STATION_METADATA/NETWORK_HISTORY`. The step order and products of
+every notebook are listed in `10_conversion/NOTEBOOKS_README.md`.
 
 Subsequent conversion notebooks use `<conversion-output>/pipeline_tmp` for indexes,
 logs and QC, and `<conversion-output>/FAIR` for metadata and REA. Existing old products
@@ -58,16 +61,17 @@ Per-stage scientific parameters remain visible in notebook SETTINGS.
 |---|---|
 | 10 | waveform start times (and SEISAN names); the rule must agree with the DMX header `localtime` field and the file order |
 | 20, 21 | pick times |
+| 15 | channel epochs (field-note dates and times are Philippine time) |
 | 40 | origin times |
-| 61, 62 | BOB RSAM, EVNT and SSAM labels |
+| 61–65, 67 | BOB RSAM, EVNT, SSAM, tilt, rain, mudflow and hourly CAB-count labels |
 
 Raw values are kept in `raw_*` columns. The rule applied, and a nominal
 absolute-time uncertainty, are recorded in `clock_*` columns; step 50 copies the
 uncertainty into each QuakeML origin's `time_errors`. Records that cannot be
 placed are written to `*_clock_unresolved.csv` (or, for waveforms, the failures
-table) instead of the index. Tilt, rain, mudflow, COSPEC, counts and radio
-labels have no verified clock, so they are left as recorded and flagged
-`unverified`. Set `"time_basis": "recorded"` (and a different `output_root`)
+table) instead of the index. COSPEC dates are taken as Philippine days; daily PIE
+counts and radio-map dates are kept as written. Rain and mudflow from 15 November
+1991, and CAB labels outside the rules, are flagged `unverified`. Set `"time_basis": "recorded"` (and a different `output_root`)
 only to reproduce the uncorrected products, such as the earlier run in
 `~/work/Pinatubo1991Processing/converted`.
 
@@ -87,10 +91,9 @@ current mode is all files, fixed five-second assumed noise, event to record end.
 For a controlled trial select a sample in notebook 20 or the shared JSON first.
 Do not interpret that reference window as verified quiet background.
 
-Analysis initially reads the existing Box waveform archive. If conversion creates
-a different selected waveform release, explicitly update `wav_root` to its
-`FAIR/SEISAN/WAV/PNTBO` directory before analysis. Changing conversion's output root
-does not silently change the analysis input.
+Analysis reads the UTC waveform release written by conversion (`wav_root` above).
+Changing conversion's output root does not silently change the analysis input:
+update `wav_root` and `network_history_products` explicitly.
 
 The publication selection remains pinned to its earlier pilot. A changed run/root
 may require deliberate example reselection; it must not silently substitute new
