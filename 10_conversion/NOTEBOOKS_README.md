@@ -62,7 +62,7 @@ From this folder:
 python -m pytest -q lib/tests tests
 ```
 
-`lib/tests` covers the clock rules, PHA parsing and comparison, shared helpers and steps 32, 43, 50–54 (the notebook functions are loaded from their `pipeline_definitions` cells). `tests/` covers the BOB notebooks and products. FloVoPy has its own suite (`python -m pytest -q flovopy/tests` in the FloVoPy checkout). The configuration checks are run from the project root (see [../CONFIGURATION.md](../CONFIGURATION.md)).
+`lib/tests` covers the clock rules, PHA parsing and comparison, shared helpers and steps 32, 43, 50–54 (the notebook functions are loaded from their `pipeline_definitions` cells). `tests/` covers the BOB notebooks and products, and runs step 71's controlled network-reconstruction checks. FloVoPy has its own suite (`python -m pytest -q flovopy/tests` in the FloVoPy checkout). The configuration checks are run from the project root (see [../CONFIGURATION.md](../CONFIGURATION.md)).
 
 ## Reviews and reference documents
 

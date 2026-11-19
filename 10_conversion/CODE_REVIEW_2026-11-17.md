@@ -124,7 +124,7 @@ Review of notebooks 10–69, `lib/`, `legacy_bob/` and the relevant FloVoPy read
   - `pinatubo_steps/` renamed `lib/` throughout (notebooks find it by `lib/clock.py`). `dmx_recovery.py` and step 10's candidate-saving section removed; the unused `parse_individual_pha_file` and the re-exports of FloVoPy's `parse_seed_id`/`get_comment_value` removed (steps 50–52 import them from FloVoPy).
   - Network history and StationXML moved from steps 15/16 to **70/71**, after the BOB steps, so they are built once every dataset is on UTC. Outputs are now `step70_provenance.json` and `validation/71_*.json`; the analysis checks the new name. Rerun: products identical apart from timestamps and hashes; 71's checks pass.
   - Retired to `superseded/` (with a README): the early SSAM/mudflow coverage scripts and their README, `refactor_manifest.json` and `unpack_bob_archives.py` (a command-line copy of step 60). `FLOVOPY_MIGRATION_REVIEW.md` is rewritten as a current note on what lives in FloVoPy, what stays in `lib/`, and candidates to move.
-  - The external test runner (`tests/run_external_tests.py`) fails in its sandbox because `build_all` expects a header scan there; this predates the move (same failure on the previous commit).
+  - The external test runner (`tests/run_external_tests.py`) failed in its sandbox because `build_all` expects a header scan there (this predated the move). It is removed: its rebuild only repeated running step 70, and its other suites already run under pytest. Step 71's controlled reconstruction checks, which nothing else ran, now run with the conversion tests (`tests/test_network_reconstruction.py`, 5 tests).
 
 **Remaining**, roughly in priority order:
 
