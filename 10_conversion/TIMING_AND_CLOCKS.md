@@ -121,11 +121,20 @@ Every product keeps the raw time in a `raw_*` column, with the rule applied in `
   Step 72 (`72_external_clock_anchors.ipynb`, 19 November) checks the data against ISC and USGS events for May–November 1991. Its products are in `output_root/clock_anchor_check`.
   - **Pinatubo's own M 4–6 earthquakes** in the global catalogues: most fall on 15–17 June, when HYPO71 has no locations. After the reset, the nearest HYPO71 origins differ by tens of seconds (closest −10, −17 and +22 s). With global depths fixed at 10–35 km and one or two local events a minute, this rules out minute- or hour-level errors but cannot measure seconds.
   - **1-minute SSAM** shows no rise at the predicted arrival of any of 45 distant events, including M 7.2 at 5,000 km. SSAM cannot anchor the clock.
-  - **Triggered waveform records** that contain a predicted distant P, reviewed by an analyst:
-    - 30 May, after the reset: an M 4.6 at 591 km (100 km deep) and an M 7.0 off the Alaska Peninsula at 7,863 km. Both records are low frequency with little moveout, and both show their first clear arrival 12–13 s after the predicted P. The Alaska event alone could be a weak P followed by pP (+10 s) or sP (+15 s), but the regional event has no phase that early (sP at +25 s). Together they suggest the waveform times were about 12 s late that day (the clock fast by about 12 s), more than the nominal 5 s.
-    - 21 May, before the reset: an M 6.6 teleseism at 2,602 km arrives about 40 s before its predicted P. Nothing arrives earlier than P, so this is clock error, within the 60 s assumed before the reset.
-    - 9108080A (8 August) holds two local events (S−P about 4 and 5 s on BUG), not a distant arrival. 9107063R (6 July) is a local event.
-  - Further candidate records (10 June, 19 July, 5 September, 18 October and others) are plotted in step 72 and await review.
+  - **Triggered waveform records** that contain a predicted distant P, reviewed by an analyst. Of 13 records reviewed, 8 show a distant arrival. The apparent offsets (first clear arrival minus predicted arrival; positive means the waveform times are late, i.e. the clock was fast):
+
+    | Date (1991) | Record | Event | Apparent offset |
+    |---|---|---|---|
+    | 21 May (before the reset) | 9105220C | M 6.6, 2,602 km | −40 s |
+    | 30 May | 9105300K | M 4.6, 591 km, 100 km deep | +12 s |
+    | 30 May | 9105301M | M 7.0, 7,863 km (Alaska Peninsula) | +12.5 s, or a weak P followed by pP/sP |
+    | 8 Aug | 91080826 | M 5.0, 351 km | −23 s |
+    | 15 Aug | 91081528 | M 6.3, 6,272 km, 187 km deep | +4 s relative to pP (to be confirmed) |
+    | 5 Sep | 9109055G | M 4.9, 420 km | +9 s |
+
+    - After the reset the offsets range from −23 to +12 s and change sign from day to day: drift of about 2 s a day with only occasional resets, not one systematic error. No correction is applied.
+    - The nominal 5 s uncertainty after the reset is too small: four of the five anchors exceed it. About ±25 s matches these checks. Before the reset, −40 s fits the 60 s assumed.
+    - Records 9108080A (8 August, two local events) and 9107063R (6 July) are local. A few remaining candidates have their predicted P before the record start and were not identified.
   - These are single-day checks. They bound the residual error but give no correction, because drift and sporadic resets change the offset from day to day.
 
 ## 6. Not corrected or uncertain
