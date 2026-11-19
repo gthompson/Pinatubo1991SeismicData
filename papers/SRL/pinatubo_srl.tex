@@ -1,6 +1,7 @@
 %\documentclass[linenum,doublespace,onecolumn]{SSA-SRL}
 \documentclass[linenum]{SSA-SRL}
 \pdfoutput=1
+\switchlinenumbers* % SSA class + lineno v5 put numbers in the gutter; this restores outer margins
 
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,fit}
@@ -54,7 +55,7 @@ PHIVOLCS's initial observations used portable recorders that were not part of th
 \centering
 \includegraphics[width=0.48\textwidth]{fig_network_early}\hfill
 \includegraphics[width=0.48\textwidth]{fig_network_later}
-\caption{Station configurations of the (a) initial network in early June and (b) later network in July--August 1991. Labels are legacy station names. The background is modern relief and does not reconstruct the pre-eruption summit; coordinate provenance is documented in the network history (step 70).}
+\caption{Station configurations of the (a) initial network in early June and (b) later network in July--August 1991 (triangles; labels are legacy station names; star, approximate summit). Panel (b) shows every station identity found in July--August waveform headers; continuous operation and exact deployment dates are not verified. The background is modern 15-arcsec relief, not the 1991 surface. The datum of the historical coordinates is unresolved, and PVO and the repeater sites are not plotted because their positions are unverified. Outages and the 11 June losses are listed in the network history (step 70).}
 \label{fig:network}
 \end{figure*}
 
@@ -72,12 +73,12 @@ The Mobile Monitoring System used several networked PCs \citep{Murray_1996}. Fig
 \end{itemize}
 The aggregation PC (PORKY, or DAVE/ANDY) ran the BOB display and archive software. It received the RSAM, tilt and lahar products through a buffered serial printsharer and SSAM from WILLIE, but its own clock stamped no data. A shared archive therefore does not imply a shared clock, and the clock of each product must be established separately.
 
-\begin{figure}
+\begin{figure*}
 \centering
-\includegraphics[width=\columnwidth]{fig_pvo_system}
-\caption{The PVO data acquisition system (after Murray). Each acquisition PC (WILLIE, the Tandy RSAM computer, SLEEPY and RICKY) stamped its products with its own clock; the BOB aggregation PC collected products but timed none of them.}
+\includegraphics[width=0.9\textwidth]{fig_pvo_system}
+\caption{The PVO data acquisition system in its initial 1991 configuration \citep[after][]{Murray_1996}; later software improvements are not assumed to be present from the start. Each acquisition PC (WILLIE, the Tandy RSAM computer, SLEEPY and RICKY) stamped its products with its own clock. The aggregation PC collected products but timed none of them, and neither aggregation nor LAN transfer synchronized the clocks. Labelled cadences describe products and transfers, not native sampling rates.}
 \label{fig:pvo}
-\end{figure}
+\end{figure*}
 
 MDETECT read the PC clock at start-up and then kept time by counting samples, ``good to about 2 seconds per day'' \citep{Lee_1988}. The PCs were meant to be rebooted daily, but this was done only sporadically. No GOES or GPS clock was in use, and the IRIG time code recorded on one channel came from a free-running generator, so it gives no absolute time.
 
@@ -318,7 +319,7 @@ The two summaries are parsed separately with a FloVoPy HYPO71 reader, converted 
 \begin{figure*}
 \centering
 \includegraphics[width=\textwidth]{fig_hypocentres}
-\caption{Preferred solutions of the 4,690 hypocenter groups: map view, longitude--depth and depth--time, colored by origin time (UTC). Catalog depths are shown as reported, including negative values; no relocation or quality filtering is applied. The triangle marks the summit.}
+\caption{Preferred solutions of the 4,690 hypocenter groups: map view (top left) with latitude--depth (top right), longitude--depth (bottom left) and depth--time (bottom right) sections, colored by origin time (UTC). Symbol area scales with magnitude; magnitudes of 0.0 and below, and missing magnitudes (1,306 groups), are drawn at the smallest size. Catalog depths are shown as reported, including negative values; no relocation or quality filtering is applied. 131 solutions fall outside the map and 14 are deeper than 25~km. The triangle marks the summit. Plotting script: \file{papers/SRL/scripts/fig\_hypocentres.py}.}
 \label{fig:hypo}
 \end{figure*}
 
