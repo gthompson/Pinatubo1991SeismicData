@@ -1,0 +1,110 @@
+\begin{thebibliography}{}
+
+\bibitem[\protect\citeauthoryear{Banfill}{Banfill}{1999}]{Banfill_1999}
+Banfill, R. (1999).
+\newblock {\em {PC-SUDS} Utilities: A collection of tools for routine
+  processing of seismic data stored in the Seismic Unified Data System for
+  {DOS} ({PC-SUDS}), version 2.60}.
+\newblock Banfill Software Engineering.
+\newblock \url{https://banfill.net/?page_id=16}.
+
+\bibitem[\protect\citeauthoryear{Banfill}{Banfill}{2003}]{Banfill_2003}
+Banfill, R. (2003).
+\newblock {\em {Win-SUDS} Utilities, version 2.90}.
+\newblock Banfill Software Engineering.
+\newblock \url{https://banfill.net/?page_id=16}.
+
+\bibitem[\protect\citeauthoryear{Lee and Lahr}{Lee and Lahr}{1975}]{Lee_1975}
+Lee, W. H.~K. and J.~C. Lahr (1975).
+\newblock {HYPO71} (revised): A computer program for determining hypocenter,
+  magnitude, and first motion pattern of local earthquakes.
+\newblock Open-File Report 75-311, U.S. Geological Survey, doi:
+  \refdoi{10.3133/ofr75311}.
+
+\bibitem[\protect\citeauthoryear{Lee, Tottingham, and Ellis}{Lee
+  et~al.}{1988}]{Lee_1988}
+Lee, W. H.~K., D.~M. Tottingham, and J.~O. Ellis (1988).
+\newblock A {PC}-based seismic data acquisition and processing system.
+\newblock Open-File Report 88-751, U.S. Geological Survey, doi:
+  \refdoi{10.3133/ofr88751A}.
+
+\bibitem[\protect\citeauthoryear{Lee and Valdes}{Lee and
+  Valdes}{1985}]{Lee_1985}
+Lee, W. H.~K. and C.~M. Valdes (1985).
+\newblock {HYPO71PC}: A personal computer version of the {HYPO71} earthquake
+  location program.
+\newblock Open-File Report 85-749, U.S. Geological Survey, doi:
+  \refdoi{10.3133/ofr85749}.
+
+\bibitem[\protect\citeauthoryear{Lockhart, Marcial, Ambubuyog, Laguerta, and
+  Power}{Lockhart et~al.}{1996}]{Lockhart_1996}
+Lockhart, A.~B., S.~Marcial, G.~Ambubuyog, E.~P. Laguerta, and J.~A. Power
+  (1996).
+\newblock Installation, operation, and technical specifications of the first
+  {Mount Pinatubo} telemetered seismic network.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  215--223.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
+
+\bibitem[\protect\citeauthoryear{McChesney}{McChesney}{1999}]{McChesney_1999}
+McChesney, P.~J. (1999).
+\newblock {McVCO} handbook 1999.
+\newblock Open-File Report 99-361, U.S. Geological Survey, doi:
+  \refdoi{10.3133/ofr99361}.
+
+\bibitem[\protect\citeauthoryear{Murray}{Murray}{1990}]{Murray_1990}
+Murray, T.~L. (1990).
+\newblock A user's guide to the {PC}-based time-series data-management and
+  plotting program {BOB}.
+\newblock Open-File Report 90-56, U.S. Geological Survey, doi:
+  \refdoi{10.3133/ofr9056}.
+
+\bibitem[\protect\citeauthoryear{Murray and Endo}{Murray and
+  Endo}{1989}]{Murray_1989}
+Murray, T.~L. and E.~T. Endo (1989).
+\newblock A real-time seismic amplitude measurement system ({RSAM}).
+\newblock Open-File Report 89-684, U.S. Geological Survey, doi:
+  \refdoi{10.3133/ofr89684}.
+
+\bibitem[\protect\citeauthoryear{Murray, Power, Davidson, and Marso}{Murray
+  et~al.}{1996}]{Murray_1996}
+Murray, T.~L., J.~A. Power, G.~Davidson, and J.~N. Marso (1996).
+\newblock A {PC}-based real-time volcano-monitoring data-acquisition and
+  analysis system.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  225--232.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
+
+\bibitem[\protect\citeauthoryear{Rogers and Stephens}{Rogers and
+  Stephens}{1995}]{Rogers_1995}
+Rogers, J.~A. and C.~D. Stephens (1995).
+\newblock {SSAM}: Real-time seismic spectral amplitude measurement on a {PC}
+  and its application to volcano monitoring.
+\newblock {\em Bull. Seismol. Soc. Am.\/}~{\bf 85\/}(2), 632--639, doi:
+  \refdoi{10.1785/BSSA0850020632}.
+
+\bibitem[\protect\citeauthoryear{Tottingham, Lee, and Rogers}{Tottingham
+  et~al.}{1989}]{Tottingham_1989}
+Tottingham, D.~M., W.~H.~K. Lee, and J.~A. Rogers (1989).
+\newblock User manual for {MDETECT}.
+\newblock In W.~H.~K. Lee (Ed.), {\em Toolkit for Seismic Data Acquisition,
+  Processing and Analysis}, Volume~1 of {\em IASPEI Software Library}, pp.\
+  49--88. Seismological Society of America, El Cerrito, California.
+
+\bibitem[\protect\citeauthoryear{Valdes}{Valdes}{1989}]{Valdes_1989}
+Valdes, C.~M. (1989).
+\newblock User manual for {PCEQ}.
+\newblock In W.~H.~K. Lee (Ed.), {\em Toolkit for Seismic Data Acquisition,
+  Processing and Analysis}, Volume~1 of {\em IASPEI Software Library}, pp.\
+  175--201. Seismological Society of America, El Cerrito, California.
+
+\bibitem[\protect\citeauthoryear{Ward}{Ward}{1989}]{Ward_1989}
+Ward, P.~L. (1989).
+\newblock {SUDS}: Seismic unified data system.
+\newblock Open-File Report 89-188, U.S. Geological Survey.
+
+\end{thebibliography}

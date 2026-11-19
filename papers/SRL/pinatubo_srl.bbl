@@ -1,0 +1,237 @@
+\begin{thebibliography}{}
+
+\bibitem[\protect\citeauthoryear{Beyreuther, Barsch, Krischer, Megies, Behr,
+  and Wassermann}{Beyreuther et~al.}{2010}]{Beyreuther_2010}
+Beyreuther, M., R.~Barsch, L.~Krischer, T.~Megies, Y.~Behr, and J.~Wassermann
+  (2010).
+\newblock {ObsPy}: A {Python} toolbox for seismology.
+\newblock {\em Seismol. Res. Lett.\/}~{\bf 81\/}(3), 530--533, doi:
+  \refdoi{10.1785/gssrl.81.3.530}.
+
+\bibitem[\protect\citeauthoryear{Buurman and West}{Buurman and
+  West}{2010}]{Buurman_2010}
+Buurman, H. and M.~E. West (2010).
+\newblock Seismic precursors to volcanic explosions during the 2006 eruption of
+  {Augustine Volcano}.
+\newblock In J.~A. Power, M.~L. Coombs, and J.~T. Freymueller (Eds.), {\em The
+  2006 Eruption of {Augustine Volcano}, {Alaska}}, U.S. Geological Survey
+  Professional Paper 1769, pp.\  41--57. U.S. Geological Survey, doi:
+  \refdoi{10.3133/pp17692}.
+
+\bibitem[\protect\citeauthoryear{Crotwell, Owens, and Ritsema}{Crotwell
+  et~al.}{1999}]{Crotwell_1999}
+Crotwell, H.~P., T.~J. Owens, and J.~Ritsema (1999).
+\newblock The {TauP} toolkit: Flexible seismic travel-time and ray-path
+  utilities.
+\newblock {\em Seismol. Res. Lett.\/}~{\bf 70\/}(2), 154--160, doi:
+  \refdoi{10.1785/gssrl.70.2.154}.
+
+\bibitem[\protect\citeauthoryear{Harlow, Power, Laguerta, Ambubuyog, White, and
+  Hoblitt}{Harlow et~al.}{1996}]{Harlow_1996}
+Harlow, D.~H., J.~A. Power, E.~P. Laguerta, G.~Ambubuyog, R.~A. White, and
+  R.~P. Hoblitt (1996).
+\newblock Precursory seismicity and forecasting of the {June} 15, 1991,
+  eruption of {Mount Pinatubo}.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  285--305.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
+
+\bibitem[\protect\citeauthoryear{Havskov and Ottem{\"o}ller}{Havskov and
+  Ottem{\"o}ller}{1999}]{Havskov_1999}
+Havskov, J. and L.~Ottem{\"o}ller (1999).
+\newblock {SEISAN} earthquake analysis software.
+\newblock {\em Seismol. Res. Lett.\/}~{\bf 70\/}(5), 532--534, doi:
+  \refdoi{10.1785/gssrl.70.5.532}.
+
+\bibitem[\protect\citeauthoryear{{International Seismological
+  Centre}}{{International Seismological Centre}}{2024}]{ISC_2024}
+{International Seismological Centre} (2024).
+\newblock On-line bulletin.
+\newblock \url{https://www.isc.ac.uk/iscbulletin/}, doi:
+  \refdoi{10.31905/D808B830}.
+
+\bibitem[\protect\citeauthoryear{Kennett and Engdahl}{Kennett and
+  Engdahl}{1991}]{Kennett_1991}
+Kennett, B. L.~N. and E.~R. Engdahl (1991).
+\newblock Traveltimes for global earthquake location and phase identification.
+\newblock {\em Geophys. J. Int.\/}~{\bf 105\/}(2), 429--465, doi:
+  \refdoi{10.1111/j.1365-246X.1991.tb06724.x}.
+
+\bibitem[\protect\citeauthoryear{Krischer, Megies, Barsch, Beyreuther, Lecocq,
+  Caudron, and Wassermann}{Krischer et~al.}{2015}]{Krischer_2015}
+Krischer, L., T.~Megies, R.~Barsch, M.~Beyreuther, T.~Lecocq, C.~Caudron, and
+  J.~Wassermann (2015).
+\newblock {ObsPy}: A bridge for seismology into the scientific {Python}
+  ecosystem.
+\newblock {\em Comput. Sci. Discov.\/}~{\bf 8}, 014003, doi:
+  \refdoi{10.1088/1749-4699/8/1/014003}.
+
+\bibitem[\protect\citeauthoryear{Lee, Tottingham, and Ellis}{Lee
+  et~al.}{1988}]{Lee_1988}
+Lee, W. H.~K., D.~M. Tottingham, and J.~O. Ellis (1988).
+\newblock A {PC}-based seismic data acquisition and processing system.
+\newblock Open-File Report 88-751, U.S. Geological Survey, doi:
+  \refdoi{10.3133/ofr88751A}.
+
+\bibitem[\protect\citeauthoryear{Lee and Valdes}{Lee and
+  Valdes}{1985}]{Lee_1985}
+Lee, W. H.~K. and C.~M. Valdes (1985).
+\newblock {HYPO71PC}: A personal computer version of the {HYPO71} earthquake
+  location program.
+\newblock Open-File Report 85-749, U.S. Geological Survey, doi:
+  \refdoi{10.3133/ofr85749}.
+
+\bibitem[\protect\citeauthoryear{Lockhart, Marcial, Ambubuyog, Laguerta, and
+  Power}{Lockhart et~al.}{1996}]{Lockhart_1996}
+Lockhart, A.~B., S.~Marcial, G.~Ambubuyog, E.~P. Laguerta, and J.~A. Power
+  (1996).
+\newblock Installation, operation, and technical specifications of the first
+  {Mount Pinatubo} telemetered seismic network.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  215--223.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
+
+\bibitem[\protect\citeauthoryear{Murray}{Murray}{1990}]{Murray_1990}
+Murray, T.~L. (1990).
+\newblock A user's guide to the {PC}-based time-series data-management and
+  plotting program {BOB}.
+\newblock Open-File Report 90-56, U.S. Geological Survey, doi:
+  \refdoi{10.3133/ofr9056}.
+
+\bibitem[\protect\citeauthoryear{Murray and Endo}{Murray and
+  Endo}{1989}]{Murray_1989}
+Murray, T.~L. and E.~T. Endo (1989).
+\newblock A real-time seismic amplitude measurement system ({RSAM}).
+\newblock Open-File Report 89-684, U.S. Geological Survey, doi:
+  \refdoi{10.3133/ofr89684}.
+
+\bibitem[\protect\citeauthoryear{Murray, Power, Davidson, and Marso}{Murray
+  et~al.}{1996}]{Murray_1996}
+Murray, T.~L., J.~A. Power, G.~Davidson, and J.~N. Marso (1996).
+\newblock A {PC}-based real-time volcano-monitoring data-acquisition and
+  analysis system.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  225--232.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
+
+\bibitem[\protect\citeauthoryear{Newhall and Punongbayan}{Newhall and
+  Punongbayan}{1996}]{Newhall_1996}
+Newhall, C.~G. and R.~S. Punongbayan (Eds.) (1996).
+\newblock {\em Fire and Mud: Eruptions and Lahars of {Mount Pinatubo},
+  {Philippines}}.
+\newblock Philippine Institute of Volcanology and Seismology, Quezon City, and
+  University of Washington Press, Seattle.
+\newblock \url{https://pubs.usgs.gov/pinatubo/contents.html}.
+
+\bibitem[\protect\citeauthoryear{Power}{Power}{2025}]{Power_2025}
+Power, J.~A. (2025).
+\newblock Seismic drum records from the 1991 eruption of {Mount Pinatubo},
+  {Philippines}: {April} 30--{June} 17, 1991.
+\newblock U.S. Geological Survey data release.
+\newblock VERIFY final metadata, doi: \refdoi{10.5066/P13DUU3H}.
+
+\bibitem[\protect\citeauthoryear{Power, Murray, Marso, and Laguerta}{Power
+  et~al.}{1996}]{Power_1996}
+Power, J.~A., T.~L. Murray, J.~N. Marso, and E.~P. Laguerta (1996).
+\newblock Preliminary observations of seismicity at {Mount Pinatubo} by use of
+  the {Seismic Spectral Amplitude Measurement (SSAM)} system, {May} 13--{June}
+  18, 1991.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  269--280.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
+
+\bibitem[\protect\citeauthoryear{Rogers and Stephens}{Rogers and
+  Stephens}{1995}]{Rogers_1995}
+Rogers, J.~A. and C.~D. Stephens (1995).
+\newblock {SSAM}: Real-time seismic spectral amplitude measurement on a {PC}
+  and its application to volcano monitoring.
+\newblock {\em Bull. Seismol. Soc. Am.\/}~{\bf 85\/}(2), 632--639, doi:
+  \refdoi{10.1785/BSSA0850020632}.
+
+\bibitem[\protect\citeauthoryear{Schorlemmer, Euchner, K{\"a}stli, and
+  Saul}{Schorlemmer et~al.}{2011}]{Schorlemmer_2011}
+Schorlemmer, D., F.~Euchner, P.~K{\"a}stli, and J.~Saul (2011).
+\newblock {QuakeML}: Status of the {XML}-based seismological data exchange
+  format.
+\newblock {\em Ann. Geophys.\/}~{\bf 54\/}(1), 59--65, doi:
+  \refdoi{10.4401/ag-4874}.
+
+\bibitem[\protect\citeauthoryear{Thompson, Power, Braunmiller, Lockhart, Lynch,
+  McCausland, Rowe, Shea, White, and Breithaupt}{Thompson
+  et~al.}{2020}]{Thompson_2020}
+Thompson, G., J.~A. Power, J.~Braunmiller, A.~B. Lockhart, L.~Lynch,
+  W.~McCausland, C.~A. Rowe, T.~Shea, R.~A. White, and C.~I. Breithaupt (2020).
+\newblock Capturing, preserving, and digitizing legacy seismic data from the
+  {Montserrat} {Volcano} {Observatory} analog seismic network, {July}
+  1995--{December} 2004.
+\newblock {\em Seismol. Res. Lett.\/}~{\bf 91\/}(4), 2127--2140, doi:
+  \refdoi{10.1785/0220200012}.
+
+\bibitem[\protect\citeauthoryear{Thompson, Power, Murray, and White}{Thompson
+  et~al.}{1991}]{XB_1991}
+Thompson, G., J.~A. Power, T.~A. Murray, and R.~A. White (1991).
+\newblock Pinatubo 1991 seismic network.
+\newblock International Federation of Digital Seismograph Networks, dataset,
+  doi: \refdoi{10.7914/seq1-hh72}.
+
+\bibitem[\protect\citeauthoryear{Thomson}{Thomson}{1982}]{Thomson_1982}
+Thomson, D.~J. (1982).
+\newblock Spectrum estimation and harmonic analysis.
+\newblock {\em Proc. IEEE\/}~{\bf 70\/}(9), 1055--1096, doi:
+  \refdoi{10.1109/PROC.1982.12433}.
+
+\bibitem[\protect\citeauthoryear{Tottingham, Lee, and Rogers}{Tottingham
+  et~al.}{1989}]{Tottingham_1989}
+Tottingham, D.~M., W.~H.~K. Lee, and J.~A. Rogers (1989).
+\newblock User manual for {MDETECT}.
+\newblock In W.~H.~K. Lee (Ed.), {\em Toolkit for Seismic Data Acquisition,
+  Processing and Analysis}, Volume~1 of {\em IASPEI Software Library}, pp.\
+  49--88. Seismological Society of America, El Cerrito, California.
+
+\bibitem[\protect\citeauthoryear{{U.S. Geological Survey, Earthquake Hazards
+  Program}}{{U.S. Geological Survey, Earthquake Hazards
+  Program}}{2017}]{USGS_2017}
+{U.S. Geological Survey, Earthquake Hazards Program} (2017).
+\newblock Advanced national seismic system ({ANSS}) comprehensive catalog of
+  earthquake events and products.
+\newblock \url{https://earthquake.usgs.gov/data/comcat/}, doi:
+  \refdoi{10.5066/F7MS3QZH}.
+
+\bibitem[\protect\citeauthoryear{Valdes}{Valdes}{1989}]{Valdes_1989}
+Valdes, C.~M. (1989).
+\newblock User manual for {PCEQ}.
+\newblock In W.~H.~K. Lee (Ed.), {\em Toolkit for Seismic Data Acquisition,
+  Processing and Analysis}, Volume~1 of {\em IASPEI Software Library}, pp.\
+  175--201. Seismological Society of America, El Cerrito, California.
+
+\bibitem[\protect\citeauthoryear{Ward}{Ward}{1989}]{Ward_1989}
+Ward, P.~L. (1989).
+\newblock {SUDS}: Seismic unified data system.
+\newblock Open-File Report 89-188, U.S. Geological Survey.
+
+\bibitem[\protect\citeauthoryear{Welch}{Welch}{1967}]{Welch_1967}
+Welch, P.~D. (1967).
+\newblock The use of fast {Fourier} transform for the estimation of power
+  spectra: A method based on time averaging over short, modified periodograms.
+\newblock {\em IEEE Trans. Audio Electroacoust.\/}~{\bf 15\/}(2), 70--73, doi:
+  \refdoi{10.1109/TAU.1967.1161901}.
+
+\bibitem[\protect\citeauthoryear{Wolfe and Hoblitt}{Wolfe and
+  Hoblitt}{1996}]{Wolfe_1996}
+Wolfe, E.~W. and R.~P. Hoblitt (1996).
+\newblock Overview of the eruptions.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  3--20.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
+
+\end{thebibliography}
