@@ -4,7 +4,7 @@ import json
 import os
 
 REPO_ROOT = Path(__file__).resolve().parent
-DEFAULT_OUTPUT = '~/DATA/Pinatubo1991Processing'
+DEFAULT_OUTPUT = '~/work/Pinatubo1991Processing'
 
 
 def read_config(path):
@@ -43,9 +43,3 @@ def analysis_products_root(config, analysis_dir):
     value = value or f'{DEFAULT_OUTPUT}/analysis'
     return external_output_root(value, relative_to=analysis_dir)
 
-
-def analysis_network_products(config, analysis_dir, products_root):
-    value = config.get('network_history_products')
-    if value:
-        return resolve_path(value, relative_to=analysis_dir)
-    return Path(products_root) / 'network_history'

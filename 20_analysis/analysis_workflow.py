@@ -2,7 +2,8 @@
 
 FLOVOpy owns detection, features, amplitude statistics and spectrograms.
 This local module owns Pinatubo selection, provenance, review policy and plots.
-All waveform intervals are half-open. Recorded timestamps are never corrected.
+All waveform intervals are half-open. Waveform times are UTC: conversion step 10
+already applied each acquisition PC's clock rule (10_conversion/clock_regimes.csv).
 """
 from __future__ import annotations
 
@@ -35,12 +36,9 @@ def _products(ctx):
     return Path(ctx.get('products',ctx.get('products_root'))) if ctx.get('products',ctx.get('products_root')) else analysis_products(ctx.get('config',{}))
 
 
-def _network_products(ctx):
-    return Path(ctx['network_history_products']) if ctx.get('network_history_products') else network_products()
-
-
 WORKFLOW_VERSION = 'pinatubo-notebooks-1'
 FEATURE_KEYS = tuple(extract_features(np.zeros(16), 100)['values'])
+ID_DTYPES={name:str for name in ['record_id','trace_key','trace_id','file','source_fingerprint']}
 APPROVAL_FIELDS = ['accepted_noise_start_file_s', 'accepted_noise_end_file_s',
                    'accepted_signal_start_file_s', 'accepted_signal_end_file_s']
 STATIONS = ['BUG','BUR','CAB','CRW','DON','FNG','GRN','LIL','PI2','PIE','PPO','QAD','UBO']
@@ -66,6 +64,12 @@ def digest(value):
     if isinstance(value, bytes):
         return hashlib.sha256(value).hexdigest()
     return hashlib.sha256(json.dumps(value,sort_keys=True,default=str).encode()).hexdigest()
+
+
+def read_ids(path, **kw):
+    """Read a CSV keeping ID columns as text (hex IDs such as '12e4' must not parse as numbers)."""
+    kw['dtype']={**ID_DTYPES,**kw.get('dtype',{})}
+    return pd.read_csv(path,**kw)
 
 
 def write_json(path, value):
@@ -94,24 +98,22 @@ def save_figure(fig, stem, caption, dpi=300):
 
 
 def load_context(analysis_dir, *, selection_override=None, products_directory=None):
-    """Resolve only an explicit root or the known Box root; never probe stale disks."""
+    """Select waveform files and fix the run ID from configuration, inputs and code hashes."""
     base=Path(analysis_dir).resolve()
     cfg=json.loads((base/'analysis_workflow.json').read_text())
     if selection_override:cfg['selection']={**cfg['selection'],**selection_override}
     products=analysis_products(cfg,override=products_directory)
     # Analysis config remains authoritative; network products come from conversion configuration.
     runtime_environment()
-    candidate=os.environ.get('PINATUBO_WAV_ROOT') or (input_path('waveform_root') if os.environ.get('PINATUBO_PROJECT_CONFIG') else cfg.get('wav_root'))
+    # Default: conversion step 10's UTC WAV database; wav_root or PINATUBO_WAV_ROOT override it.
+    candidate=os.environ.get('PINATUBO_WAV_ROOT') or cfg.get('wav_root')
     root=Path(candidate).expanduser() if candidate else input_path('waveform_root')
     if not root.is_dir():
-        raise FileNotFoundError('Set wav_root in analysis_workflow.json or PINATUBO_WAV_ROOT to the WAV/PNTBO directory.')
+        raise FileNotFoundError(f'Waveform database not found: {root}. Run conversion step 10, or set wav_root / PINATUBO_WAV_ROOT.')
     selection=cfg['selection']
     if selection.get('explicit_files'):
         files=[Path(p).expanduser() if Path(p).is_absolute() else root/p for p in selection['explicit_files']]
         scope='explicit_selection'
-    elif selection['mode']=='pilot':
-        from pretrigger_qc import select_files
-        files,_=select_files(root,selection['months'],selection['files_per_month']);scope='pilot_selected_recordings'
     elif selection['mode']=='sample':
         count=selection['files_per_month']
         if isinstance(count,bool) or not isinstance(count,int) or count<1:raise ValueError('files_per_month must be a positive integer')
@@ -127,7 +129,7 @@ def load_context(analysis_dir, *, selection_override=None, products_directory=No
         files=sorted(p for p in root.glob('????/??/*') if p.is_file() and not p.name.startswith('.'))
         scope='all_discovered_waveform_candidates'
     else:
-        raise ValueError("selection.mode must be 'pilot', 'sample' or 'all'")
+        raise ValueError("selection.mode must be 'sample' or 'all'")
     if selection.get('max_files') is not None:
         limit=selection['max_files']
         if isinstance(limit,bool) or not isinstance(limit,int) or limit<1:raise ValueError('max_files must be a positive integer')
@@ -153,13 +155,13 @@ def load_context(analysis_dir, *, selection_override=None, products_directory=No
     write_json(out/'run_manifest.json',payload)
     apply_style()
     return dict(base=base,root=root,config=cfg,files=files,manifest=pd.DataFrame(manifest),
-                out=out,products=products,run_id=run_id,scope=scope,history=base.parent/'10_conversion/network_history')
+                out=out,products=products,run_id=run_id,scope=scope)
 
 
 def describe_context(ctx):
     return pd.DataFrame([dict(run_id=ctx['run_id'],scope=ctx['scope'],selected_files=len(ctx['files']),
         waveform_root=str(ctx['root']),products=str(ctx['out']),
-        time_basis='RECORDED_CLOCK_UNCORRECTED',amplitude_units='counts; unknown end-to-end response')])
+        time_basis='UTC (conversion step 10 clock rules)',amplitude_units='counts; unknown end-to-end response')])
 
 
 def waveform_traces(stream):
@@ -203,7 +205,7 @@ def narrowband_audit(data, fs):
 
 
 def epoch_metadata(ctx, station, channel, start):
-    path=network_input('pinatubo_channel_epochs.csv',ctx['history']/'products')
+    path=network_input('pinatubo_channel_epochs.csv')
     if not path.is_file():return dict(gain_epoch_id='UNKNOWN',attenuation_db=np.nan,epoch_status='missing_history_products')
     if '_epoch_frame' not in ctx:ctx['_epoch_frame']=pd.read_csv(path).fillna('')
     frame=ctx['_epoch_frame'];matches=[]
@@ -215,7 +217,7 @@ def epoch_metadata(ctx, station, channel, start):
     if len(matches)!=1:return dict(gain_epoch_id='UNKNOWN',attenuation_db=np.nan,epoch_status='unmatched' if not matches else 'ambiguous')
     i,row=matches[0]
     return dict(gain_epoch_id=f'{station}.{channel}:{row.start}:{row.end}',
-                attenuation_db=pd.to_numeric(row.attenuation_db,errors='coerce'),epoch_status='provisional_recorded_time_match')
+                attenuation_db=pd.to_numeric(row.attenuation_db,errors='coerce'),epoch_status='provisional_utc_epoch_match')
 
 
 def build_inventory(ctx, force=False):
@@ -225,11 +227,11 @@ def build_inventory(ctx, force=False):
         if digest([item['file'],stat.st_size,stat.st_mtime_ns])!=item['source_fingerprint']:
             raise ValueError('Waveform source changed; reload context and review the new run')
     out=ctx['out'];dest=out/'trace_inventory.csv'
-    if dest.exists() and not force:return pd.read_csv(dest),pd.read_csv(out/'file_inventory.csv')
+    if dest.exists() and not force:return read_ids(dest),read_ids(out/'file_inventory.csv')
     rows=[];file_rows=[];gaps=[]
     import inspect
     from flovopy.enhanced.serialization import atomic_json
-    epoch_path=network_input('pinatubo_channel_epochs.csv',ctx['history']/'products')
+    epoch_path=network_input('pinatubo_channel_epochs.csv')
     inventory_signature=dict(version='raw-inventory-1',epoch_sha256=digest(epoch_path.read_bytes()) if epoch_path.exists() else None,
         code={name:digest(inspect.getsource(globals()[name]).encode()) for name in ['build_inventory','epoch_metadata','narrowband_audit','finite_data','flat_prefix']})
     # Reuse verified earlier run inventories, avoiding a one-time archive reread.
@@ -240,22 +242,19 @@ def build_inventory(ctx, force=False):
         manifest_path=candidate.parent/'run_manifest.json';provenance_path=candidate.parent/'inventory_provenance.json'
         if not manifest_path.exists():continue
         metadata=json.loads(manifest_path.read_text())
-        trusted=(metadata.get('helper_sha256')=='a91d2051a146fc9dfef663b96cf61cc694c2fb216453ebbdeb4918a4fddab20b')
-        if trusted and epoch_path.exists():trusted=epoch_path.stat().st_mtime_ns<=candidate.stat().st_mtime_ns
-        if provenance_path.exists():
-            trusted=json.loads(provenance_path.read_text()).get('signature')==inventory_signature
-        if not trusted:continue
+        # Reuse only an inventory built by the same code from the same epoch table.
+        if not provenance_path.exists() or json.loads(provenance_path.read_text()).get('signature')!=inventory_signature:continue
         overlap=len(wanted.intersection(row['source_fingerprint'] for row in metadata['files']))
         if overlap>best_count:best=candidate;best_count=overlap
     if best is not None:
-        previous_files=pd.read_csv(best.parent/'file_inventory.csv')
+        previous_files=read_ids(best.parent/'file_inventory.csv')
         legacy_files=previous_files[previous_files.source_fingerprint.isin(wanted)&previous_files.status.eq('read_ok')].copy()
         covered=set(legacy_files.source_fingerprint)
-        previous=pd.read_csv(best,low_memory=False)
+        previous=read_ids(best,low_memory=False)
         legacy_frame=previous[previous.source_fingerprint.isin(covered)].copy()
         gap_path=best.parent/'segment_gaps.csv'
         if gap_path.exists():
-            previous=pd.read_csv(gap_path);legacy_gaps=previous[previous.record_id.isin(legacy_files.record_id)].copy()
+            previous=read_ids(gap_path);legacy_gaps=previous[previous.record_id.isin(legacy_files.record_id)].copy()
     for item in ctx['manifest'].to_dict('records'):
         if item['source_fingerprint'] in covered:continue
         path=Path(item['file']);rid=item['record_id']
@@ -323,27 +322,23 @@ def plot_inventory(ctx, inventory):
            '40.5-Hz screen':int(pd.to_numeric(frame.artifact_detected,errors='coerce').fillna(0).sum())}
     axes[1,1].barh(list(flags),list(flags.values()),color='#cc6677');axes[1,1].set(xlabel='Flagged traces (screens, not diagnoses)')
     fig.suptitle('Selected waveform inventory — '+ctx['scope'].replace('__limited',' (limited)').replace('_',' '))
-    caption='Recorded-file coverage in the configured selection; not continuous station uptime or earthquake rate. Dates use uncorrected recorded clocks. Repeated extrema and 40.5-Hz ratios are screening flags.'
+    caption='Recorded-file coverage in the configured selection; not continuous station uptime or earthquake rate. Dates are UTC (conversion step 10 clock rules). Repeated extrema and 40.5-Hz ratios are screening flags.'
     save_figure(fig,ctx['out']/'figures/archive_inventory',caption,ctx['config']['plots']['dpi'])
     return fig
 
 
-def review_network(ctx, rebuild=True):
-    """Use the existing reconstruction; keep it independent of ASL/FlowLoc."""
-    history=ctx['history']
-    if not (history.parent/'15_network_history_and_stationxml.ipynb').is_file():
-        raise FileNotFoundError('Expected 10_conversion/15_network_history_and_stationxml.ipynb')
-    sys.path.insert(0,str(history.parent)) if str(history.parent) not in sys.path else None
-    if rebuild:
-        import json
-        notebook = history.parent / '15_network_history_and_stationxml.ipynb'
-        definitions = {'PIPELINE': history.parent}
-        for cell in json.loads(notebook.read_text())['cells']:
-            if cell['cell_type'] == 'code' and 'pipeline_definitions' in cell.get('metadata', {}).get('tags', []):
-                exec(compile(''.join(cell['source']), str(notebook), 'exec'), definitions)
-        definitions['build_all'](network_products(), header_data_dir=network_products()/'header_scan')
-    shutil.copytree(network_products(),ctx['out']/'network_history',dirs_exist_ok=True)
-    dest=ctx['out']/'network_history';inv=read_inventory(str(dest/'pinatubo_provisional.xml'))
+def review_network(ctx):
+    """Copy the conversion step-15 products into this run; never rebuild them.
+
+    Step 15 (10_conversion) owns network history and StationXML. Rerun it there
+    when metadata change; this function only reads its outputs and records hashes.
+    """
+    source=network_products()
+    if not (source/'step15_provenance.json').is_file():
+        raise FileNotFoundError(f'No step-15 products in {source}; run 10_conversion/15_network_history_and_stationxml first')
+    dest=ctx['out']/'network_history'
+    shutil.copytree(source,dest,dirs_exist_ok=True,ignore=shutil.ignore_patterns('*.ipynb','header_scan'))
+    inv=read_inventory(str(dest/'pinatubo_provisional.xml'))
     rows=[]
     for net in inv:
         for sta in net:
@@ -351,26 +346,29 @@ def review_network(ctx, rebuild=True):
                 rows.append(dict(trace_id=f'{net.code}.{sta.code}.{ch.location_code}.{ch.code}',start=str(ch.start_date),
                     end=str(ch.end_date),latitude=ch.latitude,longitude=ch.longitude,elevation_m=ch.elevation,
                     response_present=ch.response is not None,response_status='NO_END_TO_END_COUNTS_RESPONSE'))
-    from pinatubo_steps.config import pipeline_paths
-    reference = Path(pipeline_paths()['NETWORK_HISTORY_INPUT'])
-    provenance={p.name:digest(p.read_bytes()) for p in reference.glob('*') if p.is_file()}
-    write_json(dest/'network_source_hashes.json',provenance)
+    write_json(dest/'network_source_hashes.json',dict(source=str(source),
+        files={p.name:digest(p.read_bytes()) for p in sorted(source.glob('*')) if p.is_file() and p.suffix!='.ipynb'}))
     return pd.DataFrame(rows),inv
+
+
+def _update_config(path, cfg, key, value):
+    """Set one section of analysis_workflow.json, first backing up the old file externally."""
+    if cfg.get(key)!=value:
+        backup=output_path('20_analysis','config_backups',create=True)/('analysis_workflow.before_'+digest(path.read_bytes())[:12]+'.json')
+        if not backup.exists():shutil.copy2(path,backup)
+        cfg[key]=value;write_json(path,cfg)
+    return cfg
 
 
 def configure_selection(analysis_dir, *, mode='sample', files_per_month=50,
                         months=('1991/05','1991/06','1991/07','1991/08'), max_files=None):
     """Persist explicit notebook selection, backing up prior shared settings."""
     path=Path(analysis_dir)/'analysis_workflow.json';cfg=json.loads(path.read_text())
-    if mode not in ['pilot','sample','all']:raise ValueError('Unknown selection mode')
+    if mode not in ['sample','all']:raise ValueError('Unknown selection mode')
     if isinstance(files_per_month,bool) or not isinstance(files_per_month,int) or files_per_month<1:raise ValueError('files_per_month must be positive integer')
     if max_files is not None and (isinstance(max_files,bool) or not isinstance(max_files,int) or max_files<1):raise ValueError('max_files must be positive integer or None')
     selection=dict(mode=mode,months=list(months),files_per_month=files_per_month,explicit_files=[],max_files=max_files)
-    if cfg['selection']!=selection:
-        backup=output_path('20_analysis','config_backups',create=True)/('analysis_workflow.before_'+digest(path.read_bytes())[:12]+'.json')
-        if not backup.exists():shutil.copy2(path,backup)
-        cfg['selection']=selection;write_json(path,cfg)
-    return cfg
+    return _update_config(path,cfg,'selection',selection)
 
 
 def run_window_proposals(ctx, settings=None, *, force=False, max_detail_files=None, progress_every=25):
@@ -394,7 +392,7 @@ def run_window_proposals(ctx, settings=None, *, force=False, max_detail_files=No
     frames={name:[] for name in ['qc','network','files','evidence']};details={};cache_rows=[]
     cached=failed=0
     def read_table(path):
-        try:return pd.read_csv(path)
+        try:return read_ids(path)
         except pd.errors.EmptyDataError:return pd.DataFrame()
     for index,path in enumerate(ctx['files']):
         stat=path.stat();manifest=[dict(path=str(path),size=stat.st_size,mtime_ns=stat.st_mtime_ns)]
@@ -433,7 +431,7 @@ def run_window_proposals(ctx, settings=None, *, force=False, max_detail_files=No
     canonical=ctx['out']/'window_review.csv'
     manual=['review_status',*APPROVAL_FIELDS,'reviewer_notes']
     if canonical.exists():
-        old=pd.read_csv(canonical)
+        old=read_ids(canonical)
         if old.trace_key.duplicated().any():raise ValueError('Duplicate trace keys in existing review')
         template=template.merge(old[['trace_key',*manual]],on='trace_key',how='left',validate='one_to_one')
     else:
@@ -448,11 +446,88 @@ def run_window_proposals(ctx, settings=None, *, force=False, max_detail_files=No
     write_json(ctx['out']/'window_proposal_run.json',dict(output=str(batch),settings=asdict(settings),
         detail_files_retained=len(details),selected_files=count,failures=failed,
         arrays_policy='Only spread-out example files retained; all per-file measurements cached on disk'))
-    return dict(output=batch,**combined,details=details,settings=settings,metrics=pd.DataFrame(),frequency=pd.DataFrame()),pd.read_csv(canonical)
+    return dict(output=batch,**combined,details=details,settings=settings,metrics=pd.DataFrame(),frequency=pd.DataFrame()),read_ids(canonical)
+
+
+def earliest_onset_summary(qc):
+    """Earliest selected onset per file (s after file start), with 5/10-s reference flags.
+
+    These are arrival-screen times: they include travel time and detection
+    effects, so a cluster near ten seconds does not prove a ten-second buffer.
+    """
+    columns=['earliest_selected_onset_s','within_1s_of_5s','within_1s_of_10s','interpretation']
+    if not len(qc) or 'selected_onset_file_s' not in qc:
+        return pd.DataFrame(columns=columns).rename_axis('record_id')
+    onset=pd.to_numeric(qc['selected_onset_file_s'],errors='coerce')
+    summary=onset.groupby(qc['record_id']).min().rename('earliest_selected_onset_s').to_frame()
+    summary['within_1s_of_5s']=(summary.earliest_selected_onset_s-5).abs()<=1
+    summary['within_1s_of_10s']=(summary.earliest_selected_onset_s-10).abs()<=1
+    summary['interpretation']='ARRIVAL_SCREEN_ONLY; NOT_TRIGGER_TIME'
+    return summary
+
+
+def plot_onset_histogram(ctx, qc, *, plot_seconds=30.0):
+    """Histogram of each file's earliest selected onset; writes the CSV and PNG/PDF/SVG.
+
+    Returns (figure or None, summary). Files without an onset stay in the CSV
+    with a missing value and are counted in the title, not plotted as zero.
+    """
+    summary=earliest_onset_summary(qc)
+    summary.to_csv(ctx['out']/'file_candidate_summary.csv')
+    valid=summary.earliest_selected_onset_s.dropna()
+    if not len(valid):return None,summary
+    fig,ax=plt.subplots(figsize=(7.2,3.0))
+    limit=max(float(plot_seconds),float(valid.max())+1)
+    ax.hist(valid,bins=np.arange(0,math.ceil(limit)+1,1),color='#4477AA',edgecolor='white')
+    for hypothesis in (5,10):
+        ax.axvline(hypothesis,color='black',ls='--',lw=1,label=f'{hypothesis}-s reference')
+    ax.set(xlabel='Earliest selected onset after file start (s)',ylabel='Files',
+           title=f'Earliest onset per file: {len(valid)} files with an onset, {len(summary)-len(valid)} without')
+    ax.legend(frameon=False)
+    fig.tight_layout()
+    save_figure(fig,ctx['out']/'figures/candidate_onset_histogram',
+        'Earliest selected onset per waveform file, in 1-s bins. Times include travel-time and detection '
+        'effects; the 5-s and 10-s lines are references, not an inferred acquisition buffer.')
+    return fig,summary
+
+
+def frequency_examples(ctx, result, settings, *, max_files=4, hilbert_files=2, hilbert_trace_id=None):
+    """Frequency and Hilbert diagnostics for several retained example files.
+
+    The examples are the spread-out files whose arrays run_window_proposals
+    kept. They are reanalysed with frequency and Hilbert switched on, which
+    does not change the batch onsets or windows. Returns the diagnostic QC
+    table and the PNG paths written.
+    """
+    from dataclasses import replace
+    from pretrigger_qc import analyse_files, plot_frequency_record, plot_hilbert_trace
+    files=[]
+    for records in result['details'].values():
+        if records and records[0]['qc'].get('file'):files.append(records[0]['qc']['file'])
+    files=list(dict.fromkeys(files))[:max_files]
+    if not files:return dict(qc=pd.DataFrame(),frequency_figures=[],hilbert_figures=[],output=None)
+    diagnostic_settings=replace(settings,compute_frequency=True,compute_hilbert=True)
+    diagnostic=analyse_files(files,ctx['out']/'frequency_examples',diagnostic_settings)
+    frequency_figures=[];hilbert_figures=[]
+    for record_id,records in diagnostic['details'].items():
+        if not records:continue
+        stem=ctx['out']/'figures'/f'frequency_{record_id}'
+        fig=plot_frequency_record(records,diagnostic_settings,stem,max_channels=100)
+        if fig is not None:
+            frequency_figures.append(stem.with_suffix('.png'));plt.close(fig)
+        if len(hilbert_figures)<hilbert_files:
+            choices=[r for r in records if hilbert_trace_id is None or r['qc']['trace_id']==hilbert_trace_id]
+            if choices:
+                stem=ctx['out']/'figures'/f'hilbert_{record_id}'
+                fig=plot_hilbert_trace(choices[0],diagnostic_settings,stem)
+                if fig is not None:
+                    hilbert_figures.append(stem.with_suffix('.png'));plt.close(fig)
+    return dict(qc=diagnostic['qc'],frequency_figures=frequency_figures,hilbert_figures=hilbert_figures,
+                output=diagnostic['output'])
 
 
 def save_review_decisions(ctx, updates):
-    path=ctx['out']/'window_review.csv';review=pd.read_csv(path).fillna('').astype(object)
+    path=ctx['out']/'window_review.csv';review=read_ids(path).fillna('').astype(object)
     allowed={'review_status','reviewer_notes',*APPROVAL_FIELDS}
     for key,decision in updates.items():
         if set(decision)-allowed:raise ValueError('Only explicit review fields can be edited')
@@ -477,7 +552,7 @@ def validate_review(ctx, review=None, write=True):
     inventory,_=build_inventory(ctx);lookup=inventory[inventory.is_waveform].set_index('trace_key')
     path=ctx['out']/'window_review.csv'
     if review is None:
-        if path.exists():review=pd.read_csv(path).fillna('').astype(object)
+        if path.exists():review=read_ids(path).fillna('').astype(object)
         else:
             review=_review_records(ctx)
             review.to_csv(path,index=False)
@@ -672,7 +747,7 @@ def _review_records(ctx):
     registry_path=paths[0]
     for path in paths:
         if not path.exists():continue
-        try:frame=pd.read_csv(path,usecols=lambda col:col in ['trace_key','source_fingerprint',*fields]).fillna('')
+        try:frame=read_ids(path,usecols=lambda col:col in ['trace_key','source_fingerprint',*fields]).fillna('')
         except pd.errors.EmptyDataError:continue
         if not {'trace_key','source_fingerprint',*fields}.issubset(frame.columns):continue
         active=frame.review_status.ne('UNREVIEWED')|frame.reviewer_notes.ne('')|frame[APPROVAL_FIELDS].ne('').any(axis=1)
@@ -703,7 +778,7 @@ def _persist_review_registry(ctx, review, updated_keys):
     path=ctx['products']/'window_review_registry.csv'
     fields=['trace_key','source_fingerprint','review_status',*APPROVAL_FIELDS,'reviewer_notes']
     incoming=review.loc[review.trace_key.isin(updated_keys),fields]
-    old=pd.read_csv(path).fillna('') if path.exists() else pd.DataFrame(columns=fields)
+    old=read_ids(path).fillna('') if path.exists() else pd.DataFrame(columns=fields)
     keys=set(zip(incoming.trace_key,incoming.source_fingerprint))
     old=old[[key not in keys for key in zip(old.trace_key,old.source_fingerprint)]]
     merged=pd.concat([old,incoming],ignore_index=True)
@@ -738,7 +813,7 @@ def load_event_metrics_catalog(ctx, *, include_trace_metrics=True):
     from flovopy.enhanced.catalog import EnhancedCatalog
     path=ctx['out']/'event_metrics_index.csv'
     if not path.exists():return EnhancedCatalog()
-    index=pd.read_csv(path);paths=[str(resolve_artifact(value)) for value in index.loc[index.status.ne('failed'),'sidecar_path'].dropna()]
+    index=read_ids(path);paths=[str(resolve_artifact(value)) for value in index.loc[index.status.ne('failed'),'sidecar_path'].dropna()]
     if include_trace_metrics:return EnhancedCatalog.from_sidecars(paths,require_quakeml=False)
     return _lightweight_catalog(paths)
 
@@ -786,11 +861,7 @@ def configure_window_policy(analysis_dir, *, policy='fixed', noise_seconds=5., d
     value=dict(policy=policy,noise_seconds=float(noise_seconds),detected_guard_s=float(detected_guard_s),
                detected_fallback=detected_fallback,event_end='record_end')
     window_policy(dict(config={'windows':value}))
-    if cfg.get('windows')!=value:
-        backup=output_path('20_analysis','config_backups',create=True)/('analysis_workflow.before_'+digest(path.read_bytes())[:12]+'.json')
-        if not backup.exists():shutil.copy2(path,backup)
-        cfg['windows']=value;write_json(path,cfg)
-    return cfg
+    return _update_config(path,cfg,'windows',value)
 
 
 def _automatic_proposals(ctx, policy):
@@ -816,7 +887,7 @@ def _automatic_proposals(ctx, policy):
         if len(ids)>len(best_ids) and path.exists():best=path;best_ids=ids
     tables=[]
     if best is not None:
-        table=pd.read_csv(best,usecols=lambda k:k in fields,dtype={'record_id':str,'trace_key':str})
+        table=read_ids(best,usecols=lambda k:k in fields)
         tables.append(table[table.record_id.isin(best_ids)])
     inventory,_=build_inventory(ctx);required=set(inventory.loc[inventory.is_waveform,'record_id'])
     seen=set(tables[0].record_id) if tables else set()
@@ -828,7 +899,7 @@ def _automatic_proposals(ctx, policy):
         payload=dict(settings=asdict(settings),files=[dict(path=str(path),size=stat.st_size,mtime_ns=stat.st_mtime_ns)],algorithm_version=ALGORITHM_VERSION)
         cached=root/digest(payload)[:12]/'trace_qc_and_candidates.csv'
         try:
-            if cached.exists():table=pd.read_csv(cached,usecols=lambda k:k in fields,dtype={'record_id':str,'trace_key':str})
+            if cached.exists():table=read_ids(cached,usecols=lambda k:k in fields)
             else:table=analyse_files([path],root,settings)['qc']
             if len(table):tables.append(table)
         except Exception:
@@ -917,7 +988,7 @@ def compute_reviewed_metrics(ctx, *, force=False, write_quakeml=True, selected_w
     else:approved=selected_windows.copy();issues=pd.DataFrame()
     inventory,_=build_inventory(ctx)
     waveform=inventory[inventory.is_waveform];lookup=waveform.set_index('trace_key')
-    current_review=pd.read_csv(ctx['out']/'window_review.csv').fillna('') if (ctx['out']/'window_review.csv').exists() else pd.DataFrame()
+    current_review=read_ids(ctx['out']/'window_review.csv').fillna('') if (ctx['out']/'window_review.csv').exists() else pd.DataFrame()
     trace_groups=waveform.groupby('record_id',sort=False).indices
     approved=approved.assign(record_id=approved.trace_key.map(lookup.record_id))
     window_groups=approved.groupby('record_id',sort=False).indices
@@ -1073,7 +1144,7 @@ def spectral_examples(ctx, trace_key=None, stem_prefix='spectral_example', capti
         results.append(mt);titles.append(f'DPSS PSD: {length:g} s; NW={mt.metadata["nw"]}, K={mt.metadata["tapers"]}')
     fig,axes=plt.subplots(1+len(results),1,figsize=(7.2,2+1.35*len(results)),sharex=True,layout='constrained')
     t=np.arange(len(trace))/fs;axes[0].plot(t,finite_data(trace),color=station_color(meta.station),lw=.5)
-    axes[0].set(ylabel='Counts',title=f'{trace.id} — recorded {trace.stats.starttime}; clock uncorrected')
+    axes[0].set(ylabel='Counts',title=f'{trace.id} — start {trace.stats.starttime} UTC')
     if paired:
         offset=float(trace.stats.starttime-origin)
         for row in selected.itertuples():
@@ -1117,7 +1188,7 @@ def load_metrics(ctx, require_current=True):
         policy=provenance.get('window_policy',{'policy':'reviewed'})
         if policy['policy']=='reviewed' and provenance['review_sha256']!=current:raise ValueError('Review decisions changed: rerun notebook 30 before summarizing metrics')
         if policy['policy']!='reviewed' and any(policy.get(k)!=v for k,v in window_policy(ctx).items()):raise ValueError('Window policy changed: rerun notebook 30')
-    return pd.read_csv(path)
+    return read_ids(path)
 
 
 def plot_metric_summary(ctx, metrics=None, stem='accepted_window_metrics'):
@@ -1135,7 +1206,7 @@ def plot_metric_summary(ctx, metrics=None, stem='accepted_window_metrics'):
                             label=f'{trace_id} {label}')
             centroid=pd.to_numeric(group['psd.centroid_hz'],errors='coerce')
             axes[1].scatter(rms[valid],centroid[valid],s=14,c=[color],marker='o' if label=='event' else 'x')
-        axes[0].set(yscale='log',ylabel='Window RMS (counts)',xlabel='Recorded date (uncorrected)')
+        axes[0].set(yscale='log',ylabel='Window RMS (counts)',xlabel='Date (UTC)')
         axes[1].set(xscale='log',xlabel='Window RMS (counts)',ylabel='Welch PSD centroid (Hz)')
         fig.autofmt_xdate(rotation=30)
     caption='Policy-selected window descriptive metrics for the configured selection. Trigger-preceding noise is a selected sample, not an unbiased ambient-noise survey. Comparisons require matching station/channel and gain epoch; unknown electronics prevent physical cross-station amplitude comparison. Energy durations describe each selected window and may be censored by record bounds.'
@@ -1148,7 +1219,7 @@ def archive_summary(ctx):
     waveform=inventory[inventory.is_waveform]
     summary=dict(scope=ctx['scope'],selected_files=len(ctx['files']),read_ok=int(files.status.eq('read_ok').sum()),
         waveform_traces=len(waveform),unique_channels=int(waveform.trace_id.nunique()),
-        accepted_metric_rows=len(metrics),response_units='counts',recorded_clock_correction='NONE')
+        accepted_metric_rows=len(metrics),response_units='counts',time_basis='UTC (conversion step 10 clock rules)')
     write_json(ctx['out']/'archive_summary.json',summary)
     # Count each trace once per QC flag; window/feature flags are separate populations.
     flags=[]
@@ -1167,8 +1238,16 @@ def archive_summary(ctx):
 def publication_figures(ctx):
     """Explicit frozen draft selection; never silently choose different examples."""
     selection_path=ctx['products']/'publication/publication_selection.json'
-    if not selection_path.exists() and (ctx['base']/'publication_selection.json').exists():
-        selection_path.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(ctx['base']/'publication_selection.json',selection_path)
+    seed=ctx['base']/'publication_selection.json'
+    def stale_draft(path):
+        old=json.loads(path.read_text())
+        return old.get('run_id')!=ctx['run_id'] and old.get('status')=='DRAFT_REQUIRES_AUTHOR_SELECTION'
+    if not selection_path.exists() and seed.exists() and not stale_draft(seed):
+        selection_path.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(seed,selection_path)
+    if selection_path.exists() and stale_draft(selection_path):
+        # An unapproved draft for an earlier run is kept for reference and replaced; approved selections still raise below.
+        old_run=json.loads(selection_path.read_text()).get('run_id')
+        selection_path.rename(selection_path.with_name(f'publication_selection.draft_{old_run}.json'))
     if not selection_path.exists():
         inventory,_=build_inventory(ctx);waveform=inventory[inventory.is_waveform]
         selected=waveform.groupby('record_id',sort=False).head(1).head(ctx['config']['plots']['max_examples'])
@@ -1314,11 +1393,11 @@ def plot_noise_windows_through_time(ctx, qc, review=None):
                               ('minimum_only','0.7','Minimum only'),('invalid_or_unresolved','#cc6677','Invalid/unresolved')]:
         values=counts[name].to_numpy() if name in counts else np.zeros(len(counts))
         axes[2].bar(counts.index,values,bottom=bottom,width=5.5,color=color,label=label);bottom+=values
-    axes[2].set(ylabel='Traces / week',xlabel='Recorded event-file date (uncorrected clock)')
+    axes[2].set(ylabel='Traces / week',xlabel='Event-file date (UTC)')
     axes[2].legend(ncol=4,fontsize=6,loc='upper left')
     locator=AutoDateLocator();axes[2].xaxis.set_major_locator(locator);axes[2].xaxis.set_major_formatter(ConciseDateFormatter(locator))
     fig.suptitle(f"Noise-window proposals through time — {len(events)} analysed files, {len(table)} traces")
-    caption='Proposed initial-noise lengths, not measured acquisition pretrigger settings. Supported/shortened windows are unreviewed unless explicitly accepted. Grey minimum-only values are assumptions and are excluded from file medians. Components are collapsed to one median per station before file summaries; station spread is not picking uncertainty. Earliest selected onset uses file-relative time and remains distinct from trace-relative noise length. Noise length includes the guard and may be shortened by earlier activity. Dashed 5/10-s lines are visual references, not fitted detector settings. Dates use uncorrected recorded clocks. Files without successful trace analysis are reported separately in file_inventory.csv.'
+    caption='Proposed initial-noise lengths, not measured acquisition pretrigger settings. Supported/shortened windows are unreviewed unless explicitly accepted. Grey minimum-only values are assumptions and are excluded from file medians. Components are collapsed to one median per station before file summaries; station spread is not picking uncertainty. Earliest selected onset uses file-relative time and remains distinct from trace-relative noise length. Noise length includes the guard and may be shortened by earlier activity. Dashed 5/10-s lines are visual references, not fitted detector settings. Dates are UTC (conversion step 10 clock rules). Files without successful trace analysis are reported separately in file_inventory.csv.'
     save_figure(fig,ctx['out']/'figures/noise_windows_through_time',caption,ctx['config']['plots']['dpi'])
     return fig,table,events
 
@@ -1339,7 +1418,7 @@ def _stream_event_exports(ctx, *, write_quakeml=True):
     import csv
     from flovopy.enhanced.catalog import EnhancedCatalog
     from flovopy.enhanced.serialization import json_compatible
-    index=pd.read_csv(ctx['out']/'event_metrics_index.csv')
+    index=read_ids(ctx['out']/'event_metrics_index.csv')
     paths=[str(resolve_artifact(value)) for value in index.loc[index.status.ne('failed'),'sidecar_path'].dropna()]
     temporary=ctx['out']/'window_metrics.csv.tmp'
     with open(temporary,'w',newline='') as handle:
@@ -1355,8 +1434,8 @@ def _stream_event_exports(ctx, *, write_quakeml=True):
     EnhancedCatalog.export_sidecars_csv(paths,ctx['out']/'events_metadata.csv',level='event',include_trace_summaries=False)
     catalog=_lightweight_catalog(paths);catalog.export_csv(str(ctx['out']/'catalog_summary.csv'))
     if write_quakeml and len(catalog):catalog.write(str(ctx['out']/'events.qml'),format='QUAKEML')
-    fields=pd.read_csv(ctx['out']/'all_window_metrics.csv',nrows=0).columns
+    fields=read_ids(ctx['out']/'all_window_metrics.csv',nrows=0).columns
     pd.DataFrame(dict(column=fields,storage='scalar or JSON-valued cell; see sidecar')).to_csv(ctx['out']/'all_metrics_schema.csv',index=False)
     # Only the scalar plotting table is materialized as an ensemble DataFrame.
-    return pd.read_csv(ctx['out']/'window_metrics.csv',dtype={'record_id':str,'trace_key':str,
+    return read_ids(ctx['out']/'window_metrics.csv',dtype={
         'feature_version':str,'artifact_pre_detected':'boolean','artifact_post_detected':'boolean','event_end_record_limited':'boolean'})

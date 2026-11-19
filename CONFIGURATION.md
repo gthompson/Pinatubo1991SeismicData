@@ -11,9 +11,9 @@ No archive conversion or analysis is started by editing or loading configuration
 |---|---|
 | Conversion `data_top` (existing archive, read inputs) | `~/Library/CloudStorage/Box-Box/thompsong/DATA/pinatubo1991` |
 | Conversion `output_root` | `~/work/Pinatubo1991Processing/utc` |
-| Analysis `wav_root` (converted recordings) | `~/work/Pinatubo1991Processing/utc/FAIR/SEISAN/WAV/PNTBO` |
-| Analysis `output_root` | `~/DATA/Pinatubo1991Processing/analysis` |
-| Analysis `network_history_products` (read metadata) | `~/work/Pinatubo1991Processing/utc/FAIR/metadata/network_history` |
+| Analysis waveforms (read) | conversion `<output_root>/FAIR/SEISAN/WAV/PNTBO`; optional `wav_root` override |
+| Analysis `output_root` | `~/work/Pinatubo1991Processing/analysis` |
+| Analysis station metadata (read) | conversion `<output_root>/FAIR/metadata/network_history` (step 15) |
 
 The Box input directories exist on the inspected machine. Change these settings
 for another machine, drive, selected archive version or deliberately separate run.
@@ -82,8 +82,8 @@ sidecars, original-sample inventories, onset caches and review registry live in
 `event_metrics_cache`, `file_inventory_cache`, `pretrigger_file_cache` and
 `window_review_registry.csv` under that same external root. Generated backups of
 configuration changes go to `config_backups` there; the deliberately edited active
-JSON remains in `20_analysis`. Network rebuilding writes to the current external
-run; otherwise metadata are read from `network_history_products`.
+JSON remains in `20_analysis`. Analysis notebook 10 copies the conversion step-15
+products into the run; it never rebuilds or writes them.
 
 `PINATUBO_ANALYSIS_OUTPUT` optionally overrides the analysis output root. Numerical
 selection, frequency bands and window policy have not been changed by this update:
@@ -91,20 +91,22 @@ current mode is all files, fixed five-second assumed noise, event to record end.
 For a controlled trial select a sample in notebook 20 or the shared JSON first.
 Do not interpret that reference window as verified quiet background.
 
-Analysis reads the UTC waveform release written by conversion (`wav_root` above).
-Changing conversion's output root does not silently change the analysis input:
-update `wav_root` and `network_history_products` explicitly.
+Analysis reads the UTC waveform database and station metadata written by conversion,
+located through `conversion_config.json`. Set `wav_root` in `analysis_workflow.json`,
+or `PINATUBO_WAV_ROOT`, only to analyse a different waveform tree. The waveform file
+paths and the step-15 product hashes are recorded with each run.
 
-The publication selection remains pinned to its earlier pilot. A changed run/root
-may require deliberate example reselection; it must not silently substitute new
-scientific examples. Existing cache directories in the repository are left intact.
+Notebook 60 writes a draft publication selection for the current run when none
+exists, and stops if the existing selection belongs to another run. The draft for
+the pre-UTC run is kept as `publication_selection.draft_e75d49b2bf48.json`.
+Choosing the final examples is a deliberate scientific step. Existing cache directories in the repository are left intact.
 This update does not migrate them or promise cache compatibility after code/config
 changes. Move/copy reviewed products only after checking signatures and provenance.
 
-The older combined pretrigger notebook and standalone metrics command also route
-outputs externally. The standalone command retains its own `config*.json` files;
-it is not the current notebook-analysis workflow. The historical RSAM notebook
-already targets an external Box plot folder and remains separate.
+Retired analysis code (the pretrigger pilot, the standalone metrics command with
+its `config*.json` files, the COSPEC plotter and the pre-UTC RSAM notebook) is kept in
+`20_analysis/superseded/`; see its README. RSAM and COSPEC now come from conversion
+steps 61 and 66.
 
 ## Configuration checks
 

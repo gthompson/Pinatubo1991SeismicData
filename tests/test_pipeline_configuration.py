@@ -45,11 +45,9 @@ class ConfigTests(unittest.TestCase):
     def test_legacy_inputs_not_overwritten(self):
         for value in [self.inputs/'LEGACY',self.inputs/'LEGACY/nested',self.inputs]:
             with self.assertRaises(ValueError):conversion.pipeline_paths(config_file=self.config,output_root=value)
-    def test_analysis_root_and_network_input_are_independent(self):
-        cfg=dict(output_root=str(self.out/'analysis'),network_history_products=str(self.out/'conversion/network_history'))
-        out=paths.analysis_products_root(cfg,self.repo)
+    def test_analysis_root_is_resolved_without_creating_it(self):
+        out=paths.analysis_products_root(dict(output_root=str(self.out/'analysis')),self.repo)
         self.assertEqual(out,self.out/'analysis')
-        self.assertEqual(paths.analysis_network_products(cfg,self.repo,out),self.out/'conversion/network_history')
         self.assertFalse(out.exists())
     def test_config_environment_overrides(self):
         with patch.dict(os.environ,{'PINATUBO_CONVERSION_CONFIG':str(self.config),'PINATUBO_CONVERSION_OUTPUT':str(self.out/'other')}):
@@ -72,14 +70,13 @@ class ConfigTests(unittest.TestCase):
         import pandas as pd
         source=ROOT/'20_analysis/analysis_workflow.py'
         tree=ast.parse(source.read_text())
-        wanted={'load_context','_products','_network_products','_backup_config','configure_selection'}
+        wanted={'load_context','_products','_update_config','configure_selection'}
         subset=ast.Module(body=[n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name in wanted],type_ignores=[])
         def digest(v):return hashlib.sha256(v if isinstance(v,bytes) else json.dumps(v,sort_keys=True,default=str).encode()).hexdigest()
         def write_json(p,v):
             p=Path(p);p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(v,default=str))
         ns=dict(Path=Path,json=json,os=os,np=np,pd=pd,__file__=str(source),digest=digest,write_json=write_json,
                 WORKFLOW_VERSION='config-test',apply_style=lambda:None,analysis_products_root=paths.analysis_products_root,
-                analysis_network_products=paths.analysis_network_products,
                 analysis_products=lambda cfg,override=None:Path(override) if override else paths.analysis_products_root(cfg,self.repo),
                 runtime_environment=lambda:None,network_products=lambda:self.out/'network_history',
                 output_path=lambda stage,*parts,create=False:self.out.joinpath(*parts),
@@ -98,7 +95,6 @@ class ConfigTests(unittest.TestCase):
         self.assertTrue(ctx['out'].is_relative_to(self.out/'notebook_workflow'))
         self.assertTrue((ctx['out']/'run_manifest.json').is_file())
         self.assertEqual(ns['_products'](ctx),self.out)
-        self.assertEqual(ns['_network_products'](ctx),self.out/'network_history')
         ns['configure_selection'](analysis,mode='sample',files_per_month=2)
         self.assertTrue(list((self.out/'config_backups').glob('*.json')))
         self.assertFalse((analysis/'products').exists())

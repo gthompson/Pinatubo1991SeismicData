@@ -112,4 +112,18 @@ class WorkflowTests(unittest.TestCase):
         with self.assertRaises(ValueError):w.publication_figures(self.ctx)
         self.assertEqual(path.read_text(),'{"run_id":"another_run"}')
 
+    def test_stale_publication_draft_is_kept_and_replaced(self):
+        seed=self.base/'publication_selection.json'
+        seed.write_text(json.dumps(dict(status='DRAFT_REQUIRES_AUTHOR_SELECTION',run_id='old_run',example_traces=[])))
+        external=self.ctx['products']/'publication/publication_selection.json'
+        external.parent.mkdir(parents=True);external.write_text(seed.read_text())
+        try:w.publication_figures(self.ctx)
+        except Exception:pass  # figure drawing is not under test here
+        self.assertEqual(json.loads(external.read_text())['run_id'],self.ctx['run_id'])
+        self.assertEqual(json.loads((external.parent/'publication_selection.draft_old_run.json').read_text())['run_id'],'old_run')
+
+    def test_hex_ids_are_read_as_text(self):
+        path=Path(self.tmp.name)/'ids.csv';pd.DataFrame(dict(record_id=['12e4','00ff'],trace_key=['12e4:0','00ff:0'])).to_csv(path,index=False)
+        self.assertEqual(w.read_ids(path).record_id.tolist(),['12e4','00ff'])
+
 if __name__=='__main__':unittest.main()

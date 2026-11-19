@@ -30,6 +30,7 @@ class ExternalLayoutTests(unittest.TestCase):
         p.runtime_environment();root=p.settings()['results_root']
         for key in ['MPLCONFIGDIR','GMT_USERDIR','GMT_SESSIONDIR','IPYTHONDIR']:
             self.assertTrue(Path(os.environ[key]).is_relative_to(root))
-        dest=p.network_products()/'data/waveform_header_presence.csv';dest.parent.mkdir(parents=True,exist_ok=True);dest.write_text('external')
-        self.assertEqual(p.network_input(dest.name,Path('/not/source')),dest)
-        dest.unlink()
+        # Never write into the real step-15 products.
+        with TemporaryDirectory() as tmp, patch.object(p,'network_products',lambda:Path(tmp)):
+            dest=Path(tmp)/'data/waveform_header_presence.csv';dest.parent.mkdir(parents=True);dest.write_text('external')
+            self.assertEqual(p.network_input(dest.name),dest)

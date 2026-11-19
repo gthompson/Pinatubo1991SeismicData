@@ -1,5 +1,4 @@
 {
-  "wav_root": "~/work/Pinatubo1991Processing/utc/FAIR/SEISAN/WAV/PNTBO",
   "selection": {
     "mode": "all",
     "months": [
@@ -55,6 +54,5 @@
     "detected_fallback": "fixed",
     "event_end": "record_end"
   },
-  "output_root": "~/DATA/Pinatubo1991Processing/analysis",
-  "network_history_products": "~/work/Pinatubo1991Processing/utc/FAIR/metadata/network_history"
+  "output_root": "~/work/Pinatubo1991Processing/analysis"
 }

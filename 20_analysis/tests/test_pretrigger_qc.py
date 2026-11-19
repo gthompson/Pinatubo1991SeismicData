@@ -3,7 +3,7 @@ from pathlib import Path
 import unittest
 import numpy as np
 from obspy import Trace,Stream,UTCDateTime
-from pretrigger_qc import Settings,analyse_trace,analyse_files,select_files
+from pretrigger_qc import Settings,analyse_trace,analyse_files
 
 class PilotTests(unittest.TestCase):
     def trace(self,x):return Trace(np.array(x,dtype=float),header=dict(sampling_rate=100.,network='XB',station='BUG',channel='EHZ',starttime=UTCDateTime(1991,6,3)))
@@ -40,14 +40,6 @@ class PilotTests(unittest.TestCase):
             self.assertEqual(len(r['qc']),1);review.write_text('reviewed by human\n')
             rr=analyse_files([path],root/'out');self.assertEqual(review.read_text(),'reviewed by human\n')
             self.assertEqual(r['output'],rr['output'])
-    def test_selection_spreads_recording_days(self):
-        with tempfile.TemporaryDirectory() as folder:
-            p=Path(folder)/'1991/06';p.mkdir(parents=True)
-            for day in [1,2,3,4,5]:
-                for f in range(3):(p/f'1991-06-{day:02d}-000{f}-00M.TEST_001').touch()
-            selected,report=select_files(folder,['1991/06','1991/07'],2)
-            self.assertEqual(len(selected),2);self.assertIn('-01-',selected[0].name);self.assertIn('-05-',selected[1].name)
-            self.assertEqual(report.iloc[1].files_selected,0)
     def test_invalid_settings_and_empty_selection(self):
         with self.assertRaises(ValueError):Settings(reference_end_s=0)
         with self.assertRaises(ValueError):analyse_files([],'.')

@@ -57,7 +57,8 @@ def input_path(name):
     if name=='waveform_root':
         afile=PROJECT_ROOT/'20_analysis/analysis_workflow.json';a=read_config(afile)
         if a.get('wav_root'):return resolve_path(a['wav_root'],relative_to=afile.parent)
-        return input_path('data_top')/'FAIR/SEISAN/WAV'/conversion.get('database','PNTBO')
+        # Default: the UTC SEISAN WAV database written by conversion step 10.
+        return _conversion_artifact('SEISAN_WAV_DB')
     raise KeyError(name)
 
 
@@ -108,8 +109,8 @@ def network_products():
     return _conversion_artifact('NETWORK_HISTORY_OUTPUT')
 
 
-def network_input(name, source_data):
-    # Historical evidence remains in source; header refreshes are generated data.
+def network_input(name):
+    """A step-15 product, else the same-named file among step 15's source evidence."""
     for generated in [network_products()/name,network_products()/'data'/name]:
         if generated.exists():return generated
     reference = _conversion_artifact('NETWORK_HISTORY_INPUT') / name

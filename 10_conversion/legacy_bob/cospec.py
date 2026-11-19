@@ -1,6 +1,7 @@
 """Read and plot preserved Pinatubo BOB COSPEC records without aggregation.
 
-Run: python cospec_plotter.py --config cospec_config.json
+Called by legacy_bob.runner (the older BOB command-line tools). The maintained
+COSPEC product is conversion step 66 (66_cospec.ipynb), which reads dates as Philippine days.
 Needs pandas and matplotlib, but does not import FLOVOpy or run waveform analysis.
 """
 from __future__ import annotations

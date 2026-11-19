@@ -36,7 +36,6 @@ def pipeline_paths(data_top=None, *, output_root=None, config_file=None):
 
     p['LEGACY_TOP'] = str(legacy)
     p['SUDS_TOP'] = f"{p['LEGACY_TOP']}/WAVEFORM_DATA/SUDS"
-    p['FIX_FS'] = str(config.get('waveform', {}).get('sampling_rate', 100.0))
     p['DMX_GLOB'] = config.get('waveform', {}).get('pattern', '**/*.DMX')
     p['LEGACY_EVENTMETA_DIR'] = f"{p['LEGACY_TOP']}/EVENT_METADATA"
     p['LEGACY_PHA_MONTHLY_DIR'] = f"{p['LEGACY_EVENTMETA_DIR']}/MONTHLY_PHA"

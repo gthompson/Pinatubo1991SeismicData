@@ -1,6 +1,6 @@
-"""Small-sample archive QC. Candidate arrivals are not acquisition trigger times.
+"""Batch pretrigger QC adapter around FloVoPy. Candidate arrivals are not acquisition trigger times.
 
-All timing below uses recorded trace times, without UTC corrections. Raw samples
+Trace times are UTC (conversion step 10 applied the clock rules). Raw samples
 are preserved. Noise-reference windows are assumptions for screening only.
 """
 from pathlib import Path
@@ -8,7 +8,6 @@ from dataclasses import dataclass, asdict
 import hashlib
 import json
 import math
-import re
 import numpy as np
 import pandas as pd
 from obspy import read, Stream
@@ -17,29 +16,6 @@ from flovopy.processing.detection import PretriggerSettings as Settings, detect_
 from flovopy.processing.event_windows import (
     ALGORITHM_VERSION, _analyse_trace as analyse_trace, frequency_checks, hilbert_diagnostic, _summarize_hilbert,
 )
-
-def select_files(wav_root, months=('1991/05','1991/06','1991/07','1991/08'), per_month=2):
-    """Choose evenly spread recording days, then a middle file on each day.
-
-    This is a reproducible exploratory sample, not a statistical archive sample.
-    No waveforms are read during selection. Supply explicit files for focused work.
-    """
-    if isinstance(per_month,bool) or int(per_month)!=per_month or per_month<1:raise ValueError('per_month must be a positive integer')
-    selected=[];report=[]
-    for month in months:
-        if not re.fullmatch(r'\d{4}/\d{2}',month):raise ValueError('Months must have form YYYY/MM')
-        folder=Path(wav_root)/month
-        files=sorted(p for p in folder.iterdir() if p.is_file() and not p.name.startswith('.')) if folder.is_dir() else []
-        days={}
-        for p in files:
-            m=re.match(r'\d{4}-\d{2}-\d{2}',p.name)
-            if m:days.setdefault(m[0],[]).append(p)
-        keys=sorted(days);count=min(per_month,len(keys))
-        indices=np.unique(np.round(np.linspace(0,len(keys)-1,count)).astype(int)) if count>1 else ([len(keys)//2] if count else [])
-        picks=[days[keys[i]][len(days[keys[i]])//2] for i in indices]
-        selected.extend(picks);report.append(dict(month=month,files_available=len(files),recognized_days=len(keys),files_selected=len(picks),status='selected' if picks else 'missing_or_no_recognized_files'))
-    return selected,pd.DataFrame(report)
-
 
 def analyse_files(files,output_root,settings=None):
     cfg=settings or Settings();files=[Path(p).expanduser().resolve() for p in files]

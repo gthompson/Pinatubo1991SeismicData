@@ -3,7 +3,7 @@
 The laptop and Mac mini working copies have been combined without moving existing data.
 
 - `10_conversion/conversion_config.json` remains authoritative for default conversion inputs and output_root, including all BOB products.
-- `20_analysis/analysis_workflow.json` remains authoritative for analysis inputs and output_root.
+- `20_analysis/analysis_workflow.json` sets the analysis selection, processing and `output_root`; analysis inputs (UTC waveforms, step-15 metadata) are located through `conversion_config.json` unless `wav_root` overrides the waveforms.
 - `pinatubo_project.py` is a compatibility facade for notebook runtime caches, testing, and historical artifact lookup; it does not silently substitute the Mac mini volume.
 - `project_config.json` has no machine-specific defaults. Select `project_config.macmini.example.json` explicitly through PINATUBO_PROJECT_CONFIG to use that results layout, after checking its inputs and mounted volume.
 - `PINATUBO_RESULTS_ROOT` selects isolated stage roots for testing. Conversion products, analysis products and runtime/test files all honor that override.

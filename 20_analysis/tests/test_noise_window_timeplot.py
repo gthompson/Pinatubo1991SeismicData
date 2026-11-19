@@ -68,4 +68,30 @@ class TimeplotTests(unittest.TestCase):
         self.assertEqual(backups[0].read_bytes(),before)
         self.assertEqual(len(w.load_context(self.base)['files']),12)
 
+    def test_onset_histogram_counts_each_file_once(self):
+        qc=pd.DataFrame(dict(record_id=['a','a','b','c'],selected_onset_file_s=[12.,10.4,5.2,np.nan]))
+        summary=w.earliest_onset_summary(qc)
+        self.assertEqual(summary.earliest_selected_onset_s.loc['a'],10.4)
+        self.assertTrue(summary.within_1s_of_10s.loc['a']);self.assertTrue(summary.within_1s_of_5s.loc['b'])
+        self.assertTrue(np.isnan(summary.earliest_selected_onset_s.loc['c']))
+        fig,saved=w.plot_onset_histogram(self.ctx,qc)
+        self.assertIsNotNone(fig);self.assertEqual(len(saved),3)
+        self.assertEqual(sum(p.patches[i].get_height() for p in fig.axes for i in range(len(p.patches))),2)
+        for suffix in ['png','pdf','svg','caption.md']:
+            self.assertTrue((self.ctx['out']/f'figures/candidate_onset_histogram.{suffix}').exists())
+        self.assertTrue((self.ctx['out']/'file_candidate_summary.csv').exists())
+        none_fig,empty=w.plot_onset_histogram(self.ctx,pd.DataFrame())
+        self.assertIsNone(none_fig);self.assertEqual(len(empty),0)
+    def test_frequency_examples_cover_several_files_without_changing_batch(self):
+        cfg=PretriggerSettings(compute_frequency=False,compute_hilbert=False)
+        result,_=w.run_window_proposals(self.ctx,cfg,max_detail_files=3,progress_every=10)
+        before=result['qc'][['trace_key','selected_onset_file_s']].copy()
+        out=w.frequency_examples(self.ctx,result,cfg,max_files=3,hilbert_files=2)
+        self.assertEqual(len(out['frequency_figures']),3);self.assertEqual(len(out['hilbert_figures']),2)
+        self.assertTrue(all(p.exists() for p in out['frequency_figures']+out['hilbert_figures']))
+        self.assertEqual(out['qc'].record_id.nunique(),3)
+        pd.testing.assert_frame_equal(result['qc'][['trace_key','selected_onset_file_s']],before)
+        only=w.frequency_examples(self.ctx,result,cfg,max_files=3,hilbert_files=3,hilbert_trace_id='XB.GRN..EHZ')
+        self.assertEqual(len(only['hilbert_figures']),3)
+
 if __name__=='__main__':unittest.main()

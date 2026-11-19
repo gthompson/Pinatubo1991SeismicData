@@ -103,13 +103,24 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
 
 - **FloVoPy REA manifest (§4.10).** `export_catalog_to_rea` saves its manifest once per run, with 60 s checkpoints, instead of after every S-file: a full step-52 rewrite takes 38 s instead of 33 min, with identical output. Repeated ObsPy writer warnings are summarised once with a count.
 - **Tests and docs (§6, §3.8).** `NOTEBOOKS_README.md`, the top-level `README.md`, `CONFIGURATION.md` and `34_association_review.md` now describe the current UTC pipeline. A stale configuration test is corrected. Notebooks still showing outputs from the old root were rerun with byte-identical results.
+- **Analysis follow-ups and `20_analysis` cleanup (18 Nov).**
+  - Notebook 20 now has the earliest-onset histogram and the frequency and Hilbert plots for several example files; the old pilot notebook is retired. The analysis reads the UTC archive; its output root is `~/work/Pinatubo1991Processing/analysis`.
+  - Analysis notebook 10 used to re-execute step 15's code and overwrite the canonical step-15 products, but not their audit, selection-safe copies or provenance. It is now read-only (copies the products and records their hashes). Steps 15 and 16 were rerun: every CSV is identical to the overwritten files, the XML differs only in its creation time, and `chronology.md` gets back its correct `source_metadata/` link. A layout test that wrote into the step-15 folder now uses a temporary one.
+  - Analysis inputs now come from `conversion_config.json` (UTC WAV database, step-15 products); `wav_root` is only an override. The unused `network_history_products` setting and its helpers, the Box pre-UTC waveform fallback, the `pilot` sampler and a hard-coded hash check are removed; the two config-backup copies are merged.
+  - Time labels say UTC (they said recorded, uncorrected clocks), in metric provenance (`time_basis`, `epoch_status`), captions, axes and notebook text.
+  - Retired to `20_analysis/superseded/` (with a README): the old command-line pipeline and its configs, READMEs and smoke outputs; the COSPEC plotter and notebook 70, which duplicated step 66 and labelled dates GMT midnight (its stray output under `utc/legacy_bob/` was removed); and `legacy_rsam_analysis.ipynb`, which read raw RSAM and pre-UTC waveforms (step 61 replaces it). `pytest.ini` limits collection to `tests/`. The unused `FIX_FS` path key is removed from `pinatubo_steps/config.py`.
+  - Two faults found by rerunning: `analysis_workflow` read cached CSVs with default types, so a hex `record_id` such as `…e123` became `inf` and notebook 20 failed on reuse; ID columns are now always read as text (`read_ids`). Notebook 60 kept re-copying a draft selection for an earlier run; an unapproved draft for another run is now kept as `publication_selection.draft_<run>.json` and replaced, while an approved one still stops the notebook.
 
 **Remaining**, roughly in priority order:
 
 | # | Item | Section | Notes |
 |---|---|---|---|
 | 1 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
-| 2 | Analysis follow-ups (`20_analysis`) | — | Port the onset histogram and the multi-file frequency/Hilbert plots from `00_archive_qc_and_pretrigger.ipynb` into notebook 20, then retire the old notebook. Rerun the analysis on the UTC archive. |
+| 2 | Publication examples | — | Notebook 60 now writes a fresh draft selection for the UTC run; the examples still need choosing. |
+| 3 | `all_window_metrics.csv` size | — | For the full archive it is ~29 GB (JSON arrays in CSV cells) and takes ~1 h. The sidecars already hold the arrays; make the export optional, or write Parquet. |
+| 4 | Duplicate DPSS spectrogram | — | `analysis_workflow.multitaper_spectrogram`/`matched_psds` duplicate FloVoPy's `_multitaper_spectrogram`; the local version is density-normalised and could move upstream. |
+| 5 | FloVoPy-internal tests in `20_analysis` | — | `pretrigger_qc` re-exports FloVoPy private functions for tests that belong in FloVoPy. |
+| 6 | `10_conversion/legacy_bob/` | — | The old BOB command-line converter; only its own tests use it, and steps 61–69 replace it. Retire it to `superseded/`. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
 

@@ -1,4 +1,6 @@
-# Archive QC and noise-window pilot
+# Archive QC and noise-window pilot (superseded)
+
+**Superseded on 18 November 2026.** Use `20_pretrigger_and_window_selection.ipynb` in the parent folder. It now includes this pilot's earliest-onset histogram and its frequency and Hilbert plots for several example files. This notebook and README are kept for the record. It cannot be rerun as it is: its paths assume it sits in `20_analysis`, and the file sampler it used (`pretrigger_qc.select_files`) has been removed.
 
 Open `00_archive_qc_and_pretrigger.ipynb` using the FLOVOpy Python environment. Keep `pretrigger_qc.py` beside it. The notebook selects a small sample of archive files, saves diagnostic tables/figures, and leaves all window decisions unreviewed.
 

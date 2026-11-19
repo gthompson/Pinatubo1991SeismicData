@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from obspy import Trace
 import hybrid_diagnostics as h
-from pinatubo_project import test_directory
+from pinatubo_project import test_directory as scratch_directory
 
 class HybridDiagnosticTests(unittest.TestCase):
     def setUp(self):
@@ -38,7 +38,7 @@ class HybridDiagnosticTests(unittest.TestCase):
     def test_label_evaluation_does_not_count_unresolved_as_negative(self):
         scores=pd.DataFrame([dict(trace_key='a',peak_delay_candidate=True,if_candidate=True),
             dict(trace_key='b',peak_delay_candidate=None,if_candidate=False)])
-        dest=test_directory('hybrid_unit')/'labels.csv'
+        dest=scratch_directory('hybrid_unit')/'labels.csv'
         pd.DataFrame([dict(trace_key='a',is_hybrid=True),dict(trace_key='b',is_hybrid=False)]).to_csv(dest,index=False)
         report=h.evaluate_labels(scores,dest);peak=report[report.method.eq('peak_delay')].iloc[0]
         self.assertEqual(peak.resolved,1);self.assertEqual(peak.unresolved,1)
