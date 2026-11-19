@@ -44,6 +44,7 @@ Each data stream was time-stamped by its own acquisition PC, and those clocks ch
 | 69 | `69_bob_coverage_and_review` | Network-wide BOB availability overview | 61–68 |
 | 70 | `70_network_history_and_stationxml` | Network history, channel epochs on UTC, StationXML and audits; run last, once every dataset is on UTC | 10 (and 60–69 done) |
 | 71 | `71_validate_network_history` | Checks on the step-70 products (every trace inside an epoch) | 70 |
+| 72 | `72_external_clock_anchors` | Absolute clock check: ISC/USGS events against HYPO71, long S−P pick groups, SSAM and triggered records; analyst review of candidate records | 10, 22, 43, 62; network for the first download |
 
 Notes on specific steps:
 
