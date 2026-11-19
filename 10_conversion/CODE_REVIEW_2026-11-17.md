@@ -111,6 +111,8 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
   - Retired to `20_analysis/superseded/` (with a README): the old command-line pipeline and its configs, READMEs and smoke outputs; the COSPEC plotter and notebook 70, which duplicated step 66 and labelled dates GMT midnight (its stray output under `utc/legacy_bob/` was removed); and `legacy_rsam_analysis.ipynb`, which read raw RSAM and pre-UTC waveforms (step 61 replaces it). `pytest.ini` limits collection to `tests/`. The unused `FIX_FS` path key is removed from `pinatubo_steps/config.py`.
   - Two faults found by rerunning: `analysis_workflow` read cached CSVs with default types, so a hex `record_id` such as `…e123` became `inf` and notebook 20 failed on reuse; ID columns are now always read as text (`read_ids`). Notebook 60 kept re-copying a draft selection for an earlier run; an unapproved draft for another run is now kept as `publication_selection.draft_<run>.json` and replaced, while an approved one still stops the notebook.
 
+- **`legacy_bob` retired (18 Nov).** The old BOB command-line converter and its two tests moved to `superseded/legacy_bob/`; steps 61–69 replace it. The `legacy_bob` block stays in `conversion_config.json` (step 66 reads its COSPEC units); only its runner-only `products` list was removed.
+
 **Remaining**, roughly in priority order:
 
 | # | Item | Section | Notes |
@@ -120,7 +122,6 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
 | 3 | `all_window_metrics.csv` size | — | For the full archive it is ~29 GB (JSON arrays in CSV cells) and takes ~1 h. The sidecars already hold the arrays; make the export optional, or write Parquet. |
 | 4 | Duplicate DPSS spectrogram | — | `analysis_workflow.multitaper_spectrogram`/`matched_psds` duplicate FloVoPy's `_multitaper_spectrogram`; the local version is density-normalised and could move upstream. |
 | 5 | FloVoPy-internal tests in `20_analysis` | — | `pretrigger_qc` re-exports FloVoPy private functions for tests that belong in FloVoPy. |
-| 6 | `10_conversion/legacy_bob/` | — | The old BOB command-line converter; only its own tests use it, and steps 61–69 replace it. Retire it to `superseded/`. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
 

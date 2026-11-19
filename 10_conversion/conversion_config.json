@@ -15,13 +15,6 @@
     "recover_partial": true
   },
   "legacy_bob": {
-    "products": [
-      "cospec",
-      "counts",
-      "radio",
-      "rain",
-      "tilt"
-    ],
     "cospec": {
       "units": "t/day",
       "units_basis": "SO2 mass flux inferred from the historical COSPEC account; units not printed in source",

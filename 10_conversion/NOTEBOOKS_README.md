@@ -74,6 +74,7 @@ python -m pytest -q pinatubo_steps/tests tests
 
 - `pinatubo_steps/`: `config.py` (paths), `clock.py` (UTC rules), `shared.py` (ID and time helpers), `pha_parser.py` (Pinatubo wrapper around FloVoPy's phase-card reader), `pha_comparison.py` (step 23), `dmx_recovery.py` (step 10 diagnostics).
 - `superseded/bob_pre_flovopy/`: the BOB notebooks that came before 60–69.
-- `legacy_bob/` and `unpack_bob_archives.py`: the older BOB command-line tools; `unpack_bob_archives.py` now runs step 60's definitions. Outputs of the old `legacy_bob` tools are not inputs to step 69.
+- `superseded/legacy_bob/`: the older BOB command-line converter (COSPEC, counts, radio, rain, tilt) and its tests, retired 18 Nov 2026; steps 61–69 replace it.
+- `unpack_bob_archives.py`: command-line adapter that runs step 60's definitions.
 - `audit_ssam_coverage.py`, `audit_data_ssam_coverage.py`, `audit_mudflow_coverage.py` and `README_ssam copy.md`: recovered early SSAM and mudflow audits, kept for reference.
 - `refactor_manifest.json`: the historical record of converting the original scripts to notebooks. The modules it lists were later folded back into the notebooks.

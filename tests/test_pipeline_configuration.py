@@ -60,7 +60,7 @@ class ConfigTests(unittest.TestCase):
     def test_active_notebooks_use_shared_config_and_have_valid_code(self):
         for p in (ROOT/'10_conversion').glob('*.ipynb'):
             j=json.loads(p.read_text());text='\n'.join(''.join(c['source']) for c in j['cells'] if c['cell_type']=='code')
-            self.assertTrue('pipeline_paths(' in text or 'from legacy_bob.runner import run' in text,p.name)
+            self.assertIn('pipeline_paths(',text,p.name)
             self.assertNotIn('Dropbox/PROFESSIONAL',text,p.name)
             for c in j['cells']:
                 if c['cell_type']=='code':ast.parse(''.join(c['source']))
