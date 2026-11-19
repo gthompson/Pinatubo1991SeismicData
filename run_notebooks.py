@@ -12,7 +12,7 @@ Examples (from the project root, in the flovopy_asl environment):
     python run_notebooks.py                           # everything, conversion then analysis
     python run_notebooks.py --stage conversion --from 40 --to 54
     python run_notebooks.py --stage analysis --skip 45
-    python run_notebooks.py --figures                 # then papers/SRL/make_figures.ipynb
+    python run_notebooks.py --figures                 # then the paper and supplement figure notebooks
 """
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 STAGES = {"conversion": ROOT / "10_conversion", "analysis": ROOT / "20_analysis"}
-FIGURES = ROOT / "papers/SRL/make_figures.ipynb"
+FIGURES = [ROOT / "papers/SRL/make_figures.ipynb", ROOT / "papers/SRL/supplement/make_supplement.ipynb"]
 NUMBERED = re.compile(r"^(\d{2})_.*\.ipynb$")
 
 
@@ -53,7 +53,7 @@ def plan(args) -> list[tuple[str, int, Path]]:
                 continue
             out.append((stage, step, path))
     if args.figures:
-        out.append(("figures", 99, FIGURES))
+        out.extend(("figures", 99, f) for f in FIGURES)
     return out
 
 
@@ -88,7 +88,7 @@ def main() -> int:
     ap.add_argument("--from", dest="start", type=int, help="first step number to run (within each stage)")
     ap.add_argument("--to", dest="end", type=int, help="last step number to run (within each stage)")
     ap.add_argument("--skip", nargs="*", help="steps to skip, e.g. 45 or analysis:45")
-    ap.add_argument("--figures", action="store_true", help="also run papers/SRL/make_figures.ipynb at the end")
+    ap.add_argument("--figures", action="store_true", help="also run the paper and supplement figure notebooks at the end")
     ap.add_argument("--kernel", default="python3", help="Jupyter kernel name (default python3)")
     ap.add_argument("--timeout", type=int, default=-1, help="per-cell timeout in seconds (-1: none)")
     ap.add_argument("--keep-going", action="store_true", help="continue after a failing notebook")

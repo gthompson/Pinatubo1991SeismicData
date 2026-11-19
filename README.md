@@ -115,7 +115,8 @@ inputs and products is in [10_conversion/NOTEBOOKS_README.md](10_conversion/NOTE
 - **72 Clock anchors.** Check absolute time against regional and teleseismic arrivals.
 
 The analysis notebooks in `20_analysis` (00–60) then measure noise and event windows on the
-UTC archive, and `papers/SRL/make_figures.ipynb` makes the paper figures. To run everything in
+UTC archive, and `papers/SRL/make_figures.ipynb` and `papers/SRL/supplement/make_supplement.ipynb`
+make the paper and supplement figures. To run everything in
 order, executing each notebook in place:
 
 ```bash
