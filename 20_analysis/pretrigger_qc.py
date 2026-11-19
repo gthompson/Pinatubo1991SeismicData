@@ -12,10 +12,7 @@ import numpy as np
 import pandas as pd
 from obspy import read, Stream
 from flovopy.processing.detection import PretriggerSettings as Settings, detect_pretrigger_window
-# Compatibility for existing diagnostic tests; notebook analysis uses the public API.
-from flovopy.processing.event_windows import (
-    ALGORITHM_VERSION, _analyse_trace as analyse_trace, frequency_checks, hilbert_diagnostic, _summarize_hilbert,
-)
+from flovopy.processing.event_windows import ALGORITHM_VERSION
 
 def analyse_files(files,output_root,settings=None):
     cfg=settings or Settings();files=[Path(p).expanduser().resolve() for p in files]

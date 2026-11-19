@@ -117,13 +117,14 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
 
 - **DPSS code moved to FloVoPy (18 Nov).** `flovopy.processing.spectrograms` now has `dpss_tapers`, `multitaper_psd` and `compute_multitaper_spectrogram_result` (density-normalised, equal-weight, gap-rejecting); `matched_psds` and notebook 40 use them, with bit-identical results on real traces. The unused dB-only `_multitaper_spectrogram` is removed. Two leftover "no UTC correction" labels (metric provenance, pretrigger figure footnote) now say UTC.
 
+- **Engine tests moved to FloVoPy (18 Nov).** The Hilbert and window-strategy tests in `20_analysis` duplicated FloVoPy's `test_pretrigger_diagnostics.py` and `test_pretrigger_windows.py` and were deleted; the frequency-check and single-trace tests moved to FloVoPy `test_pretrigger_trace_analysis.py`. `20_analysis/tests/test_pretrigger_qc.py` now tests only the batch adapter, and `pretrigger_qc` no longer re-exports FloVoPy private functions.
+
 **Remaining**, roughly in priority order:
 
 | # | Item | Section | Notes |
 |---|---|---|---|
 | 1 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
 | 2 | Publication examples | — | Notebook 60 now writes a fresh draft selection for the UTC run; the examples still need choosing. |
-| 3 | FloVoPy-internal tests in `20_analysis` | — | `pretrigger_qc` re-exports FloVoPy private functions for tests that belong in FloVoPy. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
 
