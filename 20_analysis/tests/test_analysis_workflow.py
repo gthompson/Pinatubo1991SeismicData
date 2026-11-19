@@ -76,13 +76,9 @@ class WorkflowTests(unittest.TestCase):
             self.assertAlmostEqual(power,4.5,delta=.15)
             self.assertLess(abs(spec['frequency_hz'][np.argmax(spec[key])]-6),1)
             np.testing.assert_equal(spec[key],specs[1][key])
-        mt=w.multitaper_spectrogram(tr,2.56,.16,2.5)
-        self.assertAlmostEqual(np.trapezoid(mt.values[:,0],mt.frequencies),4.5,delta=.15)
     def test_gaps_rejected_not_compressed(self):
         tr=Trace(np.ones(2000),header={'sampling_rate':100.});tr.data=np.ma.array(tr.data,mask=False);tr.data.mask[300:500]=True
         with self.assertRaises(ValueError):w.processed_copy(tr,self.cfg)
-        mt=w.multitaper_spectrogram(tr,2.56,.16,2.5)
-        self.assertTrue(np.isnan(mt.values[:,mt.coverage<1]).all())
     def test_not_testable_artifact_is_missing_not_false(self):
         result=w.narrowband_audit(np.ones(500),50.)
         self.assertTrue(np.isnan(result['detected']));self.assertNotEqual(result['status'],'ok')

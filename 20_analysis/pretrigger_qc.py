@@ -109,7 +109,7 @@ def plot_record(records,settings,outfile,max_channels=12):
     axes[1].axhline(cfg.amplitude_factor,color='grey',ls=':',lw=.7)
     axes[3].axhline(cfg.sta_lta_threshold,color='grey',ls=':',label='STA/LTA threshold')
     axes[3].set(ylabel='Causal STA/LTA',xlabel='Seconds after earliest stored non-IRIG trace start',ylim=(0,max(6,cfg.sta_lta_threshold*1.5)))
-    fig.text(.02,.015,'Dashed: 5 and 10 s hypotheses. Dots: selected onset candidates. Grey: five-second reference. Short coloured dashes: proposed noise ends. Display clips scaled waveforms at ±2.\nRaw data; only assumed-reference median removed. Flat padding/clipping and reference contamination require review. No UTC correction applied.',fontsize=8)
+    fig.text(.02,.015,'Dashed: 5 and 10 s hypotheses. Dots: selected onset candidates. Grey: five-second reference. Short coloured dashes: proposed noise ends. Display clips scaled waveforms at ±2.\nRaw data; only assumed-reference median removed. Flat padding/clipping and reference contamination require review. Times are UTC (conversion step 10 clock rules).',fontsize=8)
     fig.tight_layout(rect=(0,.065,1,1));path=Path(outfile);path.parent.mkdir(parents=True,exist_ok=True)
     for ext in ['png','pdf','svg']:fig.savefig(path.with_suffix('.'+ext),dpi=180)
     return fig

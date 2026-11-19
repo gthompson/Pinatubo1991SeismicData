@@ -115,14 +115,15 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
 
 - **Full metric export (18 Nov).** `all_window_metrics.csv` (~29 GB, ~1 h) is replaced by `all_window_metrics.parquet`, written by the new FloVoPy `EnhancedCatalog.export_sidecars_parquet`; `exports.all_window_metrics: none` skips it. Stale CSV/Parquet exports are removed on each export.
 
+- **DPSS code moved to FloVoPy (18 Nov).** `flovopy.processing.spectrograms` now has `dpss_tapers`, `multitaper_psd` and `compute_multitaper_spectrogram_result` (density-normalised, equal-weight, gap-rejecting); `matched_psds` and notebook 40 use them, with bit-identical results on real traces. The unused dB-only `_multitaper_spectrogram` is removed. Two leftover "no UTC correction" labels (metric provenance, pretrigger figure footnote) now say UTC.
+
 **Remaining**, roughly in priority order:
 
 | # | Item | Section | Notes |
 |---|---|---|---|
 | 1 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
 | 2 | Publication examples | — | Notebook 60 now writes a fresh draft selection for the UTC run; the examples still need choosing. |
-| 4 | Duplicate DPSS spectrogram | — | `analysis_workflow.multitaper_spectrogram`/`matched_psds` duplicate FloVoPy's `_multitaper_spectrogram`; the local version is density-normalised and could move upstream. |
-| 5 | FloVoPy-internal tests in `20_analysis` | — | `pretrigger_qc` re-exports FloVoPy private functions for tests that belong in FloVoPy. |
+| 3 | FloVoPy-internal tests in `20_analysis` | — | `pretrigger_qc` re-exports FloVoPy private functions for tests that belong in FloVoPy. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
 

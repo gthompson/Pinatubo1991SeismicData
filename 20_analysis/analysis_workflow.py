@@ -20,13 +20,13 @@ import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from scipy.signal import detrend, periodogram, welch
-from scipy.signal.windows import dpss
+from scipy.signal import detrend, welch
 from obspy import read, read_inventory, Stream, UTCDateTime
 from flovopy.core.features import FeatureConfig, extract_features, VERSION as FEATURE_VERSION
 from flovopy.enhanced.stream import EnhancedStream
 from flovopy.processing.detection import PretriggerSettings
-from flovopy.processing.spectrograms import compute_spectrogram_result, SpectrogramResult
+from flovopy.processing.spectrograms import (compute_spectrogram_result, compute_multitaper_spectrogram_result,
+    multitaper_psd, SpectrogramResult)
 from flovopy.processing.spectral_metrics import compute_spectral_metrics
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1])) if str(Path(__file__).resolve().parents[1]) not in sys.path else None
@@ -622,20 +622,14 @@ def matched_psds(traces, cfg):
     if n<16:raise ValueError('Too few samples for matched PSDs')
     step=max(1,int(round(n*(1-cfg['spectra']['overlap']))));overlap=n-step
     if not 0<=overlap<n:raise ValueError('Invalid spectral overlap')
-    nw=float(cfg['spectra']['multitaper_nw']);k=max(1,int(2*nw)-1)
-    if not 0<nw<n/2:raise ValueError('Invalid DPSS time-bandwidth product')
-    tapers=dpss(n,NW=nw,Kmax=k,sym=False)
+    nw=float(cfg['spectra']['multitaper_nw'])
     result=[]
     for tr in traces:
         x=finite_data(tr);f,p=welch(x,fs=fs,window='hann',nperseg=n,noverlap=overlap,
                                   nfft=n,detrend='constant',scaling='density')
-        spectra=[]
-        for a in range(0,len(x)-n+1,step):
-            block=x[a:a+n]-x[a:a+n].mean()
-            spectra.append(np.mean([periodogram(block,fs=fs,window=taper,detrend=False,nfft=n,
-                scaling='density',return_onesided=True)[1] for taper in tapers],axis=0))
-        result.append(dict(frequency_hz=f,welch_psd=p,multitaper_psd=np.mean(spectra,axis=0),
-            segment_s=n/fs,segment_count=len(spectra),df_hz=fs/n,nw=nw,tapers=k,
+        _,mt,count,k=multitaper_psd(x,fs,nperseg=n,step=step,nw=nw)
+        result.append(dict(frequency_hz=f,welch_psd=p,multitaper_psd=mt,
+            segment_s=n/fs,segment_count=count,df_hz=fs/n,nw=nw,tapers=k,
             multitaper_bandwidth_hz=2*nw/(n/fs)))
     return result
 
@@ -1065,7 +1059,7 @@ def compute_reviewed_metrics(ctx, *, force=False, write_quakeml=True, selected_w
         cache_counts=pd.DataFrame(index).status.value_counts().to_dict() if index else {},
         source_of_truth='EnhancedEvent JSON sidecars selected by event_metrics_index.csv',
         preprocessing='Independent-window linear detrend; optional lowpass; complete EnhancedStream + feature trees retained',
-        units='counts; no physical calibration or UTC correction'))
+        units='counts; no physical calibration',time_basis='UTC (conversion step 10 clock rules)'))
     return metrics,pd.DataFrame(errors,columns=['trace_key','error'])
 
 
@@ -1076,24 +1070,6 @@ def load_example(ctx, trace_key=None):
     meta=choices.iloc[0];tr=waveform_traces(read(meta.file))[int(meta.trace_index)]
     tr.stats.units='counts'
     return tr,meta
-
-
-def multitaper_spectrogram(trace, fft_seconds, step_seconds, nw):
-    """Gap-rejecting density-normalized DPSS spectrogram; no legacy dB scaling."""
-    x=finite_data(trace);fs=float(trace.stats.sampling_rate);n=int(round(fs*fft_seconds));step=max(1,int(round(fs*step_seconds)))
-    if n<4 or n>len(x):raise ValueError('FFT window does not fit the trace')
-    k=max(1,int(2*nw)-1);tapers=dpss(n,NW=nw,Kmax=k,sym=False)
-    offsets=np.arange(0,len(x)-n+1,step);f=np.fft.rfftfreq(n,1/fs)
-    values=np.full((len(f),len(offsets)),np.nan);coverage=np.zeros(len(offsets))
-    for j,a in enumerate(offsets):
-        block=x[a:a+n];coverage[j]=np.isfinite(block).mean()
-        if coverage[j]<1:continue
-        block=block-block.mean()
-        values[:,j]=np.mean([periodogram(block,fs=fs,window=taper,nfft=n,detrend=False,
-                              scaling='density',return_onesided=True)[1] for taper in tapers],axis=0)
-    return SpectrogramResult(trace.id,float(trace.stats.starttime.timestamp)+(offsets+(n-1)/2)/fs,
-        f,values,coverage,quantity='psd',units='counts²/Hz',metadata=dict(fft_seconds=n/fs,
-        step_seconds=step/fs,nw=nw,tapers=k,estimator='equal_weight_DPSS_density',bandwidth_hz=2*nw/(n/fs)))
 
 
 def spectral_examples(ctx, trace_key=None, stem_prefix='spectral_example', caption_prefix='Exploratory example.'):
@@ -1138,7 +1114,8 @@ def spectral_examples(ctx, trace_key=None, stem_prefix='spectral_example', capti
     if not results:raise ValueError('No FFT window fits the selected example')
     length=max(4,round(ctx['config']['spectra']['segment_s']*fs))/fs
     if length<=len(trace)/fs:
-        mt=multitaper_spectrogram(trace,length,ctx['config']['spectra']['step_s'],ctx['config']['spectra']['multitaper_nw'])
+        mt=compute_multitaper_spectrogram_result(trace,fft_seconds=length,step_seconds=ctx['config']['spectra']['step_s'],
+            nw=ctx['config']['spectra']['multitaper_nw'],units='counts')
         results.append(mt);titles.append(f'DPSS PSD: {length:g} s; NW={mt.metadata["nw"]}, K={mt.metadata["tapers"]}')
     fig,axes=plt.subplots(1+len(results),1,figsize=(7.2,2+1.35*len(results)),sharex=True,layout='constrained')
     t=np.arange(len(trace))/fs;axes[0].plot(t,finite_data(trace),color=station_color(meta.station),lw=.5)
