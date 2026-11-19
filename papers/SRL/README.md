@@ -12,7 +12,7 @@ latexmk -pdf pinatubo_srl.tex
 
 The SSA class needs the `stix2-type1` and `ifsym` packages; on a TeX Live basic install they can be added with `tlmgr --usermode install stix2-type1 ifsym`.
 
-Figures are in `figures/`. New figures were drawn from the UTC products (`~/work/Pinatubo1991Processing/utc`) on 19 Nov 2026: clock rules, the timing effect, daily counts, hypocenters, station availability and the clock-anchor records (step 72). The BOB coverage and RSAM–SSAM lag figures are step 69 outputs. The network maps, PVO system diagram and helicorder figure are carried over from the Word draft.
+Figures are in `figures/`. New figures were drawn from the UTC products (`~/work/Pinatubo1991Processing/utc`) on 19 Nov 2026: clock rules, the timing effect, daily counts, hypocenters, station availability and the clock-anchor records (step 72). The hypocenter figure and the June worked example (frequency index, spectral centroid, magnitudes, RSAM, SSAM) are drawn by the scripts in `scripts/`, from the step 43 event index, the BOB RSAM and SSAM tables and analysis run `45e939498e85`. The BOB coverage and RSAM–SSAM lag figures are step 69 outputs. The network maps, PVO system diagram and helicorder figure are carried over from the Word draft.
 
 Before submission:
 - SSA requires every file in one folder: copy the figures beside the `.tex` file and paste the `.bbl` into the `.tex` file (see SSA's LaTeX instructions).
