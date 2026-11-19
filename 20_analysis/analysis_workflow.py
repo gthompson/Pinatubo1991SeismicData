@@ -836,11 +836,9 @@ def export_event_metrics(ctx, catalog=None, *, write_quakeml=True):
             curated[field]=curated[field].astype('boolean')
         else:curated[field]=pd.to_numeric(curated[field],errors='coerce')
     curated.to_csv(ctx['out']/'window_metrics.csv',index=False)
-    catalog.export_metrics_csv(ctx['out']/'all_window_metrics.csv',level='trace')
+    _export_full_metrics(ctx,lambda path:catalog.export_metrics_parquet(path,level='trace'))
     catalog.export_metrics_csv(ctx['out']/'events_metadata.csv',level='event')
     catalog.export_csv(str(ctx['out']/'catalog_summary.csv'))
-    full=catalog.metrics_dataframe(level='trace')
-    pd.DataFrame(dict(column=full.columns,dtype=[str(full[c].dtype) for c in full])).to_csv(ctx['out']/'all_metrics_schema.csv',index=False)
     if write_quakeml and len(catalog):catalog.write(str(ctx['out']/'events.qml'),format='QUAKEML')
     return curated
 
@@ -1401,6 +1399,31 @@ def plot_noise_windows_through_time(ctx, qc, review=None):
     save_figure(fig,ctx['out']/'figures/noise_windows_through_time',caption,ctx['config']['plots']['dpi'])
     return fig,table,events
 
+def full_metrics_export(ctx):
+    """'parquet' (default) writes all_window_metrics.parquet; 'none' skips the full export."""
+    value=ctx['config'].get('exports',{}).get('all_window_metrics','parquet')
+    if value not in ('parquet','none'):raise ValueError("exports.all_window_metrics must be 'parquet' or 'none'")
+    return value
+
+
+def _export_full_metrics(ctx, write):
+    """Full dynamic trace/window export: every sidecar key as a column, arrays as JSON strings.
+
+    The sidecars hold the same values, so the export is optional. Stale exports are removed
+    so a skipped export cannot be mistaken for a current one.
+    """
+    mode=full_metrics_export(ctx);out=ctx['out'];target=out/'all_window_metrics.parquet'
+    for stale in [out/'all_window_metrics.csv',target,out/'all_metrics_schema.csv']:stale.unlink(missing_ok=True)
+    if mode=='none':return None
+    print('Writing complete trace/window Parquet from sidecars...',flush=True)
+    write(target)
+    import pyarrow.parquet as pq
+    schema=pq.read_schema(target)
+    pd.DataFrame(dict(column=schema.names,type=[str(t) for t in schema.types],
+        storage='scalar, or JSON string for arrays/lists; sidecars are authoritative')).to_csv(out/'all_metrics_schema.csv',index=False)
+    return target
+
+
 def _lightweight_catalog(paths):
     from flovopy.enhanced.event import EnhancedEvent
     from flovopy.enhanced.catalog import EnhancedCatalog
@@ -1429,13 +1452,10 @@ def _stream_event_exports(ctx, *, write_quakeml=True):
                 summary=trace.get('summary',{})
                 writer.writerow({key:json_compatible(summary.get(key)) for key in METRIC_FIELDS})
     temporary.replace(ctx['out']/'window_metrics.csv')
-    print('Rebuilding complete trace/window CSV from sidecars...',flush=True)
-    EnhancedCatalog.export_sidecars_csv(paths,ctx['out']/'all_window_metrics.csv',level='trace')
+    _export_full_metrics(ctx,lambda path:EnhancedCatalog.export_sidecars_parquet(paths,path,level='trace'))
     EnhancedCatalog.export_sidecars_csv(paths,ctx['out']/'events_metadata.csv',level='event',include_trace_summaries=False)
     catalog=_lightweight_catalog(paths);catalog.export_csv(str(ctx['out']/'catalog_summary.csv'))
     if write_quakeml and len(catalog):catalog.write(str(ctx['out']/'events.qml'),format='QUAKEML')
-    fields=read_ids(ctx['out']/'all_window_metrics.csv',nrows=0).columns
-    pd.DataFrame(dict(column=fields,storage='scalar or JSON-valued cell; see sidecar')).to_csv(ctx['out']/'all_metrics_schema.csv',index=False)
     # Only the scalar plotting table is materialized as an ensemble DataFrame.
     return read_ids(ctx['out']/'window_metrics.csv',dtype={
         'feature_version':str,'artifact_pre_detected':'boolean','artifact_post_detected':'boolean','event_end_record_limited':'boolean'})

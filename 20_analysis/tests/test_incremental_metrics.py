@@ -62,7 +62,7 @@ class IncrementalMetricTests(unittest.TestCase):
         self.assertIsInstance(trace['enhancedstream']['spectral']['freqs'],list)
         self.assertIsInstance(trace['features']['values'],dict);self.assertIn('provenance',trace['features'])
         self.assertIn('station_metrics',trace['enhancedstream']);self.assertIn('welch_psd',trace['psd'])
-        full=pd.read_csv(self.ctx['out']/'all_window_metrics.csv')
+        full=pd.read_parquet(self.ctx['out']/'all_window_metrics.parquet')
         self.assertEqual(json.loads(full['trace.enhancedstream.metrics.future_metric.values'].iloc[0]),[0.,2.,3.])
     def test_ensemble_exports_rebuild_from_json_without_measurements(self):
         metrics,_=self.compute()
@@ -70,6 +70,14 @@ class IncrementalMetricTests(unittest.TestCase):
             again=w.export_event_metrics(self.ctx)
         pd.testing.assert_frame_equal(metrics,again)
         self.assertTrue((self.ctx['out']/'events.qml').exists())
+    def test_full_metrics_export_can_be_skipped(self):
+        self.compute();out=self.ctx['out']
+        self.assertTrue((out/'all_window_metrics.parquet').exists());self.assertTrue((out/'all_metrics_schema.csv').exists())
+        self.ctx['config']['exports']={'all_window_metrics':'none'};w.export_event_metrics(self.ctx)
+        self.assertFalse((out/'all_window_metrics.parquet').exists());self.assertFalse((out/'all_metrics_schema.csv').exists())
+        self.assertTrue((out/'window_metrics.csv').exists())
+        self.ctx['config']['exports']={'all_window_metrics':'csv'}
+        with self.assertRaises(ValueError):w.export_event_metrics(self.ctx)
     def test_corrupted_cache_is_rebuilt_for_that_event(self):
         _,index=self.compute();path=Path(index[index.status.eq('computed')].sidecar_path.iloc[0]);path.write_text('{corrupt')
         _,index=self.compute();self.assertEqual(index.status.eq('computed').sum(),1)

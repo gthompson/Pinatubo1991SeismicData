@@ -54,5 +54,8 @@
     "detected_fallback": "fixed",
     "event_end": "record_end"
   },
+  "exports": {
+    "all_window_metrics": "parquet"
+  },
   "output_root": "~/work/Pinatubo1991Processing/analysis"
 }
