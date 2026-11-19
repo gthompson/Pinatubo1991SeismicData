@@ -130,7 +130,7 @@ Review of notebooks 10–69, `lib/`, `legacy_bob/` and the relevant FloVoPy read
 
 | # | Item | Section | Notes |
 |---|---|---|---|
-| 1 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES or GPS clock at PVO), so IRIG gives no absolute UTC. Absolute anchors need earthquakes outside the volcano: none of the 8,233 HYPO71 origins is beyond 49 km (largest magnitude 1.88), but 34 pick groups (27 Jun – 21 Aug) have median S−P of 6–13 s (≈50–105 km), four with 2–4 consistent S picks. None of these is in ISC/USGS. Step 72 (19 Nov; see `TIMING_AND_CLOCKS.md` §5) checks against ISC/USGS. SSAM shows nothing at distant arrivals, and local catalogue events rule out minute-level errors after the reset. Six analyst-reviewed anchors: −40 s on 21 May (before the reset); +12 s twice on 30 May, −23 s on 8 Aug, +4 s (relative to pP, to be confirmed) on 15 Aug and +9 s on 5 Sep. Drift, not a systematic error, so no correction. The nominal 5 s uncertainty after the reset is too small (≈ ±25 s fits); changing it in `clock_regimes.csv` needs a rerun from step 10. |
+| 1 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES or GPS clock at PVO), so IRIG gives no absolute UTC. Absolute anchors need earthquakes outside the volcano: none of the 8,233 HYPO71 origins is beyond 49 km (largest magnitude 1.88), but 34 pick groups (27 Jun – 21 Aug) have median S−P of 6–13 s (≈50–105 km), four with 2–4 consistent S picks. None of these is in ISC/USGS. Step 72 (19 Nov; see `TIMING_AND_CLOCKS.md` §5) checks against ISC/USGS. SSAM shows nothing at distant arrivals, and local catalogue events rule out minute-level errors after the reset. Six analyst-reviewed anchors: −40 s on 21 May (before the reset); +12 s twice on 30 May, −23 s on 8 Aug, +4 s (relative to pP, to be confirmed) on 15 Aug and +9 s on 5 Sep. Drift, not a systematic error, so no correction. The nominal uncertainty after the reset is raised from 5 s to 25 s in `clock_regimes.csv` (19 Nov); it reaches the indexes and QuakeML at the next rerun from step 10. |
 | 2 | Publication examples | — | Notebook 60 now writes a fresh draft selection for the UTC run; the examples still need choosing. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
@@ -270,7 +270,7 @@ Consequences (status in brackets):
   - `localtime` −25200 and an ID from `9105261G` gives the new version on GMT.
   - A file where the two disagree gets no rule and fails visibly.
 - Each rule carries a nominal `uncertainty_s`, written to `clock_uncertainty_s` in every index and to the QuakeML origin `time_errors` (step 50):
-  - 5 s after the reset: MDETECT keeps time by counting samples, about 2 s/day, and the PC was rebooted daily.
+  - 5 s after the reset: MDETECT keeps time by counting samples, about 2 s/day, and the PC was rebooted daily. [Raised to 25 s on 19 Nov after step 72's anchors.]
   - 60 s before the reset.
   - 300 s for RSAM labels; 3 h for the 2–9 May RSAM rule.
 - The analysis config (`20_analysis/analysis_workflow.json`) now reads the UTC MiniSEED and network history.

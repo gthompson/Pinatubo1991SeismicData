@@ -93,10 +93,10 @@ So SSAM was on GMT from the start of its data (1 June), like the seismic PC afte
 
 | Data | Clock | Before reset (26 May) | 26 May – 27 Oct | After 27 Oct | Nominal uncertainty |
 |---|---|---|---|---|---|
-| Waveforms (DMX header) | H | −15 h | −7 h | −8 h | 60 s before reset, 5 s after |
+| Waveforms (DMX header) | H | −15 h | −7 h | −8 h | 60 s before reset, 25 s after |
 | Single-event PHA picks; monthly picks to 10 June | H | −15 h | −7 h | — | same |
-| Monthly picks from 27 June | W | — | 0 | 0 | 5 s |
-| Hypocentres (`PINAALL.DAT`, `Pinatubo_all.sum`) | W | −8 h | 0 | 0 | 60 s / 5 s |
+| Monthly picks from 27 June | W | — | 0 | 0 | 25 s |
+| Hypocentres (`PINAALL.DAT`, `Pinatubo_all.sum`) | W | −8 h | 0 | 0 | 60 s / 25 s |
 | SSAM, SSAM DATA | W | (no data) | 0 | 0 | 60 s (1-min labels) |
 | RSAM, EVNT | R | −15 h (2–9 May, low confidence); −8 h from 9 May | −8 h to 13 Sep, then 0 | 0, except −8 h for 10 Nov | 300 s (10-min labels) |
 | Hourly CAB counts | C | (no data) | −8 h to 13 Sep, then 0 | 0 (to 6 Nov) | 1800 s |
@@ -133,7 +133,7 @@ Every product keeps the raw time in a `raw_*` column, with the rule applied in `
     | 5 Sep | 9109055G | M 4.9, 420 km | +9 s |
 
     - After the reset the offsets range from −23 to +12 s and change sign from day to day: drift of about 2 s a day with only occasional resets, not one systematic error. No correction is applied.
-    - The nominal 5 s uncertainty after the reset is too small: four of the five anchors exceed it. About ±25 s matches these checks. Before the reset, −40 s fits the 60 s assumed.
+    - The nominal uncertainty after the reset was 5 s, and four of the five anchors exceed it. It is now 25 s in `clock_regimes.csv` (from 19 November), which matches these checks; it reaches every index and the QuakeML `time_errors` at the next rerun from step 10. Before the reset, −40 s fits the 60 s assumed.
     - Records 9108080A (8 August, two local events) and 9107063R (6 July) are local. A few remaining candidates have their predicted P before the record start and were not identified.
   - These are single-day checks. They bound the residual error but give no correction, because drift and sporadic resets change the offset from day to day.
 

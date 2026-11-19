@@ -23,8 +23,9 @@
 #   pick_monthly: "<file>:<line, 6 digits>"; hypo_pinaall/hypo_allsum: PINAALL.DAT line number (6 digits).
 # marker (waveform only): SUDS trace-descriptor field "localtime" as written by MDETECT: 0 in every file up to
 #   91052617 (old version), -25200 from 9105261G (new version) to the end of 1991.
-# uncertainty_s: nominal absolute-time uncertainty. 5 s after the reset (daily reboots; MDETECT keeps time by
-#   counting samples, "good to about 2 seconds per day", OFR 88-751); 60 s before it (clock set by hand to local
+# uncertainty_s: nominal absolute-time uncertainty. 25 s after the reset: MDETECT keeps time by counting samples,
+#   "good to about 2 seconds per day" (OFR 88-751), and reboots were sporadic; teleseismic and regional arrivals
+#   (step 72) give offsets of -23 to +12 s on different days (5 s until 19 Nov 2026). 60 s before it (clock set by hand to local
 #   time; "+1 min" annotations 21-23 May); 300 s for RSAM labels (10-min bins); 3 h for the unexplained 2-9 May RSAM rule.
 # Sources: 10_conversion/CODE_REVIEW_2026-11-17.md ("Clock model", "UTC run"); J. Power, email to R. White,
 #   29 Oct 2026 (MDETECT assumed California and converted to GMT; daily reboots; Harlow's new MDETECT set to GMT
@@ -32,20 +33,20 @@
 #   Lee, Tottingham & Ellis (1988) USGS OFR 88-751 (MDETECT); Ward (1989) USGS OFR 89-188 (SUDS).
 stream,regime,clock,start,end,seq_min,seq_max,marker,utc_offset_h,uncertainty_s,confidence,evidence
 waveform,H_PHT,H,,1991-05-26T16:45:00,,91052617,0,-15,60,high,"Old MDETECT (DMX localtime 0); PC clock on PHT; hypocenters = H - 7 h; RSAM labels (PHT) = H - 7 h 10-26 May; last file 91052617 (H 15:41:33)"
-waveform,H_UTC_PDT,H,1991-05-26T07:40:00,1991-10-27T09:00:00,9105261G,,-25200,-7,5,high,"New MDETECT (DMX localtime -25200) from 9105261G (H 08:40:26 = PINAALL line 218 + 7 h); PC clock on GMT; filename date = date(H - 7 h); RSAM labels (PHT) = H + 1 h"
-waveform,H_UTC_PST,H,1991-10-27T09:00:00,,9105261G,,-25200,-8,5,high,"US DST ended 27 Oct 1991 02:00 PDT; filename date = date(H - 8 h) from 28 Oct; EVNT lag steps -7 h to -8 h"
+waveform,H_UTC_PDT,H,1991-05-26T07:40:00,1991-10-27T09:00:00,9105261G,,-25200,-7,25,high,"New MDETECT (DMX localtime -25200) from 9105261G (H 08:40:26 = PINAALL line 218 + 7 h); PC clock on GMT; filename date = date(H - 7 h); RSAM labels (PHT) = H + 1 h"
+waveform,H_UTC_PST,H,1991-10-27T09:00:00,,9105261G,,-25200,-8,25,high,"US DST ended 27 Oct 1991 02:00 PDT; filename date = date(H - 8 h) from 28 Oct; EVNT lag steps -7 h to -8 h"
 pick_individual;pick_monthly,H_PHT,H,,1991-05-26T07:40:00,,,,-15,60,high,"Picks on the header clock before the reset"
 pick_individual,H_PHT_seq,H,1991-05-26T07:40:00,1991-05-26T16:45:00,,91052617,,-15,60,high,"Last file before the reset is 91052617"
-pick_individual,H_UTC_seq,H,1991-05-26T07:40:00,1991-05-26T16:45:00,9105261G,,,-7,5,high,"First file after the reset is 9105261G"
-pick_individual,H_UTC_PDT,H,1991-05-26T16:45:00,1991-10-27T09:00:00,,,,-7,5,high,"Single-event PHA files (3-16 June): 100% inside waveform windows on H"
+pick_individual,H_UTC_seq,H,1991-05-26T07:40:00,1991-05-26T16:45:00,9105261G,,,-7,25,high,"First file after the reset is 9105261G"
+pick_individual,H_UTC_PDT,H,1991-05-26T16:45:00,1991-10-27T09:00:00,,,,-7,25,high,"Single-event PHA files (3-16 June): 100% inside waveform windows on H"
 pick_monthly,H_PHT_seq,H,1991-05-26T07:40:00,1991-05-26T16:45:00,,pinmay91.pha:005541,,-15,60,high,"pinmay91.pha has no pre-reset picks in the repeated window"
-pick_monthly,H_UTC_seq,H,1991-05-26T07:40:00,1991-05-26T16:45:00,pinmay91.pha:005542,,,-7,5,high,"pinmay91.pha line 5542 onward matches post-reset files 9105261H..."
-pick_monthly,H_UTC_PDT_until_switch,H,1991-05-26T16:45:00,1991-06-10T12:00:00,,,,-7,5,high,"Monthly picks on H up to 10 June 00:06 (100% inside waveform windows)"
-pick_monthly,W_UTC,W,1991-06-20T00:00:00,,,,,0,5,medium,"From 27 June monthly picks are on W (88-100% inside waveforms at +7 h); new HYPO71 control cards in pinjun91.pha lines ~5632-5666; no picks between 10 and 27 June"
+pick_monthly,H_UTC_seq,H,1991-05-26T07:40:00,1991-05-26T16:45:00,pinmay91.pha:005542,,,-7,25,high,"pinmay91.pha line 5542 onward matches post-reset files 9105261H..."
+pick_monthly,H_UTC_PDT_until_switch,H,1991-05-26T16:45:00,1991-06-10T12:00:00,,,,-7,25,high,"Monthly picks on H up to 10 June 00:06 (100% inside waveform windows)"
+pick_monthly,W_UTC,W,1991-06-20T00:00:00,,,,,0,25,medium,"From 27 June monthly picks are on W (88-100% inside waveforms at +7 h); new HYPO71 control cards in pinjun91.pha lines ~5632-5666; no picks between 10 and 27 June"
 hypo_pinaall;hypo_allsum,W_PHT,W,,1991-05-26T00:40:00,,,,-8,60,high,"Hypocenters = H - 7 h = W; W was PHT before the reset"
 hypo_pinaall;hypo_allsum,W_PHT_seq,W,1991-05-26T00:40:00,1991-05-26T09:45:00,,000217,,-8,60,high,"PINAALL.DAT line 217 (08:31:25) is the last pre-reset record"
-hypo_pinaall;hypo_allsum,W_UTC_seq,W,1991-05-26T00:40:00,1991-05-26T09:45:00,000218,,,0,5,high,"PINAALL.DAT line 218 (01:40:38) is the first post-reset record (= 9105261G - 7 h)"
-hypo_pinaall;hypo_allsum,W_UTC,W,1991-05-26T09:45:00,,,,,0,5,high,"Wall clock on GMT after the reset"
+hypo_pinaall;hypo_allsum,W_UTC_seq,W,1991-05-26T00:40:00,1991-05-26T09:45:00,000218,,,0,25,high,"PINAALL.DAT line 218 (01:40:38) is the first post-reset record (= 9105261G - 7 h)"
+hypo_pinaall;hypo_allsum,W_UTC,W,1991-05-26T09:45:00,,,,,0,25,high,"Wall clock on GMT after the reset"
 tandy_rsam,R_ahead,R,,1991-05-09T06:00:00,,,,-15,10800,low,"2-9 May EVNT/RSAM cross-correlation: R = H (unexplained); switch between 9 May 00-06 and 06-12 R"
 tandy_rsam,R_PHT,R,1991-05-09T06:00:00,1991-09-13T09:00:00,,,,-8,300,high,"R = H - 7 h (10-26 May) and H + 1 h (26 May-13 Sep) = PHT; eruption onsets; switch times +-3 h"
 tandy_rsam,R_GMT,R,1991-09-13T09:00:00,1991-11-10T00:00:00,,,,0,300,medium,"R = H - 7 h from 13 Sep (06-12 R) and H - 8 h after 28 Oct = UTC; RSAM = summed SSAM within 0-3 min on every day"
