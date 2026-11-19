@@ -68,14 +68,10 @@ python -m pytest -q lib/tests tests
 
 - [CODE_REVIEW_2026-11-17.md](CODE_REVIEW_2026-11-17.md): full review of steps 10–69, with status and remaining items.
 - [TIMING_AND_CLOCKS.md](TIMING_AND_CLOCKS.md) and [clock_regimes.csv](clock_regimes.csv): clock model and UTC rules.
-- [FLOVOPY_MIGRATION_REVIEW.md](FLOVOPY_MIGRATION_REVIEW.md): what moved into FloVoPy and what stays local.
+- [FLOVOPY_MIGRATION_REVIEW.md](FLOVOPY_MIGRATION_REVIEW.md): what lives in FloVoPy, what stays in `lib/` and the notebooks, and candidates to move.
 - `24_phase_pick_review.md`, `34_association_review.md`, `45_hypocenter_review.md`: written reviews between steps.
 
 ## Other files
 
 - `lib/`: `config.py` (paths), `clock.py` (UTC rules), `shared.py` (ID and time helpers), `pha_parser.py` (Pinatubo wrapper around FloVoPy's phase-card reader), `pha_comparison.py` (step 23).
-- `superseded/bob_pre_flovopy/`: the BOB notebooks that came before 60–69.
-- `superseded/legacy_bob/`: the older BOB command-line converter (COSPEC, counts, radio, rain, tilt) and its tests, retired 18 Nov 2026; steps 61–69 replace it.
-- `unpack_bob_archives.py`: command-line adapter that runs step 60's definitions.
-- `audit_ssam_coverage.py`, `audit_data_ssam_coverage.py`, `audit_mudflow_coverage.py` and `README_ssam copy.md`: recovered early SSAM and mudflow audits, kept for reference.
-- `refactor_manifest.json`: the historical record of converting the original scripts to notebooks. The modules it lists were later folded back into the notebooks.
+- `superseded/`: retired code kept for the record (see its README): the pre-FloVoPy BOB notebooks, the `legacy_bob` converter, early SSAM and mudflow audits, a command-line wrapper for step 60 and an old refactor manifest.

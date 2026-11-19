@@ -1,33 +1,34 @@
-# FLOVOpy migration review — selected scope
+# What lives in FloVoPy and what stays here
 
-Updated November 3, 2026.
+*Updated 19 November 2026. Replaces the note of 3 November.*
 
-## Completed earlier
+Code that would serve any VDAP-era archive lives in FloVoPy. Anything that encodes a Pinatubo decision (paths, clock rules, station mappings, association and export policies) stays in the notebooks and in `lib/`.
 
-Generic time association, structural SEED-ID splitting and ObsPy comment lookup live in flovopy.core.event_utils. Local shared.py holds pipeline table/plot conventions and XB fallback IDs. Steps 40/41 and step 50 have consolidated notebooks.
+## In FloVoPy
 
-## Selected and implemented
+| Module | Used by | What it does |
+|---|---|---|
+| `flovopy.core.vdap` | 10, 20, 21, 40 | DMX reading and conversion to a SEISAN WAV database (`read_dmx_file`, `convert_dmx_to_seisan`, with a `time_correction=` hook); phase-card decoding (`parse_vdap_phase_line`, `read_vdap_pha_file`, `read_vdap_pha_blocks`); pick clean-up (`dedupe_picks`, `filter_picks_near_median`, `split_picks_by_time_gap`); HYPO71 summary lines (`parse_hypo71_line`) |
+| `flovopy.core.dmx_recovery` | 10 (through `vdap`) | Keeps the complete traces before the first defect of a damaged DMX file |
+| `flovopy.core.clock` | `lib/clock.py` | The clock-rule engine: `ClockRegimes` reads a rule table and applies it with sequence and marker checks; `dos_mktime_wall_clock` |
+| `flovopy.core.event_utils` | 50–52, `lib/shared.py` | Time association (`associate_events_by_time`), SEED-ID splitting, ObsPy comment lookup |
+| `flovopy.seisanio.rea_export` | 52 | Catalogue to SEISAN REA, with a manifest, collision policy and fixes to ObsPy's Nordic header writer |
+| `flovopy.legacy.bob` | 61–69 | BOB archive readers (RSAM, EVNT, SSAM, tilt, tabular products) and SSAM spectrograms |
+| `flovopy.processing.spectrograms`, `flovopy.enhanced` | `20_analysis` | DPSS and Hann spectra, event-metric sidecars, CSV and Parquet exports |
 
-- **Single-event VDAP PHA ingestion:** parse_vdap_phase_line/read_vdap_pha_file in flovopy.core.vdap. Fixed-column and tokenized records, authoritative legacy ID decoding, raw file/line provenance, explicit diagnostics and real historical regression excerpts. I/O errors raise. Multi-event 10/100 delimiters are rejected. Step 20 uses this reader while retaining local deduplication/outlier policy. Monthly/yearly parsing is unchanged.
-- **Catalog-to-REA export:** flovopy.seisanio.rea_export.export_catalog_to_rea. Uses public ObsPy Nordic writing without changing the working directory. Copies source events, accepts caller-defined metadata/anchor/waveform policies, creates unique deterministic anchor IDs, writes standard S-file names and records reuse, failures and optional filename shifts in a manifest. Step 52 is a thin local policy adapter. Both OLD and NEW Nordic formats are tested.
-- **Step 40:** authoritative vdap.parse_hypo71_line fixes arithmetic rollover and allows blank/nonnumeric optional quality fields, retaining raw quality text. A local adapter preserves existing CSV names/types and raw provenance. No second HYPO71 parsing implementation remains in the active step.
-- **Step 43:** direct ObsPy locations2degrees/degrees2kilometers calls replace the local wrapper. This keeps the existing spherical convention; it does not silently switch to ellipsoidal distances.
+## Kept here (`lib/` and the notebooks)
 
-## Deliberately not selected
+- `lib/config.py`: paths from `conversion_config.json`.
+- `lib/clock.py` and `clock_regimes.csv`: which stream used which PC clock, and when it changed. The rules are Pinatubo history; the engine is FloVoPy's.
+- `lib/pha_parser.py`: the Pinatubo policy for monthly PHA files (network XB, ±60 s median trimming, splitting blocks that lack a separator, logging every trimmed pick) on top of FloVoPy's readers.
+- `lib/pha_comparison.py`: step 23's comparison of the single-event and monthly pick sources.
+- `lib/shared.py`: table and plot helpers, the XB fallback ID, the HYPO71 rule that magnitude 0.00 means none (`mark_missing_magnitudes`), and step 50's hypocentre linking (`associate_hypocenters`: through picks, then by record window).
+- In the notebooks: original and annotated PINAALL parsing, source priority, event classes, reporting windows, and the network-history reconstruction (step 70).
 
-Representative-event-time promotion, generic pick deduplication/filtering, table-to-ObsPy builders and diagnostic migration are not part of this work. Time-anchor selection for Pinatubo Nordic export remains a local policy, not a new generic representative-time API.
+## Candidates for FloVoPy
 
-## Policies that remain local
-
-Monthly/yearly multi-event PHA formats and delimiters; original/annotated PINAALL parsing and historical time conventions; source priority and deduplication; event classes; trusted coverage windows; default XB network, paths and notebook orchestration.
-
-## Export contract and remaining limitations
-
-- Stable source event resource IDs and deterministic caller metadata are needed for repeat-run identity. A hidden manifest fingerprints prepared events/settings and checks exact output hashes before reuse.
-- Default collision='error' reports conflicts. collision='shift' explicitly permits bounded filename-only shifts using valid standard names; origin/pick times are unchanged. Filename-based daily counts can differ at midnight. Every offset is reported.
-- Existing untracked S-files are never overwritten, even with overwrite=True. Start a fresh export root when migrating an old archive. Only tracked files can be updated; changed origin times require a new export root to avoid stale filenames.
-- Concurrent writers are unsupported. If a write succeeds but manifest persistence fails, inspect the reported failure and untracked output rather than blindly overwriting it.
-- A timeless event is skipped with a reason. Per-event failures are returned; review them before downstream analysis. Optional select_all.out contains successful/reused exports from this invocation only.
-- Real historical test excerpts establish the supported single-event PHA and HYPO71 dialects, not all possible VDAP variants. Strict PHA parsing now exposes malformed records instead of silently losing them.
-
-No full historical archive conversion or scientific-product regeneration was performed as part of this migration.
+These are general enough to move if another archive needs them:
+- `parse_pha_file` in `lib/pha_parser.py`, as a monthly VDAP PHA reader;
+- `associate_hypocenters` in `lib/shared.py`, for any triggered network;
+- `mark_missing_magnitudes`, the HYPO71 convention;
+- `compare_pick_sources` in `lib/pha_comparison.py`, as a generic two-catalogue pick comparison.
