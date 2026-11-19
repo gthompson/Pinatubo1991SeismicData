@@ -7,7 +7,7 @@ The numbered notebooks in this folder turn the surviving 1991 PVO archive (DMX w
 - Use a kernel with the current FloVoPy checkout installed in editable mode, plus ObsPy, pandas, NumPy, Matplotlib and IPython (the `flovopy_asl` conda environment). Restart the kernel after changing FloVoPy.
 - Open Jupyter from this folder or the project root. Every notebook reads `conversion_config.json` through `lib.config.pipeline_paths`: inputs under `data_top`, outputs under `output_root` (currently `~/work/Pinatubo1991Processing/utc`). See [../CONFIGURATION.md](../CONFIGURATION.md).
 - Each notebook has a configuration cell (`SETTINGS`), a definitions cell tagged `pipeline_definitions` (functions only; tests load this cell), and a run cell. Run them top to bottom, in step order. Saved outputs in the committed notebooks come from the UTC run.
-- Code generic to VDAP data lives in FloVoPy (`flovopy.core.vdap`, `flovopy.core.dmx_recovery`, `flovopy.seisanio.rea_export`, `flovopy.legacy.bob`). Pinatubo choices (paths, clock rules, station mappings, association and export policies) stay in the notebooks and in `lib/`.
+- Code generic to VDAP data lives in FloVoPy; Pinatubo choices stay in the notebooks and in `lib/` (see [FloVoPy and `lib/`](#flovopy-and-lib)).
 
 ## Clocks and UTC
 
@@ -54,6 +54,39 @@ Notes on specific steps:
 - **52.** `collision="shift"` moves only the S-file *name* by up to 30 s when two events share a second; event and pick times are unchanged. A manifest (`.flovopy_rea_manifest.json`) makes reruns reuse unchanged files; `overwrite=True` is needed after the catalogue changes. Untracked files are never overwritten.
 - **60–69.** Each product writes QC-schema-2 outputs (`coverage.csv`, `daily_coverage.csv`, `date_review.csv`, `review.json`, `export_status.json` and others) under `FAIR/BOB/<product>`. `OVERWRITE=False` protects existing products. Step 69 refuses incomplete or mixed products unless `ALLOW_PARTIAL=True`. RSAM/EVNT, SSAM, tilt, rain, mudflow and hourly CAB counts are converted to UTC with their acquisition PC's rule in `clock_regimes.csv`. COSPEC dates are taken as Philippine days; daily PIE counts and radio-map dates are kept as written. Rain and mudflow from 15 November, and CAB labels outside the rules, are flagged `unverified`.
 
+## FloVoPy and `lib/`
+
+Code that would serve any VDAP-era archive lives in FloVoPy. Anything that encodes a Pinatubo decision (paths, clock rules, station mappings, association and export policies) stays in the notebooks and in `lib/`.
+
+### In FloVoPy
+
+| Module | Used by | What it does |
+|---|---|---|
+| `flovopy.core.vdap` | 10, 20, 21, 40 | DMX reading and conversion to a SEISAN WAV database (`read_dmx_file`, `convert_dmx_to_seisan`, with a `time_correction=` hook); phase-card decoding (`parse_vdap_phase_line`, `read_vdap_pha_file`, `read_vdap_pha_blocks`); pick clean-up (`dedupe_picks`, `filter_picks_near_median`, `split_picks_by_time_gap`); HYPO71 summary lines (`parse_hypo71_line`) |
+| `flovopy.core.dmx_recovery` | 10 (through `vdap`) | Keeps the complete traces before the first defect of a damaged DMX file |
+| `flovopy.core.clock` | `lib/clock.py` | The clock-rule engine: `ClockRegimes` reads a rule table and applies it with sequence and marker checks; `dos_mktime_wall_clock` |
+| `flovopy.core.event_utils` | 50–52, `lib/shared.py` | Time association (`associate_events_by_time`), SEED-ID splitting, ObsPy comment lookup |
+| `flovopy.seisanio.rea_export` | 52 | Catalogue to SEISAN REA, with a manifest, collision policy and fixes to ObsPy's Nordic header writer |
+| `flovopy.legacy.bob` | 61–69 | BOB archive readers (RSAM, EVNT, SSAM, tilt, tabular products) and SSAM spectrograms |
+| `flovopy.processing.spectrograms`, `flovopy.enhanced` | `20_analysis` | DPSS and Hann spectra, event-metric sidecars, CSV and Parquet exports |
+
+### Kept here (`lib/` and the notebooks)
+
+- `lib/config.py`: paths from `conversion_config.json`.
+- `lib/clock.py` and `clock_regimes.csv`: which stream used which PC clock, and when it changed. The rules are Pinatubo history; the engine is FloVoPy's.
+- `lib/pha_parser.py`: the Pinatubo policy for monthly PHA files (network XB, ±60 s median trimming, splitting blocks that lack a separator, logging every trimmed pick) on top of FloVoPy's readers.
+- `lib/pha_comparison.py`: step 23's comparison of the single-event and monthly pick sources.
+- `lib/shared.py`: table and plot helpers, the XB fallback ID, the HYPO71 rule that magnitude 0.00 means none (`mark_missing_magnitudes`), and step 50's hypocentre linking (`associate_hypocenters`: through picks, then by record window).
+- In the notebooks: original and annotated PINAALL parsing, source priority, event classes, reporting windows, and the network-history reconstruction (step 70).
+
+### Candidates for FloVoPy
+
+These are general enough to move if another archive needs them:
+- `parse_pha_file` in `lib/pha_parser.py`, as a monthly VDAP PHA reader;
+- `associate_hypocenters` in `lib/shared.py`, for any triggered network;
+- `mark_missing_magnitudes`, the HYPO71 convention;
+- `compare_pick_sources` in `lib/pha_comparison.py`, as a generic two-catalogue pick comparison.
+
 ## Tests
 
 From this folder:
@@ -68,10 +101,9 @@ python -m pytest -q lib/tests tests
 
 - [CODE_REVIEW_2026-11-17.md](CODE_REVIEW_2026-11-17.md): full review of steps 10–69, with status and remaining items.
 - [TIMING_AND_CLOCKS.md](TIMING_AND_CLOCKS.md) and [clock_regimes.csv](clock_regimes.csv): clock model and UTC rules.
-- [FLOVOPY_MIGRATION_REVIEW.md](FLOVOPY_MIGRATION_REVIEW.md): what lives in FloVoPy, what stays in `lib/` and the notebooks, and candidates to move.
 - `24_phase_pick_review.md`, `34_association_review.md`, `45_hypocenter_review.md`: written reviews between steps.
 
 ## Other files
 
-- `lib/`: `config.py` (paths), `clock.py` (UTC rules), `shared.py` (ID and time helpers), `pha_parser.py` (Pinatubo wrapper around FloVoPy's phase-card reader), `pha_comparison.py` (step 23).
+- `lib/`: Pinatubo helpers used by the notebooks; see [FloVoPy and `lib/`](#flovopy-and-lib).
 - `superseded/`: retired code kept for the record (see its README): the pre-FloVoPy BOB notebooks, the `legacy_bob` converter, early SSAM and mudflow audits, a command-line wrapper for step 60 and an old refactor manifest.
