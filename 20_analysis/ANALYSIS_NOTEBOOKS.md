@@ -18,7 +18,7 @@ BOB products are converted and plotted by conversion steps 61–69 (on UTC): RSA
 
 ## Shared code and provenance
 
-`analysis_workflow.py` is a local orchestration/plotting layer. FLOVOpy owns onset proposals (`processing.detection`, also discoverable through VDAP), descriptive amplitude/SAM/SEM (`EnhancedStream`), shape/temporal/cepstral features (`core.features`), gap-aware Hann PSDs (`processing.spectrograms`) and PSD moments/band powers (`processing.spectral_metrics`). A local density-normalized DPSS estimator supports matched comparisons; the legacy multitaper plotting function is not treated as calibrated PSD.
+`analysis_workflow.py` is a local orchestration/plotting layer. FLOVOpy owns onset proposals (`processing.detection`, also discoverable through VDAP), descriptive amplitude/SAM/SEM (`EnhancedStream`), shape/temporal/cepstral features (`core.features`), gap-aware Hann PSDs and density-normalized DPSS PSDs and spectrograms (`processing.spectrograms`) and PSD moments/band powers (`processing.spectral_metrics`). FloVoPy's `plot_strongest_trace_multitaper` is a display tool and is not treated as a calibrated PSD.
 
 Products go to `<output_root>/notebook_workflow/<run-id>`, outside the Git checkout. Configure `output_root` in `analysis_workflow.json`; see `../CONFIGURATION.md`. All `products/` paths below refer to this external root, not a folder inside `20_analysis`. Configuration, selected files' absolute paths/size/mtime, workflow code and relevant FLOVOpy source hashes define that ID. This separates changed inputs or processing assumptions; it does not overwrite previous manual reviews. The hashes of the copied step-70 products are recorded in `network_history/network_source_hashes.json`. Size/mtime fingerprints detect ordinary source changes; they are not full waveform-content checksums. Absolute paths intentionally make runs machine-specific.
 
@@ -76,6 +76,6 @@ Restart the kernel after updating code. Run notebook 30, then 40 and 50. Noteboo
 
 Full numerical results are much larger than metadata-only sidecars. For all 21,459 files the old CSV form of the full export was about 29 GB and took about an hour to write, against 0.6 GB for `window_metrics.csv`; it is now compressed Parquet (`pd.read_parquet`, needs `pyarrow`), and can be switched off with `"exports": {"all_window_metrics": "none"}` because the sidecars hold the same values. Processing holds one recording's arrays at a time. The full export uses two passes over sidecars, preserving all fields/JSON-valued arrays without loading all spectra into memory. Event-level metadata CSV omits the duplicate trace payload list; all trace/window results remain in canonical JSON and the full trace export. Completed recordings are reusable after interruption; switching back to a prior policy can reuse its cached versions.
 
-## Reconciled Mac mini additions
+## Notebook 45 and runtime paths
 
 Notebook 45 and hybrid_diagnostics.py add experimental HF-before-LF diagnostics, with explicit candidate/QC output under the external testing root; they do not relabel the production catalog. `pinatubo_project.py` (project root) routes runtime caches and test outputs and resolves moved artifact paths; `conversion_config.json` and `analysis_workflow.json` keep their own output roots.

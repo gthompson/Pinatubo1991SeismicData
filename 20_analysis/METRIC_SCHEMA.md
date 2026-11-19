@@ -15,13 +15,13 @@ Schema version: `pinatubo-notebooks-1`. One row is one accepted noise or event i
 | `artifact_pre_*`, `artifact_post_*` | Original-window/processed-window 40.5-Hz PSD peak, ratio, power fraction, test status and tri-state detection |
 | `metric_status`, `metric_flags`, `feature_flags` | Processing state and retained QC flags; they are not classification labels |
 
-All metrics use uncalibrated counts; StationXML has no complete electronics response. A provisional epoch match uses recorded time and is not proof that the gain was known at that instant. Do not pool across station/channel/gain epochs or clipping states without justification.
+All metrics use uncalibrated counts; StationXML has no complete electronics response. A provisional epoch match uses the UTC start time (`provisional_utc_epoch_match`) and is not proof that the gain was known at that instant. Do not pool across station/channel/gain epochs or clipping states without justification.
 
 ## Processing and temporal interpretation
 
 Select actual sample centres within `[start,end)`. Do not pad, interpolate, silently compress gaps or include the sample at `end`. Actual support is from the first selected sample to the grid boundary following the last selected sample; that boundary may extend by less than one sample beyond the requested endpoint, while no selected sample centre does. Missing samples reject that window's measurements. All current transforms act on copies.
 
-Each selected window is linearly detrended. An optional lowpass, off by default, is applied independently to that window; inspect boundary effects if enabled. FLOVOpy ampengfft additionally detrends its copy. Features are computed from the same detrended input with their documented mean removal and band filters. Amplitude/SAM/SEM are reused from FLOVOpy; peak-to-peak and absolute summaries have their direct sample definitions. The legacy `temporal_features.py` is not called.
+Each selected window is linearly detrended. An optional lowpass, off by default, is applied independently to that window; inspect boundary effects if enabled. FLOVOpy ampengfft additionally detrends its copy. Features are computed from the same detrended input with their documented mean removal and band filters. Amplitude/SAM/SEM are reused from FLOVOpy; peak-to-peak and absolute summaries have their direct sample definitions.
 
 SAM/SEM bands use FLOVOpy's zero-phase, two-corner filtering. Band summaries are masked when the window does not satisfy a conservative two-sided edge-support criterion of two cycles per edge. A five-second window is too short for the default LF band at 0.8 Hz under that policy. This is deliberately different from a Fourier band-power estimate, which remains a valid finite-window descriptor with its own limited resolution. Short/unreliable filtered features do not become zero.
 

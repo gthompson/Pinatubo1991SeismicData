@@ -129,7 +129,7 @@ Every product keeps the raw time in a `raw_*` column, with the rule applied in `
     | 30 May | 9105300K | M 4.6, 591 km, 100 km deep | +12 s |
     | 30 May | 9105301M | M 7.0, 7,863 km (Alaska Peninsula) | +12.5 s, or a weak P followed by pP/sP |
     | 8 Aug | 91080826 | M 5.0, 351 km | −23 s |
-    | 15 Aug | 91081528 | M 6.3, 6,272 km, 187 km deep | +4 s relative to pP (to be confirmed) |
+    | 15 Aug | 91081528 | M 6.3, 6,272 km, 187 km deep | +4 s relative to pP (the predicted P falls before the record) |
     | 5 Sep | 9109055G | M 4.9, 420 km | +9 s |
 
     - After the reset the offsets range from −23 to +12 s and change sign from day to day: drift of about 2 s a day with only occasional resets, not one systematic error. No correction is applied.
