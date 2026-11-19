@@ -1,4 +1,5 @@
 %%% ====================================================================
+% Local change (Nov 2026): print the doi field as ", doi: <doi>".
 %%%  @BibTeX-style-file{
 %%%     author          = "Glenn Paulley",
 %%%     version         = "4",
@@ -151,6 +152,7 @@
 ENTRY
   { address
     author
+    doi
     booktitle
     chapter
     edition
@@ -278,7 +280,11 @@ FUNCTION {output.year.check}
 
 
 FUNCTION {fin.entry}
-{ add.period$
+{ doi empty$
+    'skip$
+    { ", doi: \refdoi{" * doi * "}" * }
+  if$
+  add.period$
   write$
   newline$
 }

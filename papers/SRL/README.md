@@ -8,6 +8,8 @@ Build:
 latexmk -pdf pinatubo_srl.tex
 ```
 
+`SSAbib.bst` has one local change: SSA's distributed style ignores the `doi` field, so `fin.entry` now appends ", doi: <doi>" to every entry that has one.
+
 The SSA class needs the `stix2-type1` and `ifsym` packages; on a TeX Live basic install they can be added with `tlmgr --usermode install stix2-type1 ifsym`.
 
 Figures are in `figures/`. New figures were drawn from the UTC products (`~/work/Pinatubo1991Processing/utc`) on 19 Nov 2026: clock rules, the timing effect, daily counts, hypocenters, station availability and the clock-anchor records (step 72). The BOB coverage and RSAM–SSAM lag figures are step 69 outputs. The network maps, PVO system diagram and helicorder figure are carried over from the Word draft.
