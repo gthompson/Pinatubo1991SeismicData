@@ -1,6 +1,6 @@
 # 10_conversion code review — 17 Nov 2026
 
-Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant FloVoPy readers, checked against the legacy archive and the outputs in `~/work/Pinatubo1991Processing/converted`. The review itself changed nothing. Fixes made afterwards are recorded in the status table below and in each section. "Verified" means reproduced independently during the review, not only reported by one reviewer.
+Review of notebooks 10–69, `lib/`, `legacy_bob/` and the relevant FloVoPy readers, checked against the legacy archive and the outputs in `~/work/Pinatubo1991Processing/converted`. The review itself changed nothing. Fixes made afterwards are recorded in the status table below and in each section. "Verified" means reproduced independently during the review, not only reported by one reviewer.
 
 ## Status (end of 17 Nov 2026)
 
@@ -14,7 +14,7 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
   - the blank-component channel bug from §3.8.
 - **Catalogue (§4.6).** Steps 23–53 were rerun on the UTC data. The QuakeML now has magnitudes (3,414 events), and the step-51 table has a P_H column.
 - **Hypocentre linking (§4.1).** Step 50 links hypocentres through their picks first (first P 0–10 s after the origin), then by record window (10 s before the start to the record end), one-to-one.
-  - The policy is `picks_then_window`, in `pinatubo_steps.shared.associate_hypocenters`.
+  - The policy is `picks_then_window`, in `lib.shared.associate_hypocenters`.
   - 4,628 of 4,690 hypocentres are now linked (previously 3,076): 4,446 through picks, 182 by window.
   - Only 62 remain H-only; 46 of those lie inside a record already linked to another hypocentre.
 - **Preferred origin (§4.2).** Step 43 now records `preferred_origin_id` and `preferred_origin_source`, and step 50 marks that origin as preferred. Each event gets a `preferred_origin:` comment; steps 51–52 already read `preferred_origin()`.
@@ -64,7 +64,7 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
   - Days inside a window that lack a source are listed and kept: six May days with no hypocentre, and 6 July with no monthly picks or hypocentres.
   - New output `51_daily_source_coverage.csv` gives W, P and H counts for every day. The daily-counts CSV now has a row for every window day, including days with no events.
   - The waveform-only days 12–28 Jun and from 20 Aug are outside the windows by design, since they have no picks or hypocentres.
-- **Magnitude 0.00 (§4.7).** HYPO71 writes 0.00 when no magnitude was computed. All three step-40 parsers (summary, original PINAALL, annotated PINAALL) now write it as an empty `magnitude`, keep the value in `reported_magnitude` and set `magnitude_missing_reason`, using `pinatubo_steps.shared.mark_missing_magnitudes`.
+- **Magnitude 0.00 (§4.7).** HYPO71 writes 0.00 when no magnitude was computed. All three step-40 parsers (summary, original PINAALL, annotated PINAALL) now write it as an empty `magnitude`, keep the value in `reported_magnitude` and set `magnitude_missing_reason`, using `lib.shared.mark_missing_magnitudes`.
   - 1,806 of 4,632 `Pinatubo_all.sum` rows and 960 of 3,601 `PINAALL.DAT` rows.
   - Step 42 applies the same rule, so it also handles indexes written before the fix. Its mismatch counts are unchanged (3,354 and 4,384), because 0.00 had matched 0.00 just as missing now matches missing.
   - Step 43 reads `reported_magnitude` and keeps its `zero_magnitude_is_missing` switch. Its outputs are byte-identical, so steps 50–53 did not need rerunning.
@@ -108,7 +108,7 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
   - Analysis notebook 10 used to re-execute step 15's code and overwrite the canonical step-15 products, but not their audit, selection-safe copies or provenance. It is now read-only (copies the products and records their hashes). Steps 15 and 16 were rerun: every CSV is identical to the overwritten files, the XML differs only in its creation time, and `chronology.md` gets back its correct `source_metadata/` link. A layout test that wrote into the step-15 folder now uses a temporary one.
   - Analysis inputs now come from `conversion_config.json` (UTC WAV database, step-15 products); `wav_root` is only an override. The unused `network_history_products` setting and its helpers, the Box pre-UTC waveform fallback, the `pilot` sampler and a hard-coded hash check are removed; the two config-backup copies are merged.
   - Time labels say UTC (they said recorded, uncorrected clocks), in metric provenance (`time_basis`, `epoch_status`), captions, axes and notebook text.
-  - Retired to `20_analysis/superseded/` (with a README): the old command-line pipeline and its configs, READMEs and smoke outputs; the COSPEC plotter and notebook 70, which duplicated step 66 and labelled dates GMT midnight (its stray output under `utc/legacy_bob/` was removed); and `legacy_rsam_analysis.ipynb`, which read raw RSAM and pre-UTC waveforms (step 61 replaces it). `pytest.ini` limits collection to `tests/`. The unused `FIX_FS` path key is removed from `pinatubo_steps/config.py`.
+  - Retired to `20_analysis/superseded/` (with a README): the old command-line pipeline and its configs, READMEs and smoke outputs; the COSPEC plotter and notebook 70, which duplicated step 66 and labelled dates GMT midnight (its stray output under `utc/legacy_bob/` was removed); and `legacy_rsam_analysis.ipynb`, which read raw RSAM and pre-UTC waveforms (step 61 replaces it). `pytest.ini` limits collection to `tests/`. The unused `FIX_FS` path key is removed from `lib/config.py`.
   - Two faults found by rerunning: `analysis_workflow` read cached CSVs with default types, so a hex `record_id` such as `…e123` became `inf` and notebook 20 failed on reuse; ID columns are now always read as text (`read_ids`). Notebook 60 kept re-copying a draft selection for an earlier run; an unapproved draft for another run is now kept as `publication_selection.draft_<run>.json` and replaced, while an approved one still stops the notebook.
 
 - **`legacy_bob` retired (18 Nov).** The old BOB command-line converter and its two tests moved to `superseded/legacy_bob/`; steps 61–69 replace it. The `legacy_bob` block stays in `conversion_config.json` (step 66 reads its COSPEC units); only its runner-only `products` list was removed.
@@ -119,11 +119,17 @@ Review of notebooks 10–69, `pinatubo_steps/`, `legacy_bob/` and the relevant F
 
 - **Engine tests moved to FloVoPy (18 Nov).** The Hilbert and window-strategy tests in `20_analysis` duplicated FloVoPy's `test_pretrigger_diagnostics.py` and `test_pretrigger_windows.py` and were deleted; the frequency-check and single-trace tests moved to FloVoPy `test_pretrigger_trace_analysis.py`. `20_analysis/tests/test_pretrigger_qc.py` now tests only the batch adapter, and `pretrigger_qc` no longer re-exports FloVoPy private functions.
 
+- **Quick cleanups (19 Nov).**
+  - Stale annotated-parser outputs (`pinatubo_hypocenters.csv`, `pinatubo_annotations.csv`, `pinatubo_parse_errors.csv`, `pinatubo_parse_summary.txt`) removed from `10_conversion`.
+  - `pinatubo_steps/` renamed `lib/` throughout (notebooks find it by `lib/clock.py`). `dmx_recovery.py` and step 10's candidate-saving section removed; the unused `parse_individual_pha_file` and the re-exports of FloVoPy's `parse_seed_id`/`get_comment_value` removed (steps 50–52 import them from FloVoPy).
+  - Network history and StationXML moved from steps 15/16 to **70/71**, after the BOB steps, so they are built once every dataset is on UTC. Outputs are now `step70_provenance.json` and `validation/71_*.json`; the analysis checks the new name. Rerun: products identical apart from timestamps and hashes; 71's checks pass.
+  - The external test runner (`tests/run_external_tests.py`) fails in its sandbox because `build_all` expects a header scan there; this predates the move (same failure on the previous commit).
+
 **Remaining**, roughly in priority order:
 
 | # | Item | Section | Notes |
 |---|---|---|---|
-| 1 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES clock), so IRIG gives no absolute UTC. Decoding it could still track PC resets and drift; a few regional or teleseismic arrivals could anchor absolute time. |
+| 1 | Clock drift and residual clock questions | §1 | RSAM 2–9 May (−15 h) still has low confidence, and rain/mudflow from 15 Nov are unverified. The IRIG generator was free-running (no GOES or GPS clock at PVO), so IRIG gives no absolute UTC. Absolute anchors need earthquakes outside the volcano: none of the 8,233 HYPO71 origins is beyond 49 km (largest magnitude 1.88), but 34 pick groups (27 Jun – 21 Aug) have median S−P of 6–13 s (≈50–105 km), four with 2–4 consistent S picks. Next: match these, and the triggered files and 1-min SSAM, against ISC/USGS origin times. |
 | 2 | Publication examples | — | Notebook 60 now writes a fresh draft selection for the UTC run; the examples still need choosing. |
 
 ## 1. Clocks (cross-cutting; affects the paper's timing claims)
@@ -210,13 +216,13 @@ The scripts are in the session scratchpad (`pickclock.py`, `bobxc.py`).
 Consequences (status in brackets):
 - [Fixed: UTC run, and step 50 now links through picks, then by record window] Step 50 matches waveform events to hypocenters with ±10 s and no clock offset, so almost no waveform–hypocenter pairs are found before ~21 May. After a 7 h correction, the ~9 s pretrigger still leaves only ~2,900 of ~4,500 pairs within ±10 s.
 - [Avoided: the UTC run uses the original parser and the clock table] The annotated PINAALL parser's local→UTC switch (`LOCAL_UTC_OFFSET=8`) would move pre-30-May origins to 15 h from the waveforms.
-- The committed `pinatubo_hypocenters.csv` contains −8 h times, but `pinatubo_parse_summary.txt` says offset None, so the two files come from different runs.
-- [Fixed for RSAM/EVNT/SSAM in the UTC run; other BOB products remain unverified] Notebook 69 overlays series that are on different time bases.
+- [Removed 19 Nov: these were stale outputs of the annotated parser, not used by the pipeline] The committed `pinatubo_hypocenters.csv` contains −8 h times, but `pinatubo_parse_summary.txt` says offset None, so the two files come from different runs.
+- [Fixed: every BOB product is on UTC since 18 Nov, except rain/mudflow from 15 Nov, flagged `unverified`] Notebook 69 overlays series that are on different time bases.
 
 ### UTC run (17 Nov)
 
 **Implementation.**
-- Rules: `clock_regimes.csv`, applied through `pinatubo_steps/clock.py` and FloVoPy `flovopy.core.clock` (`ClockRegimes`, `dos_mktime_wall_clock`).
+- Rules: `clock_regimes.csv`, applied through `lib/clock.py` and FloVoPy `flovopy.core.clock` (`ClockRegimes`, `dos_mktime_wall_clock`).
 - FloVoPy's `convert_dmx_to_seisan` gains a `time_correction=` hook.
 - Now the default in `conversion_config.json` (`conversion_config.utc.json` was retired); outputs go to `~/work/Pinatubo1991Processing/utc`.
 - Raw times are kept in `raw_*` columns and the applied rule in `clock_*` columns.
@@ -273,23 +279,23 @@ Consequences (status in brackets):
 
 ## 2. Waveforms (10, 11, 15, 16)
 
-**Status:** 1–5 fixed. 6 is open.
+**Status:** all fixed. Items 1 and 5 by the UTC run (17 Nov); item 6 on 19 Nov (see the status list).
 
-1. **The header sample rate is overwritten.** Raw DMX = 100.80645 Hz (12500/124), verified on `9105010W.DMX`. `waveform.sampling_rate: 100.0` → FloVoPy `fix_sampling_rate` sets 100 Hz, which stretches each record by 0.8% (~0.3 s over a 4,096-sample record). The original rate isn't kept in the index, provenance or MiniSEED. Settle which rate is true and record the raw one.
+1. [Fixed: 3125/31 Hz kept, raw value in the index] **The header sample rate is overwritten.** Raw DMX = 100.80645 Hz (12500/124), verified on `9105010W.DMX`. `waveform.sampling_rate: 100.0` → FloVoPy `fix_sampling_rate` sets 100 Hz, which stretches each record by 0.8% (~0.3 s over a 4,096-sample record). The original rate isn't kept in the index, provenance or MiniSEED. Settle which rate is true and record the raw one.
 2. [Fixed: dropped traces are provenance rows; see the status list] **Flat (constant) channels are dropped before provenance is built** (`trace_utils.remove_empty_traces`), so they appear nowhere. 98 of 143 sampled files lost at least one channel. This contradicts the "counted, not silently removed" text in nb 10 cell 13.
 3. [Fixed: `10_file_log.csv`] **5 of 21,475 DMX files are unaccounted for**: 2 contain only flat or IRIG traces (`status=empty`, not saved), and 3 truncated files (9106133O, 9107077R, 9108071V) are missing from the failures CSV.
 4. [Fixed: epochs rebuilt on UTC and checked against every archived trace] **StationXML epochs end before the data** for BUR, PIE, PPO, UBO and GRN (12–25 June; 336 station-channel-days). Separately, nb 15 cell 6 starts CAB EHN on 06-16, but its first data is 07-03.
-5. **Outputs are older than the config.** The index and failures CSVs were written 10 Nov, but `recover_partial: true` was added 11 Nov, so there are no `partial_recovery` columns.
-6. Minor:
-   - `pinatubo_steps/dmx_recovery.recover_file` is more permissive than FloVoPy's `recover_dmx_prefix`.
-   - nb 15 cell 30 depends on `notebook_source` from cell 27.
-   - `PINATUBO_RESULTS_ROOT` redirects `OUTPUT_ROOT`.
+5. [Fixed: the UTC run has `partial_recovery` columns] **Outputs are older than the config.** The index and failures CSVs were written 10 Nov, but `recover_partial: true` was added 11 Nov, so there are no `partial_recovery` columns.
+6. [Fixed 19 Nov] Minor:
+   - `pinatubo_steps/dmx_recovery.recover_file` is more permissive than FloVoPy's `recover_dmx_prefix`. [Removed with step 10's candidate-saving section; production recovery is FloVoPy's.]
+   - nb 15 cell 30 depends on `notebook_source` from cell 27. [Step 70 now names the notebook directly.]
+   - `PINATUBO_RESULTS_ROOT` redirects `OUTPUT_ROOT`. [By design: it selects the isolated test sandbox; see `RESULTS_LAYOUT.md`.]
 
 ## 3. Picks and association (20–35)
 
 **Status (17 Nov, later):**
 - **Fixed by moving all phase-card decoding into FloVoPy** (`flovopy.core.vdap`): items 1, 3 and 5 below, plus minute-60 cards and P seconds ≥ 60.
-  - The new pieces are `parse_vdap_phase_line`, `read_vdap_pha_blocks`, `dedupe_picks` and `filter_picks_near_median`. `pinatubo_steps/pha_parser.py` is now a thin wrapper around them.
+  - The new pieces are `parse_vdap_phase_line`, `read_vdap_pha_blocks`, `dedupe_picks` and `filter_picks_near_median`. `lib/pha_parser.py` is now a thin wrapper around them.
   - Step 21 event IDs now use the separator-block position in the source file. The old→new map is in `pipeline_tmp/21_event_id_changes_20261117.csv`.
   - Steps 20–53 have since been rerun on the UTC data.
 - **Fixed since:** item 6 (114 minute-60 lines now rolled over); item 8's blank-component channel bug (FloVoPy maps components explicitly); `pha_parser` now has tests.
@@ -332,7 +338,7 @@ Consequences (status in brackets):
 
 ## 5. BOB (60–69)
 
-**Status:** items 1–7 fixed: all-zero SSAM rows are dropouts; RSAM/EVNT/TILT carry window-end labels; rain carried-forward values, tilt saturation, mudflow skipped files and auxiliary sources are handled; the BOB tests pass. Item 2's time bases are fixed for every product: RSAM/EVNT/SSAM first (SSAM had been put on the BOB clock by mistake and is now on the MDETECT PC clock), then tilt, rain, mudflow and counts (§1 status). Item 8 is open.
+**Status:** items 1–7 fixed: all-zero SSAM rows are dropouts; RSAM/EVNT/TILT carry window-end labels; rain carried-forward values, tilt saturation, mudflow skipped files and auxiliary sources are handled; the BOB tests pass. Item 2's time bases are fixed for every product: RSAM/EVNT/SSAM first (SSAM had been put on the BOB clock by mistake and is now on the MDETECT PC clock), then tilt, rain, mudflow and counts (§1 status). Item 8 no longer applies: `legacy_bob` was retired on 18 Nov.
 
 1. [Fixed] **All-zero SSAM rows count as data.** The SSAM files use 0 in all 16 bands for dropouts, but only −998/−999 are masked. That is about 34k SSAM rows plus 1.2k DATA rows (e.g. BUR1 1,400 of 1,667 rows, and DON1 has 8 entirely zero days counted as valid). Coverage, the 69 overview and the spectrograms are all inflated.
 2. [Fixed] **Time bases**: see §1. nb 62 sets `TIME_ANCHOR='start'`, but RSAM is end-of-window.
@@ -341,7 +347,7 @@ Consequences (status in brackets):
 5. [Fixed] **MUDFLOW `.DA2`–`.DA5` files** (10–11 Aug) are skipped without notice because only `*.DAT` is read.
 6. [Fixed] **TEST, BUG1 and TEMP auxiliary sources feed coverage**; today they add no new network days.
 7. [Fixed] **The two failing tests are bugs in the test file**: notebook cell `source` is a list of lines, so `tests/test_bob_notebooks.py` lines 51 and 78 need `''.join(c['source'])` (verified).
-8. Older `legacy_bob` modules differ slightly from the notebooks (−998 handling in counts, tilt labelled local, radio ditto column).
+8. [Moot: retired 18 Nov] Older `legacy_bob` modules differ slightly from the notebooks (−998 handling in counts, tilt labelled local, radio ditto column).
 9. Verified correct:
    - annual float32 layout (52,560 and 52,704 samples, 576-byte header, little-endian)
    - EVNT values are per-interval, not cumulative

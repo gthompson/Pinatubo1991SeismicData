@@ -11,7 +11,7 @@ class ExternalLayoutTests(unittest.TestCase):
         root=p.settings()['results_root']
         for stage in ['10_conversion','20_analysis','testing','runtime']:
             self.assertTrue(p.output_path(stage).is_relative_to(root))
-        from pinatubo_steps.config import pipeline_paths
+        from lib.config import pipeline_paths
         paths=pipeline_paths()
         for key in ['SEISAN_WAV_DB','TMP_DIR','QC_DIR','FAIR_META_DIR','WAVEFORM_INDEX','CATALOG_PREFIX','FAIR_REA_DIR','SEISAN_DIAG_DIR']:
             self.assertTrue(Path(paths[key]).is_relative_to(root),key)
@@ -30,7 +30,7 @@ class ExternalLayoutTests(unittest.TestCase):
         p.runtime_environment();root=p.settings()['results_root']
         for key in ['MPLCONFIGDIR','GMT_USERDIR','GMT_SESSIONDIR','IPYTHONDIR']:
             self.assertTrue(Path(os.environ[key]).is_relative_to(root))
-        # Never write into the real step-15 products.
+        # Never write into the real step-70 products.
         with TemporaryDirectory() as tmp, patch.object(p,'network_products',lambda:Path(tmp)):
             dest=Path(tmp)/'data/waveform_header_presence.csv';dest.parent.mkdir(parents=True);dest.write_text('external')
             self.assertEqual(p.network_input(dest.name),dest)

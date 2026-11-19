@@ -11,7 +11,7 @@ def _load_pipeline_notebook(filename):
     return types.SimpleNamespace(**namespace)
 
 import pandas as pd
-from pinatubo_steps import shared
+from lib import shared
 
 class SharedTests(unittest.TestCase):
     def test_normalization_parity_and_missing(self):

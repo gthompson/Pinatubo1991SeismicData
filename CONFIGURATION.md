@@ -13,7 +13,7 @@ No archive conversion or analysis is started by editing or loading configuration
 | Conversion `output_root` | `~/work/Pinatubo1991Processing/utc` |
 | Analysis waveforms (read) | conversion `<output_root>/FAIR/SEISAN/WAV/PNTBO`; optional `wav_root` override |
 | Analysis `output_root` | `~/work/Pinatubo1991Processing/analysis` |
-| Analysis station metadata (read) | conversion `<output_root>/FAIR/metadata/network_history` (step 15) |
+| Analysis station metadata (read) | conversion `<output_root>/FAIR/metadata/network_history` (step 70) |
 
 The Box input directories exist on the inspected machine. Change these settings
 for another machine, drive, selected archive version or deliberately separate run.
@@ -82,7 +82,7 @@ sidecars, original-sample inventories, onset caches and review registry live in
 `event_metrics_cache`, `file_inventory_cache`, `pretrigger_file_cache` and
 `window_review_registry.csv` under that same external root. Generated backups of
 configuration changes go to `config_backups` there; the deliberately edited active
-JSON remains in `20_analysis`. Analysis notebook 10 copies the conversion step-15
+JSON remains in `20_analysis`. Analysis notebook 10 copies the conversion step-70
 products into the run; it never rebuilds or writes them.
 
 `PINATUBO_ANALYSIS_OUTPUT` optionally overrides the analysis output root. Numerical
@@ -94,7 +94,7 @@ Do not interpret that reference window as verified quiet background.
 Analysis reads the UTC waveform database and station metadata written by conversion,
 located through `conversion_config.json`. Set `wav_root` in `analysis_workflow.json`,
 or `PINATUBO_WAV_ROOT`, only to analyse a different waveform tree. The waveform file
-paths and the step-15 product hashes are recorded with each run.
+paths and the step-70 product hashes are recorded with each run.
 
 Notebook 60 writes a draft publication selection for the current run when none
 exists, and stops if the existing selection belongs to another run. The draft for

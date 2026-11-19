@@ -64,7 +64,7 @@ For mutually unique matched pairs: 125 pairs at 0.05 s, 169 at 1 s; median signe
 
 Monthly parsed records contain 1,832 ELZ picks; 1,826 survive in the merged index across 1,178 monthly source groups, June 27 01:03:27.31–August 21 15:51:47.30 (record labels). Raw provenance explicitly contains PI2L station labels. This is evidence that low-gain arrivals were picked; it is not a count of low-gain waveform files.
 
-The previous no-PI2L raw-DMX daily sample and Glenn's no-PI2L SSAM inspection remain valid observations. The stronger routing hypothesis that PI2L was absent from event acquisition is now uncertain. Possibilities include another picking medium, lost/unsampled low-gain waveforms, alternate acquisition/conversion histories, or upstream labeling differences. Ask colleagues what medium supplied the PI2L picks and search matching event times in raw DMX/provenance before concluding it was RSAM-only. The step-15 routing note should be revised in a later documentation update.
+The previous no-PI2L raw-DMX daily sample and Glenn's no-PI2L SSAM inspection remain valid observations. The stronger routing hypothesis that PI2L was absent from event acquisition is now uncertain. Possibilities include another picking medium, lost/unsampled low-gain waveforms, alternate acquisition/conversion histories, or upstream labeling differences. Ask colleagues what medium supplied the PI2L picks and search matching event times in raw DMX/provenance before concluding it was RSAM-only. The step-70 routing note should be revised in a later documentation update.
 
 ## Agreed next workflow: associate, then review against waveforms
 
@@ -85,7 +85,7 @@ Prioritize representative associations first to check the plotting and matching 
 1. Are the monthly time-overflow entries safely normalizable, or do they reflect corruption? Keep raw records and explicit repair/rejection decisions.
 2. Do the GRN 59.99-second rollover and zero-delay examples fit visible arrivals? Avoid correcting timestamps solely because a delay looks implausible.
 3. Do source mismatches, especially June 10, reflect different recordings, missing coverage, source grouping, phase labels or timing conventions?
-4. Do PI2L picks correspond to a surviving low-gain trace, another channel, an absent recording medium or unmatched data? Qualify the step-15 routing hypothesis accordingly.
+4. Do PI2L picks correspond to a surviving low-gain trace, another channel, an absent recording medium or unmatched data? Qualify the step-70 routing hypothesis accordingly.
 5. Are filename/folder date discrepancies harmless archival organization or relevant to association? Do not overwrite documentary dates.
 
 ### Scope of this review file

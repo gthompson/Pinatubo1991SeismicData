@@ -4,9 +4,7 @@ Historical parsing, block grouping, source priority and event classification
 remain in their source-specific modules. XB is a project default here only.
 """
 import pandas as pd
-from flovopy.core.event_utils import (
-    parse_seed_id, get_comment_value, associate_events_by_time,
-)
+from flovopy.core.event_utils import associate_events_by_time
 
 DEFAULT_NETWORK = 'XB'
 

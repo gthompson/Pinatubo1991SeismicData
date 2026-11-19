@@ -110,7 +110,7 @@ if __name__=='__main__':unittest.main()
 
 class PicksThenWindowTests(unittest.TestCase):
  def setUp(self):
-  from pinatubo_steps.shared import associate_hypocenters
+  from lib.shared import associate_hypocenters
   self.f=associate_hypocenters
   T=lambda s:(base+pd.Timedelta(seconds=s)).isoformat()
   # w1: record 0-60 s with picks from 11 s; w2: record 100-160 s, no picks; p3: pick-only event at 300 s.

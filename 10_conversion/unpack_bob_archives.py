@@ -3,7 +3,7 @@
 from pathlib import Path
 from datetime import datetime, timezone
 import argparse, hashlib, json
-from pinatubo_steps.config import pipeline_paths
+from lib.config import pipeline_paths
 
 def run(config_file=None, *, extract=False):
     notebook=Path(__file__).with_name('60_prepare_bob_archives.ipynb')

@@ -1,7 +1,7 @@
 import unittest,tempfile
 from pathlib import Path
 import pandas as pd
-from pinatubo_steps.pha_comparison import compare_pick_sources,compare_pick_csvs
+from lib.pha_comparison import compare_pick_sources,compare_pick_csvs
 
 T=pd.Timestamp('1991-06-03T12:00:00Z')
 def table(times,channel='EHZ'):

@@ -14,7 +14,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 import pinatubo_config as paths
-spec=importlib.util.spec_from_file_location('conversion_config_test',ROOT/'10_conversion/pinatubo_steps/config.py')
+spec=importlib.util.spec_from_file_location('conversion_config_test',ROOT/'10_conversion/lib/config.py')
 conversion=importlib.util.module_from_spec(spec);spec.loader.exec_module(conversion)
 
 class ConfigTests(unittest.TestCase):

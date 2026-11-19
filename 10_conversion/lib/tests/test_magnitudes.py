@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from pinatubo_steps.shared import mark_missing_magnitudes, MISSING_MAGNITUDE_REASON
+from lib.shared import mark_missing_magnitudes, MISSING_MAGNITUDE_REASON
 
 
 class MissingMagnitudeTests(unittest.TestCase):

@@ -1,18 +1,18 @@
 # Pinatubo analysis notebook sequence
 
-Run in the `flovopy_asl` environment with the editable FloVoPy installation. Start notebooks from this directory or the project root. Edit **analysis_workflow.json** once. Inputs come from the conversion configuration: the waveforms are the UTC SEISAN WAV database written by conversion step 10, and the station metadata are the products of conversion step 15. Set `wav_root` in `analysis_workflow.json`, or `PINATUBO_WAV_ROOT`, only to analyse another waveform tree. Outputs go to `output_root` (`~/work/Pinatubo1991Processing/analysis`). The current configuration selects all waveform files with a fixed five-second window policy. Use the sample controls in notebook 20 for a trial run.
+Run in the `flovopy_asl` environment with the editable FloVoPy installation. Start notebooks from this directory or the project root. Edit **analysis_workflow.json** once. Inputs come from the conversion configuration: the waveforms are the UTC SEISAN WAV database written by conversion step 10, and the station metadata are the products of conversion step 70. Set `wav_root` in `analysis_workflow.json`, or `PINATUBO_WAV_ROOT`, only to analyse another waveform tree. Outputs go to `output_root` (`~/work/Pinatubo1991Processing/analysis`). The current configuration selects all waveform files with a fixed five-second window policy. Use the sample controls in notebook 20 for a trial run.
 
 | Notebook | Main products |
 |---|---|
 | 00_archive_inventory_and_qc | Original-sample inventory, coverage, lengths, padding, gaps, extrema and artifact screens |
-| 10_stationxml_and_network | Read-only copy (with hashes) of conversion step 15's maps, chronology, timing ledger, StationXML and nominal-response audit |
+| 10_stationxml_and_network | Read-only copy (with hashes) of conversion step 70's maps, chronology, timing ledger, StationXML and nominal-response audit |
 | 20_pretrigger_and_window_selection | FLOVOpy proposals, full/zoom/frequency views, canonical manual review and validated intervals |
 | 30_noise_and_event_metrics | Same applicable FLOVOpy amplitude, SAM/SEM, temporal/shape, spectral and cepstral features for both accepted window types |
 | 40_spectra_and_spectrograms | Matched Welch/DPSS spectra, three Hann resolutions and normalized DPSS spectrograms, numerical arrays |
 | 50_archive_summary_figures | Coverage/QC and accepted metrics by channel, window and gain epoch |
 | 60_publication_figures | Fixed, explicitly draft selection, PNG/PDF/SVG, captions and asset hashes |
 
-Notebook 10 never rebuilds station metadata: conversion step 15 owns it. To change metadata, rerun conversion steps 15 and 16, then this sequence.
+Notebook 10 never rebuilds station metadata: conversion step 70 owns it. To change metadata, rerun conversion steps 70 and 71, then this sequence.
 
 BOB products are converted and plotted by conversion steps 61–69 (on UTC): RSAM and RSAM event counts in step 61, COSPEC in step 66. Retired code is kept in `superseded/` (see its README): the combined `00_archive_qc_and_pretrigger.ipynb` (notebook 20 now holds its onset histogram and its frequency and Hilbert plots), the command-line `pipeline.py` with its helpers, configs and smoke-test outputs, the COSPEC plotter and notebook 70 (replaced by step 66), and `legacy_rsam_analysis.ipynb` (pre-UTC waveforms and raw RSAM; replaced by step 61).
 
@@ -20,7 +20,7 @@ BOB products are converted and plotted by conversion steps 61–69 (on UTC): RSA
 
 `analysis_workflow.py` is a local orchestration/plotting layer. FLOVOpy owns onset proposals (`processing.detection`, also discoverable through VDAP), descriptive amplitude/SAM/SEM (`EnhancedStream`), shape/temporal/cepstral features (`core.features`), gap-aware Hann PSDs (`processing.spectrograms`) and PSD moments/band powers (`processing.spectral_metrics`). A local density-normalized DPSS estimator supports matched comparisons; the legacy multitaper plotting function is not treated as calibrated PSD.
 
-Products go to `<output_root>/notebook_workflow/<run-id>`, outside the Git checkout. Configure `output_root` in `analysis_workflow.json`; see `../CONFIGURATION.md`. All `products/` paths below refer to this external root, not a folder inside `20_analysis`. Configuration, selected files' absolute paths/size/mtime, workflow code and relevant FLOVOpy source hashes define that ID. This separates changed inputs or processing assumptions; it does not overwrite previous manual reviews. The hashes of the copied step-15 products are recorded in `network_history/network_source_hashes.json`. Size/mtime fingerprints detect ordinary source changes; they are not full waveform-content checksums. Absolute paths intentionally make runs machine-specific.
+Products go to `<output_root>/notebook_workflow/<run-id>`, outside the Git checkout. Configure `output_root` in `analysis_workflow.json`; see `../CONFIGURATION.md`. All `products/` paths below refer to this external root, not a folder inside `20_analysis`. Configuration, selected files' absolute paths/size/mtime, workflow code and relevant FLOVOpy source hashes define that ID. This separates changed inputs or processing assumptions; it does not overwrite previous manual reviews. The hashes of the copied step-70 products are recorded in `network_history/network_source_hashes.json`. Size/mtime fingerprints detect ordinary source changes; they are not full waveform-content checksums. Absolute paths intentionally make runs machine-specific.
 
 ## Window review
 

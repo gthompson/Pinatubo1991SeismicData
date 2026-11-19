@@ -328,14 +328,14 @@ def plot_inventory(ctx, inventory):
 
 
 def review_network(ctx):
-    """Copy the conversion step-15 products into this run; never rebuild them.
+    """Copy the conversion step-70 products into this run; never rebuild them.
 
-    Step 15 (10_conversion) owns network history and StationXML. Rerun it there
+    Step 70 (10_conversion) owns network history and StationXML. Rerun it there
     when metadata change; this function only reads its outputs and records hashes.
     """
     source=network_products()
-    if not (source/'step15_provenance.json').is_file():
-        raise FileNotFoundError(f'No step-15 products in {source}; run 10_conversion/15_network_history_and_stationxml first')
+    if not (source/'step70_provenance.json').is_file():
+        raise FileNotFoundError(f'No step-70 products in {source}; run 10_conversion/70_network_history_and_stationxml first')
     dest=ctx['out']/'network_history'
     shutil.copytree(source,dest,dirs_exist_ok=True,ignore=shutil.ignore_patterns('*.ipynb','header_scan'))
     inv=read_inventory(str(dest/'pinatubo_provisional.xml'))

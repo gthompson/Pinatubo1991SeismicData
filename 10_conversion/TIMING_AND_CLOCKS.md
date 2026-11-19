@@ -1,6 +1,6 @@
 # Timing of the 1991 Pinatubo seismic data: problems, corrections and their effect
 
-*17 November 2026. Details and scripts: `CODE_REVIEW_2026-11-17.md` ("Clock model", "UTC run"); rules: `clock_regimes.csv`; code: `pinatubo_steps/clock.py`, `flovopy.core.clock`.*
+*17 November 2026. Details and scripts: `CODE_REVIEW_2026-11-17.md` ("Clock model", "UTC run"); rules: `clock_regimes.csv`; code: `lib/clock.py`, `flovopy.core.clock`.*
 
 ## 1. Summary
 
@@ -116,7 +116,7 @@ Every product keeps the raw time in a `raw_*` column, with the rule applied in `
 
 - **Clock drift.** MDETECT reads the PC clock at start-up and then keeps time by counting A/D samples: "good to about 2 seconds per day" (Lee, Tottingham & Ellis 1988, OFR 88-751). The PCs were supposed to be reset every day, but this was done only sporadically. So absolute times carry errors of seconds that vary from day to day. Each PC drifted differently.
 - **The IRIG trace.** The IRIG trace in the DMX files would normally be used to correct the headers, with `IRIG.EXE` from the PC-SUDS utilities. Without a satellite clock, though, the IRIG generator was free-running, so it cannot provide absolute UTC. The `timecorrect` field is 0 in every file, so no IRIG correction was ever applied. The generator's oscillator was probably more stable than the PC clock and was not rebooted daily. Decoding it could therefore still show PC clock resets and drift relative to one continuous timescale. Whether that is worth doing depends on whether the code is decodable and the generator was left running.
-- **Absolute anchors.** A regional or teleseismic earthquake recorded in a triggered file, with an origin time in ISC or USGS catalogues, would give the absolute clock error on that day to about 1 s. A few such checks would bound the drift.
+- **Absolute anchors.** A regional or teleseismic earthquake recorded in a triggered file, with an origin time in ISC or USGS catalogues, would give the absolute clock error on that day to about 1 s. A few such checks would bound the drift. The HYPO71 files hold none: all 8,233 origins lie within 49 km of Pinatubo, and the largest magnitude is 1.88. The picks are more promising: 34 pick groups between 27 June and 21 August have a median S−P of 6–13 s (roughly 50–105 km), and four of them have 2–4 consistent S picks. They were picked but never located. Matching them, and the triggered files and 1-minute SSAM (on the same MDETECT clock as the waveforms), against catalogue origin times is the next check.
 
 ## 6. Not corrected or uncertain
 

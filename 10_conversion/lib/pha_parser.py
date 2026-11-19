@@ -12,7 +12,6 @@ then the notebook's own window).
 Public API (used by the notebooks):
   - parse_phase_line(line) -> list[dict] | None
   - parse_pha_file(path, errors=None) -> list[{"origin_time", "picks"}]
-  - parse_individual_pha_file(path) -> list[dict]
   - filter_pick_outliers(picks, max_span_seconds=60.0) -> list[dict]
   - filter_pick_group(picks, max_span_seconds=60.0, ..., rejected=None) -> list[dict]
   - _dedupe_picks(picks, time_eps_s=1e-3) -> list[dict]
@@ -28,7 +27,6 @@ from flovopy.core.vdap import (
     filter_picks_near_median,
     parse_vdap_phase_line,
     read_vdap_pha_blocks,
-    read_vdap_pha_file,
     split_picks_by_time_gap,
 )
 
@@ -147,9 +145,3 @@ def parse_pha_file(path, errors=None):
                            "first_line": block["first_line"], "last_line": block["last_line"]})
     return events
 
-
-def parse_individual_pha_file(path):
-    """Parse an individual-event PHA file and return deduplicated picks."""
-    picks = read_vdap_pha_file(path, network=NETWORK, strict=False,
-                               allow_terminal_separator=True)
-    return _dedupe_picks(picks)

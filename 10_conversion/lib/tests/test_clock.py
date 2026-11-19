@@ -5,7 +5,7 @@ import pandas as pd
 from obspy import UTCDateTime
 
 from flovopy.core.clock import dos_mktime_wall_clock
-from pinatubo_steps.clock import (apply_bob_clock, apply_hypocenter_clock, apply_pick_clock,
+from lib.clock import (apply_bob_clock, apply_hypocenter_clock, apply_pick_clock,
                                   regimes, waveform_time_correction)
 
 UTC = dict(time_basis='utc')

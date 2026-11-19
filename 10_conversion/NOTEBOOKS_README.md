@@ -5,13 +5,13 @@ The numbered notebooks in this folder turn the surviving 1991 PVO archive (DMX w
 ## Running
 
 - Use a kernel with the current FloVoPy checkout installed in editable mode, plus ObsPy, pandas, NumPy, Matplotlib and IPython (the `flovopy_asl` conda environment). Restart the kernel after changing FloVoPy.
-- Open Jupyter from this folder or the project root. Every notebook reads `conversion_config.json` through `pinatubo_steps.config.pipeline_paths`: inputs under `data_top`, outputs under `output_root` (currently `~/work/Pinatubo1991Processing/utc`). See [../CONFIGURATION.md](../CONFIGURATION.md).
+- Open Jupyter from this folder or the project root. Every notebook reads `conversion_config.json` through `lib.config.pipeline_paths`: inputs under `data_top`, outputs under `output_root` (currently `~/work/Pinatubo1991Processing/utc`). See [../CONFIGURATION.md](../CONFIGURATION.md).
 - Each notebook has a configuration cell (`SETTINGS`), a definitions cell tagged `pipeline_definitions` (functions only; tests load this cell), and a run cell. Run them top to bottom, in step order. Saved outputs in the committed notebooks come from the UTC run.
-- Code generic to VDAP data lives in FloVoPy (`flovopy.core.vdap`, `flovopy.core.dmx_recovery`, `flovopy.seisanio.rea_export`, `flovopy.legacy.bob`). Pinatubo choices (paths, clock rules, station mappings, association and export policies) stay in the notebooks and in `pinatubo_steps/`.
+- Code generic to VDAP data lives in FloVoPy (`flovopy.core.vdap`, `flovopy.core.dmx_recovery`, `flovopy.seisanio.rea_export`, `flovopy.legacy.bob`). Pinatubo choices (paths, clock rules, station mappings, association and export policies) stay in the notebooks and in `lib/`.
 
 ## Clocks and UTC
 
-Each data stream was time-stamped by its own acquisition PC, and those clocks changed between Philippine time and GMT during 1991. `clock_regimes.csv` gives the rule for every stream and period; `pinatubo_steps/clock.py` applies it. Raw times are kept in `raw_*` columns and the rule and nominal uncertainty in `clock_*` columns. Records that cannot be placed go to `*_clock_unresolved.csv` (or, for waveforms, the failures table). The evidence is in [TIMING_AND_CLOCKS.md](TIMING_AND_CLOCKS.md).
+Each data stream was time-stamped by its own acquisition PC, and those clocks changed between Philippine time and GMT during 1991. `clock_regimes.csv` gives the rule for every stream and period; `lib/clock.py` applies it. Raw times are kept in `raw_*` columns and the rule and nominal uncertainty in `clock_*` columns. Records that cannot be placed go to `*_clock_unresolved.csv` (or, for waveforms, the failures table). The evidence is in [TIMING_AND_CLOCKS.md](TIMING_AND_CLOCKS.md).
 
 ## Steps
 
@@ -19,8 +19,6 @@ Each data stream was time-stamped by its own acquisition PC, and those clocks ch
 |---|---|---|---|
 | 10 | `10_dmx_to_seisanWAV` | DMX → MiniSEED in the SEISAN WAV database; UTC start times; waveform index, per-file log and failures table; optional partial-file recovery | raw DMX |
 | 11 | `11_waveform_timeseries_diagnostics` | Daily file counts and station availability | 10 |
-| 15 | `15_network_history_and_stationxml` | Network history, channel epochs on UTC, StationXML and audits | 10 |
-| 16 | `16_validate_network_history` | Checks on the step-15 products (every trace inside an epoch) | 15 |
 | 20 | `20_parse_individual_phase_files` | Individual-event PHA files → pick index (primary picks) | raw PHA |
 | 21 | `21_parse_monthly_phase_files` | Monthly PHA files → pick index (secondary picks, one block per event) | raw PHA |
 | 22 | `22_merge_picks` | Merge 20 and 21; suppress duplicate picks | 20, 21 |
@@ -44,10 +42,12 @@ Each data stream was time-stamped by its own acquisition PC, and those clocks ch
 | 60 | `60_prepare_bob_archives` | Unpack BOB ZIP archives (preview by default; the only notebook that changes LEGACY) | raw BOB |
 | 61–68 | `61_rsam_and_events` … `68_radio_maps` | One BOB product each: RSAM/EVNT, SSAM, tilt, rain, mudflow, COSPEC, counts, radio maps | 60 |
 | 69 | `69_bob_coverage_and_review` | Network-wide BOB availability overview | 61–68 |
+| 70 | `70_network_history_and_stationxml` | Network history, channel epochs on UTC, StationXML and audits; run last, once every dataset is on UTC | 10 (and 60–69 done) |
+| 71 | `71_validate_network_history` | Checks on the step-70 products (every trace inside an epoch) | 70 |
 
 Notes on specific steps:
 
-- **10.** `waveform.recover_partial` is `true` in the configuration: a damaged DMX file keeps the complete traces before its first defect, and the waveform index records `partial_recovery` and `recovery_details`. Keep those columns in any downstream provenance. The optional diagnostic export of recovery candidates uses `pinatubo_steps/dmx_recovery.py`. See FloVoPy `docs/dmx_recovery.md`.
+- **10.** `waveform.recover_partial` is `true` in the configuration: a damaged DMX file keeps the complete traces before its first defect, and the waveform index records `partial_recovery` and `recovery_details`. Keep those columns in any downstream provenance. An optional section plots the raw recovered traces with FloVoPy `read_dmx_file`. See FloVoPy `docs/dmx_recovery.md`.
 - **40.** Set `PARSER="original"` (default) or `"annotated"` in the PINAALL section. Annotated outputs have their own names and must be selected explicitly downstream.
 - **50.** `association_policy` is `picks_then_window` (default), `one_to_one` or `nearest`. A hypocentre linked to several events under `nearest` gets a per-event copy of its origin with a unique ID.
 - **52.** `collision="shift"` moves only the S-file *name* by up to 30 s when two events share a second; event and pick times are unchanged. A manifest (`.flovopy_rea_manifest.json`) makes reruns reuse unchanged files; `overwrite=True` is needed after the catalogue changes. Untracked files are never overwritten.
@@ -58,10 +58,10 @@ Notes on specific steps:
 From this folder:
 
 ```bash
-python -m pytest -q pinatubo_steps/tests tests
+python -m pytest -q lib/tests tests
 ```
 
-`pinatubo_steps/tests` covers the clock rules, PHA parsing and comparison, shared helpers and steps 32, 43, 50–54 (the notebook functions are loaded from their `pipeline_definitions` cells). `tests/` covers the BOB notebooks and products. FloVoPy has its own suite (`python -m pytest -q flovopy/tests` in the FloVoPy checkout). The configuration checks are run from the project root (see [../CONFIGURATION.md](../CONFIGURATION.md)).
+`lib/tests` covers the clock rules, PHA parsing and comparison, shared helpers and steps 32, 43, 50–54 (the notebook functions are loaded from their `pipeline_definitions` cells). `tests/` covers the BOB notebooks and products. FloVoPy has its own suite (`python -m pytest -q flovopy/tests` in the FloVoPy checkout). The configuration checks are run from the project root (see [../CONFIGURATION.md](../CONFIGURATION.md)).
 
 ## Reviews and reference documents
 
@@ -72,7 +72,7 @@ python -m pytest -q pinatubo_steps/tests tests
 
 ## Other files
 
-- `pinatubo_steps/`: `config.py` (paths), `clock.py` (UTC rules), `shared.py` (ID and time helpers), `pha_parser.py` (Pinatubo wrapper around FloVoPy's phase-card reader), `pha_comparison.py` (step 23), `dmx_recovery.py` (step 10 diagnostics).
+- `lib/`: `config.py` (paths), `clock.py` (UTC rules), `shared.py` (ID and time helpers), `pha_parser.py` (Pinatubo wrapper around FloVoPy's phase-card reader), `pha_comparison.py` (step 23).
 - `superseded/bob_pre_flovopy/`: the BOB notebooks that came before 60–69.
 - `superseded/legacy_bob/`: the older BOB command-line converter (COSPEC, counts, radio, rain, tilt) and its tests, retired 18 Nov 2026; steps 61–69 replace it.
 - `unpack_bob_archives.py`: command-line adapter that runs step 60's definitions.

@@ -26,16 +26,16 @@ def main():
     successful = False
     with (run / 'test_report.txt').open('w') as log, contextlib.redirect_stdout(log), contextlib.redirect_stderr(log):
         try:
-            notebook = PROJECT / '10_conversion/15_network_history_and_stationxml.ipynb'
+            notebook = PROJECT / '10_conversion/70_network_history_and_stationxml.ipynb'
             definitions = {'PIPELINE': notebook.parent}
             for cell in json.loads(notebook.read_text())['cells']:
                 if cell['cell_type'] == 'code' and 'pipeline_definitions' in cell.get('metadata', {}).get('tags', []):
                     exec(compile(''.join(cell['source']), str(notebook), 'exec'), definitions)
             definitions['build_all']()
             suite = unittest.TestSuite()
-            for directory in [PROJECT / '20_analysis/tests', PROJECT / '10_conversion/pinatubo_steps/tests']:
+            for directory in [PROJECT / '20_analysis/tests', PROJECT / '10_conversion/lib/tests']:
                 suite.addTests(unittest.TestLoader().discover(str(directory), pattern='test_*.py', top_level_dir=str(directory)))
-            validation_notebook = PROJECT / '10_conversion/16_validate_network_history.ipynb'
+            validation_notebook = PROJECT / '10_conversion/71_validate_network_history.ipynb'
             validation_namespace = {'PIPELINE': validation_notebook.parent}
             for cell in json.loads(validation_notebook.read_text())['cells']:
                 if cell['cell_type'] == 'code' and 'pipeline_definitions' in cell.get('metadata', {}).get('tags', []):

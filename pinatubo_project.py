@@ -37,7 +37,7 @@ def output_path(stage,*parts,create=False):
     else:
         import sys
         if str(PROJECT_ROOT/'10_conversion') not in sys.path:sys.path.insert(0,str(PROJECT_ROOT/'10_conversion'))
-        from pinatubo_steps.config import pipeline_paths
+        from lib.config import pipeline_paths
         folders={'10_conversion':Path(pipeline_paths()['OUTPUT_ROOT']),
                  '20_analysis':analysis_products_root(read_config(PROJECT_ROOT/'20_analysis/analysis_workflow.json'),PROJECT_ROOT/'20_analysis'),
                  'testing':root/'testing','runtime':root/'_runtime'}
@@ -110,7 +110,7 @@ def network_products():
 
 
 def network_input(name):
-    """A step-15 product, else the same-named file among step 15's source evidence."""
+    """A step-70 product, else the same-named file among step 70's source evidence."""
     for generated in [network_products()/name,network_products()/'data'/name]:
         if generated.exists():return generated
     reference = _conversion_artifact('NETWORK_HISTORY_INPUT') / name
@@ -124,5 +124,5 @@ def test_directory(*parts, create=True):
 def _conversion_artifact(key):
     import sys
     if str(PROJECT_ROOT/'10_conversion') not in sys.path:sys.path.insert(0,str(PROJECT_ROOT/'10_conversion'))
-    from pinatubo_steps.config import pipeline_paths
+    from lib.config import pipeline_paths
     return Path(pipeline_paths()[key])

@@ -1,4 +1,4 @@
-"""Regression tests for fixed-column timestamps in pinatubo_steps.pha_parser.
+"""Regression tests for fixed-column timestamps in lib.pha_parser.
 
 Lines are copied from the legacy monthly PHA files (pinjul91.pha, pinaug91.pha).
 """
@@ -6,7 +6,7 @@ import unittest
 
 from obspy import UTCDateTime
 
-from pinatubo_steps.pha_parser import parse_phase_line
+from lib.pha_parser import parse_phase_line
 
 
 def picks(line):
@@ -45,7 +45,7 @@ class MonthlyBlockTests(unittest.TestCase):
     def test_block_index_counts_empty_blocks_and_errors_are_logged(self):
         import tempfile
         from pathlib import Path
-        from pinatubo_steps.pha_parser import parse_pha_file
+        from lib.pha_parser import parse_pha_file
         text = '\n'.join(['garbage card', '10',
                           'CABZ PU0 91 7311700 1.00', 'PI2ZIPU0 91 7311700 2.00',
                           'QADZIPU0 91 7311700 3.00', 'CRWZIPU0 91 7311800 3.00', '10', ''])
@@ -63,7 +63,7 @@ class SplitBlockTests(unittest.TestCase):
     def test_block_without_separator_is_split(self):
         import tempfile
         from pathlib import Path
-        from pinatubo_steps.pha_parser import parse_pha_file
+        from lib.pha_parser import parse_pha_file
         text = '\n'.join(['CABZ PU0 91 7311700 1.00', 'PI2ZIPU0 91 7311700 2.00', 'QADZIPU0 91 7311700 3.00',
                           'CABZ PU0 91 7311701 1.00', 'PI2ZIPU0 91 7311701 2.00', 'QADZIPU0 91 7311701 3.00', '10', ''])
         with tempfile.TemporaryDirectory() as tmp:

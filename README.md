@@ -61,7 +61,7 @@ Pinatubo1991SeismicData/
 │   ├── clock_regimes.csv      # Clock rule per data stream and period
 │   ├── TIMING_AND_CLOCKS.md   # Evidence for the clock rules
 │   ├── CODE_REVIEW_2026-11-17.md
-│   ├── pinatubo_steps/        # Small shared helpers (paths, clocks, IDs, PHA wrapper) and tests
+│   ├── lib/                   # Small shared helpers (paths, clocks, IDs, PHA wrapper) and tests
 │   └── tests/                 # BOB notebook and product tests
 │
 ├── 20_analysis/               # Analysis notebooks (see ANALYSIS_NOTEBOOKS.md)
@@ -98,9 +98,9 @@ pip install -e ../flovopy
 The conversion runs as numbered notebooks in `10_conversion`; the full table of steps,
 inputs and products is in [10_conversion/NOTEBOOKS_README.md](10_conversion/NOTEBOOKS_README.md).
 
-- **10–16 Waveforms and network.** Convert the 21,475 surviving DMX files to MiniSEED in a SEISAN WAV
+- **10–11 Waveforms.** Convert the 21,475 surviving DMX files to MiniSEED in a SEISAN WAV
   database (IRIG traces removed, 2048-count offset subtracted, legacy station IDs mapped,
-  damaged files partly recovered), then rebuild the network history and StationXML.
+  damaged files partly recovered).
 - **20–35 Picks.** Parse the individual-event and monthly PHA phase files, merge them, and
   associate picks with waveform files.
 - **40–45 Hypocentres.** Parse `Pinatubo_all.sum` and `PINAALL.DAT`, compare them and group
@@ -108,6 +108,7 @@ inputs and products is in [10_conversion/NOTEBOOKS_README.md](10_conversion/NOTE
 - **50–54 Catalogue.** Build one ObsPy catalogue whose events record which of waveforms (W),
   picks (P) and hypocentre (H) survive, and export it to QuakeML, SEISAN REA and Antelope CSS3.0.
 - **60–69 BOB.** Unpack and convert the BOB monitoring products and summarise their coverage.
+- **70–71 Network metadata.** Rebuild the network history and StationXML once every dataset is on UTC, then validate them.
 
 Every time is converted to UTC where it is read. Each acquisition PC had its own clock,
 switched between Philippine time and GMT during 1991; the rules are in
@@ -127,7 +128,7 @@ data_top/
     │   ├── PHA/                          Individual-event phase files
     │   ├── MONTHLY_PHA/                  Monthly phase files
     │   └── HYPOCENTERS/                  Pinatubo_all.sum, PINAALL.DAT
-    ├── STATION_METADATA/NETWORK_HISTORY/ Station evidence for step 15
+    ├── STATION_METADATA/NETWORK_HISTORY/ Station evidence for step 70
     └── BOB/                              BOB monitoring products
 </pre>
 Outputs go under `output_root`:
@@ -159,7 +160,7 @@ A citation entry will be provided once the JOSS article is published.
 From `10_conversion` (conversion notebooks, clock rules, parsers, exporters, BOB products):
 
 ```bash
-python -m pytest -q pinatubo_steps/tests tests
+python -m pytest -q lib/tests tests
 ```
 
 From the repository root (configuration checks):
