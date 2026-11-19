@@ -171,3 +171,10 @@ cython_debug/
 .pypirc
 
 *DS_Store
+
+# LaTeX build files (papers/)
+papers/**/*.aux
+papers/**/*.blg
+papers/**/*.fdb_latexmk
+papers/**/*.fls
+papers/**/*.out

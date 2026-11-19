@@ -1,30 +1,20 @@
 name: pinatubo_fair
+# Minimal environment for the conversion and analysis notebooks. FloVoPy is installed
+# afterwards from its checkout (pip install -e ../flovopy). FloVoPy's own flovopy_asl.yml
+# builds the fuller environment used to develop and run this pipeline.
 channels:
   - conda-forge
-  - defaults
 
 dependencies:
-  - python=3.11
+  - python>=3.11
   - numpy
+  - scipy
   - pandas
   - matplotlib
   - obspy
+  - pyarrow        # Parquet export of the full analysis metrics
   - jupyterlab
   - ipython
-  - notebook
-
-  # For writing/reading MSEED, QUAKEML, etc.
-  #- lxml
-  #- h5py
-
-  # Optional but recommended for speeding up ObsPy I/O
-  #- numba
-
-  # For tests (later)
+  - nbconvert
   - pytest
-
-  # Allow installing small helper packages via pip if needed
   - pip
-  - pip:
-      # (Keep this empty unless you later need pip-installed packages)
-      - ""

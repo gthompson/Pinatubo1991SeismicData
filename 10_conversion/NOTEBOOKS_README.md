@@ -23,7 +23,6 @@ Each data stream was time-stamped by its own acquisition PC, and those clocks ch
 | 21 | `21_parse_monthly_phase_files` | Monthly PHA files → pick index (secondary picks, one block per event) | raw PHA |
 | 22 | `22_merge_picks` | Merge 20 and 21; suppress duplicate picks | 20, 21 |
 | 23 | `23_plot_pick_event_diagnostics` | Pick and source-group diagnostics; step-20/21 cross-source comparison | 20–22 |
-| 24 | `24_phase_pick_review.md` | Written review of the phase files | — |
 | 30 | `30_associate_individual_picks_with_waveforms` | Match each individual-file group to the one waveform that encloses it | 10, 22 |
 | 32 | `32_build_waveform_pick_events` | Waveform and pick-only containers (WAV+PICKS, WAV_ONLY, PICKS_ONLY) | 10, 22, 30 |
 | 33 | `33_plot_event_association_diagnostics` | Daily association bar charts | 32 |
@@ -33,7 +32,6 @@ Each data stream was time-stamped by its own acquisition PC, and those clocks ch
 | 42 | `42_compare_hypocenter_indexes` | Exact comparison of the two indexes | 40 |
 | 43 | `43_associate_hypocenters` | Group origins from both indexes; choose a preferred origin | 40 |
 | 44 | `44_plot_hypocenters_per_day` | Daily counts of the two hypocentre sources | 40 |
-| 45 | `45_hypocenter_review.md` | Written review of the hypocentre sources | — |
 | 50 | `50_build_obspy_catalog` | Canonical ObsPy catalogue (pickle and QuakeML) with seven W/P/H composition classes | 22, 32, 43 |
 | 51 | `51_event_numbers_in_complete_windows` | Daily composition counts in reporting windows | 50 |
 | 52 | `52_build_seisan_rea_catalog` | SEISAN REA S-files | 50 |
@@ -101,9 +99,10 @@ python -m pytest -q lib/tests tests
 
 - [CODE_REVIEW_2026-11-17.md](CODE_REVIEW_2026-11-17.md): full review of steps 10–69, with status and remaining items.
 - [TIMING_AND_CLOCKS.md](TIMING_AND_CLOCKS.md) and [clock_regimes.csv](clock_regimes.csv): clock model and UTC rules.
-- `24_phase_pick_review.md`, `34_association_review.md`, `45_hypocenter_review.md`: written reviews between steps.
+- `34_association_review.md`: written review of steps 30–33 on the UTC run. The earlier reviews of steps 20–23 and 40–44 described the pre-UTC run and are in `superseded/reviews/`; their findings are in the code review (§3, §4).
 
 ## Other files
 
 - `lib/`: Pinatubo helpers used by the notebooks; see [FloVoPy and `lib/`](#flovopy-and-lib).
+- `hypo71_settings_199106.txt`: the HYPO71 control cards used in June 1991 (converted from an RTF copy): test parameters, coordinates of the 16 station-components, a five-layer P-velocity model (3.3–8.0 km/s, interfaces at 1, 4, 15 and 25 km) and Vp/Vs 1.78. Reference only; no step reads it.
 - `superseded/`: retired code kept for the record (see its README): the pre-FloVoPy BOB notebooks, the `legacy_bob` converter, early SSAM and mudflow audits, a command-line wrapper for step 60 and an old refactor manifest.

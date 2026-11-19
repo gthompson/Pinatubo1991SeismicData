@@ -65,7 +65,7 @@ Pinatubo1991SeismicData/
 │   └── tests/                 # BOB notebook and product tests
 │
 ├── 20_analysis/               # Analysis notebooks (see ANALYSIS_NOTEBOOKS.md)
-├── papers/                    # Manuscripts (JOSS)
+├── papers/                    # Manuscripts (SRL in LaTeX, JOSS)
 └── tests/                     # Configuration tests
 </pre>
 
@@ -75,9 +75,10 @@ Generated data are written outside the repository (see [CONFIGURATION.md](CONFIG
 
 ## Installation
 
-Create a conda environment with Python ≥ 3.11, ObsPy, pandas, NumPy, Matplotlib,
-JupyterLab and pytest (`environment.yml` lists these), then install FloVoPy from a
-checkout in editable mode:
+Create a conda environment with Python ≥ 3.11, ObsPy, NumPy, SciPy, pandas, Matplotlib,
+pyarrow, JupyterLab and pytest (`environment.yml` lists these), then install FloVoPy from a
+checkout in editable mode. FloVoPy's own `flovopy_asl.yml` builds the fuller environment
+the pipeline is developed and run in; either works.
 
 ```bash
 mamba env create -f environment.yml
