@@ -18,6 +18,5 @@ The supplement is in `supplement/`: `pinatubo_srl_supplement.tex`, built the sam
 
 Before submission:
 - SSA requires every file in one folder: copy the figures beside the `.tex` file and paste the `.bbl` into the `.tex` file (see SSA's LaTeX instructions).
-- The supplement's Section S1 has two red notes left: the 1991 VCO model, and a source for the analog-telemetry dynamic range.
-- Entries marked `VERIFY` in `pinatubo.bib` need checking against the sources.
+- Entries marked `VERIFY` in `pinatubo.bib` need checking against the sources: the page ranges of the *Fire and Mud* chapters (the online edition has none; check the printed book) and the final metadata of the Power (2025) data release.
 - Numbers come from the conversion products and analysis run `45e939498e85`; the overnight rerun (with the 25 s clock uncertainty) should be checked against them.
