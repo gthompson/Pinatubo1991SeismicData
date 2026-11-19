@@ -36,7 +36,7 @@
 
 \section{The PVO monitoring system}\label{sec:system}
 
-This section describes the VDAP Mobile Monitoring System as it ran at the Pinatubo Volcano Observatory (PVO) at Clark Air Base, from field sensor to analyst, using the system description of \citet{Murray_1996}, the network description of \citet{Lockhart_1996}, the manuals for the software involved \citep{Murray_1989,Murray_1990,Lee_1988,Tottingham_1989,Banfill_1999,Banfill_2003,McChesney_1999}, and the products that survive. The manuals by Banfill and McChesney describe later versions of the software and hardware; where they are cited for 1991, the corresponding features date from before 1991.
+This section describes the VDAP Mobile Monitoring System as it ran at the Pinatubo Volcano Observatory (PVO) at Clark Air Base, from field sensor to analyst, using the system description of \citet{Murray_1996}, the network description of \citet{Lockhart_1996}, the reports and manuals for the hardware and software involved \citep{Lee_1988,Tottingham_1989,Murray_1989,Murray_1990,Rogers_1995,Banfill_1999,Banfill_2003,McChesney_1999}, and the products that survive. The manuals by Banfill and McChesney describe later versions of the software and hardware; where they are cited for 1991, the corresponding features date from before 1991.
 
 \subsection{Field stations and analog telemetry}
 
@@ -48,7 +48,8 @@ Subcarriers were combined and sent by UHF radio (about 406--418~MHz on the radio
 
 At PVO the radio receivers fed a rack of discriminators, one per subcarrier, which demodulated each channel back to an analog voltage proportional to the seismometer signal (Figure~2 of the main article). The discriminator outputs drove the helicorders, which kept their own clock, and were split to the analog-to-digital converters (ADCs) of the acquisition computers, each with its own clock:
 \begin{itemize}
-\item \textbf{WILLIE} (IBM-AT) ran MDETECT \citep{Lee_1988,Tottingham_1989}, which digitized all seismic channels with a 12-bit ADC at a nominal 100 samples/s (3125/31~Hz in the surviving files), detected events and wrote triggered, multiplexed SUDS (DMX) files \citep{Ward_1989}. MDETECT kept time by counting samples from the PC clock read at start-up. One channel carried an IRIG time code from a free-running generator; in later SUDS processing the Irig program decodes an IRIG-E channel to correct the start time and sampling rate \citep{Banfill_1999}, but with a free-running generator this gives no absolute time. WILLIE also ran SSAM, which wrote one-minute spectral amplitudes in 16 bands for selected channels. \todo{ADC board model and channel count; SSAM program reference.}
+\item \textbf{WILLIE} (IBM-AT) ran MDETECT \citep{Lee_1988,Tottingham_1989} with a Data Translation DT2821 12-bit ADC board. MDETECT digitizes up to 16 channels, or 15 seismic channels and one time channel, at a nominal 100 samples/s, the channels taken in sequence every 0.01~s \citep{Lee_1988}; the archive has 15 seismic channel identities plus the time channel, and an actual rate of 3125/31~Hz. It detected events and wrote triggered, multiplexed SUDS (DMX) files \citep{Ward_1989}. MDETECT takes its start time from the PC clock and then keeps time by counting samples, ``good to about 2 seconds per day''; it digitizes a time trace but does not use it \citep{Lee_1988}. At Pinatubo that trace was an IRIG code from a free-running generator, so it gives no absolute time either; later SUDS software can decode an IRIG-E channel to correct start time and sampling rate \citep{Banfill_1999}.
+\item \textbf{SSAM} ran on the same PC, under MDETECT, with a digital signal processing board \citep{Rogers_1995}. It computes FFTs of the digitized buffers about every 5~s, averages the spectral lines in each of 16 user-defined bands, averages each band over 12 buffers (about 1 min), sends the result to a parallel port for display and writes hour-long binary files that are moved over the LAN. At Pinatubo, bands BN01--BN10 are contiguous 1-Hz bands from 0.5 to 10.5~Hz and BN11--BN16 are broader, overlapping bands. Because SSAM shares MDETECT's PC, it shares WILLIE's clock, as the clock analysis found independently.
 \item \textbf{The Tandy Model 100} ran RSAM \citep{Murray_1989}. Its acquisition board buffers up to eight discriminator outputs per board (up to three boards per Tandy), high-passes them at 0.1~Hz, rectifies them and digitizes them with an 8-bit ADC at about 50 samples/s per input. The program averages the rectified amplitude each minute and sends 10-minute averages, in ``RSAM units'', to a host computer over RS-232. It also counts ``RSAM events'': a two-second amplitude that exceeds the one before last by a set ratio (default 2) and a threshold. The published program counts events on three channels only; the surviving EVNT files likewise have exactly three channels on 197 of their 206 days (Figure~\ref{fig:bobrsam}).
 \item \textbf{SLEEPY} (IBM-XT) logged tilt (tilt components, battery voltage and temperature at PPO and UBO) every 10 minutes.
 \item \textbf{RICKY} (IBM-XT) logged the acoustic flow monitors installed on lahar channels from mid-1991, and we infer rainfall as well (main article).
@@ -57,7 +58,7 @@ The acquisition PCs sent their products through a buffered serial printsharer to
 
 \subsection{From trigger to location}
 
-MDETECT, like XDETECT \citep{Tottingham_1989}, triggered on the ratio of short- to long-term average amplitudes on each channel and declared a network event when enough channels triggered together, saving a pre-event buffer and the following record as one DMX file. \todo{Check the MDETECT trigger parameters against Lee et al. (1988).} Analysts then reviewed the triggered files: they demultiplexed them, displayed them and picked P and S arrivals (and coda durations) in SUDSPICK \citep{Banfill_1999}, and located the events with HYPO71 \citep{Lee_1975} using the control file in Section~\ref{sec:hypo71}. The picks survive as phase (PHA) files and the locations as the two HYPO71 summaries described in the main article. Event classes (for example long-period and hybrid events) were noted by hand in a written logbook and are not part of the digital record. \todo{Logbook: does it survive, and where?}
+MDETECT detects events with a short-term/long-term average algorithm due to John Rogers, saves the digitized waveforms of each event (up to about 120~s, with user-set pre- and post-event lengths, so that a long event may span several files), picks first P arrivals automatically and computes a preliminary location with a modified HYPO71PC \citep{Lee_1988}. The trigger thresholds used at Pinatubo are not recorded in the recovered files. Analysts then reviewed the triggered files: they demultiplexed them, displayed them and picked P and S arrivals (and coda durations) in SUDSPICK \citep{Banfill_1999}, and located the events with HYPO71 \citep{Lee_1975} using the control file in Section~\ref{sec:hypo71}. The picks survive as phase (PHA) files and the locations as the two HYPO71 summaries described in the main article. Event classes (for example long-period and hybrid events) were noted by hand in a written logbook, as at other observatories supported by VDAP at the time; no Pinatubo logbook is known to survive, so event classes are not part of the recovered record.
 
 \subsection{BOB: archiving and display}
 
@@ -71,7 +72,7 @@ Figure~\ref{fig:telemetry} shows the documented pre-eruption telemetry routes; T
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figS01_telemetry}
+\includegraphics[width=\textwidth]{telemetry}
 \caption{Documented pre-eruption telemetry, schematic rather than geographic \citep[after][]{Lockhart_1996,Murray_1996}. The Bunker Hill link was lost on 11 June; an attempt to use Crow's Nest on 14 June failed and is not shown as a route. The rebuilt July--August routes are not reconstructed, and no links are inferred from station coordinates.}
 \label{fig:telemetry}
 \end{figure}
@@ -99,21 +100,21 @@ Table~\ref{tab:clockrules} reproduces \file{clock\_regimes.csv}, the rules appli
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figS02_evnt_trigger_lag}
+\includegraphics[width=\textwidth]{evnt_trigger_lag}
 \caption{Correlation between hourly EVNT trigger counts (Tandy RSAM PC) and hourly counts of triggered waveform records (WILLIE), week by week, at lags of $\pm$12~h. Square-root counts with a 24-h running mean removed. Top: raw clocks. The ridge lies at $-$7~h before the 26 May reset (both PCs on Philippine time, but the DMX header clock is the wall clock + 7~h), at +1~h until 13 September (RSAM PC on Philippine time, UTC+8; header clock UTC+7), at $-$7~h once the RSAM PC moved to GMT, and at $-$8~h after daylight time ended on 27 October. Bottom: after the clock rules, 0~h throughout. Dotted lines: 26 May, 13 September, 27 October.}
 \label{fig:evnt}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figS03_anchors_may}
+\includegraphics[width=\textwidth]{anchors_may}
 \caption{Clock anchors before and after the reset, May 1991 (step 72): records 9105220C, 9105300K and 9105301M with the predicted P arrival (iasp91) from the ISC/USGS origin. See Table~3 of the main article for the measured offsets.}
 \label{fig:anchors1}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figS04_anchors_aug_sep}
+\includegraphics[width=\textwidth]{anchors_aug_sep}
 \caption{Clock anchors, August--September 1991: records 91080826, 91081528 (offset measured from pP; the record starts after the predicted P) and 9109055G.}
 \label{fig:anchors2}
 \end{figure}
@@ -124,74 +125,117 @@ Figure~3 of the main article shows coverage by data type. Figures~\ref{fig:wfch}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figS05_waveform_channels}
+\includegraphics[width=\textwidth]{waveform_channels}
 \caption{Triggered waveform traces per channel and UTC day (gray scale, logarithmic). Dashed line: 15 June.}
 \label{fig:wfch}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figS06_bob_rsam_evnt}
+\includegraphics[width=\textwidth]{bob_rsam_evnt}
 \caption{RSAM and EVNT by station channel: UTC days with at least one usable 10-minute value.}
 \label{fig:bobrsam}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figS07_bob_ssam}
+\includegraphics[width=\textwidth]{bob_ssam}
 \caption{SSAM and SSAM DATA by source series: UTC days with at least one usable 1-minute value.}
 \label{fig:bobssam}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figS08_bob_other}
+\includegraphics[width=\textwidth]{bob_other}
 \caption{Tilt (PPO and UBO tilt, battery and temperature channels), rain, mudflow (acoustic flow monitors), COSPEC, and the hand-entered hourly CAB and daily PIE counts, by series. COSPEC dates are taken as Philippine days; rain and mudflow after 15 November are unverified (main article, Limitations).}
 \label{fig:bobother}
 \end{figure}
 
-\section{Picks, locations and catalog}\label{sec:qc}
-
-The two HYPO71 summaries share most events but not all solutions. For the 3,500 hypocenter groups with an origin in both, Figure~\ref{fig:hyposrc} shows how they differ; 757 are identical in time, epicenter and depth. Figures~\ref{fig:ps} and~\ref{fig:rea} are quality-control outputs of steps 23 and 53.
+Figure~\ref{fig:epochs} compares the channel epochs of the step 70 network history with the days on which each channel recorded, and Table~\ref{tab:step71} summarizes the step 71 checks on the StationXML built from them. Every archived trace falls inside an epoch of its channel; the epoch contacts listed are shared boundaries, where one epoch ends at the instant the next begins.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figS09_hypo_sources}
+\includegraphics[width=\textwidth]{channel_epochs}
+\caption{Channel epochs in the network history (gray bars, UTC) and UTC days with at least one recorded trace (black ticks). Documentary epoch bounds come from field notes dated in Philippine time and are converted to UTC; LIL is the temporary Lily Hill installation of late April, which left no surviving waveforms.}
+\label{fig:epochs}
+\end{figure}
+
+\begin{table}[htbp]
+\centering\small
+\caption{Step 71 validation of the step 70 network history and StationXML.}\label{tab:step71}
+\input{tables/step71_checks.tex}
+\end{table}
+
+\section{Picks, locations and catalog}\label{sec:qc}
+
+Figures~\ref{fig:assoc} and~\ref{fig:origins} show the daily numbers of association containers and of origins in each HYPO71 summary on UTC days. The two summaries share most events but not all solutions. For the 3,500 hypocenter groups with an origin in both, Figure~\ref{fig:hyposrc} shows how they differ; 757 are identical in time, epicenter and depth. Figures~\ref{fig:ps} and~\ref{fig:rea} are quality-control outputs of steps 23 and 53.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{association_per_day}
+\caption{Waveform and pick containers (step 32) per UTC day, by class: waveform with picks, waveform only, and picks only. Containers are records, not unique earthquakes. Dashed line: 15 June.}
+\label{fig:assoc}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{origins_per_day}
+\caption{HYPO71 origins per UTC day in each of the two surviving summaries. Both have a gap from 03:35~UTC on 11 June to 29 June.}
+\label{fig:origins}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{hypo_sources}
 \caption{Differences between the two summaries for the same hypocenter group (\file{PINAALL.DAT} minus \file{Pinatubo\_all.sum}): origin time, epicenter shift, depth and magnitude. Values beyond the plotted range are placed in the end bins.}
 \label{fig:hyposrc}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{figS10_ps_by_station}
+\includegraphics[width=0.85\textwidth]{ps_by_station}
 \caption{S$-$P times by station for the merged picks (step 23).}
 \label{fig:ps}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{figS11_rea_daily_counts}
+\includegraphics[width=0.85\textwidth]{rea_daily_counts}
 \caption{Events per day in the written SEISAN REA database (step 53), checked against the catalog it was written from.}
 \label{fig:rea}
 \end{figure}
 
 \section{Analysis workflow examples}\label{sec:analysis}
 
-Figures~\ref{fig:noise} and~\ref{fig:spec} are produced by the analysis notebooks (run \texttt{45e939498e85}). The spectrogram example is from a draft selection of examples that has not yet been reviewed for publication.
+Figures~\ref{fig:noise}--\ref{fig:noiselev} are produced by the analysis notebooks (run \texttt{45e939498e85}). The spectrogram example is from a draft selection of examples that has not yet been reviewed for publication.
 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figS12_noise_windows}
+\includegraphics[width=\textwidth]{noise_windows}
 \caption{Initial-noise window lengths through time (analysis notebook 20). These are proposed noise lengths before a detected onset, not the acquisition pretrigger setting; dashed 5- and 10-s lines are references.}
 \label{fig:noise}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{figS13_example_spectrograms}
+\includegraphics[width=\textwidth]{example_psd}
+\caption{Noise and event power spectral densities of one PIEZ record (analysis notebook 40): Hann-Welch and equal-weight multitaper (DPSS, NW = 2.5, K = 4) estimates on matched 2.56-s segments, in dB re 1~count$^2$/Hz.}
+\label{fig:psd}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{example_spectrograms}
 \caption{Example spectrograms of one PIEZ record at several window lengths (analysis notebook 60, draft selection), in dB re 1~count$^2$/Hz with fixed color limits; shading marks the selected noise and event windows.}
 \label{fig:spec}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{noise_levels}
+\caption{Weekly median RMS of the 5-s noise windows before each trigger, by channel (analysis notebooks 30 and 50), in uncalibrated counts. Windows below 0.1 counts (flat or padded traces, about 0.3\%) are excluded. The windows precede triggers and are not an unbiased sample of ambient noise; steps can reflect gain or attenuation changes as well as noise. Dashed line: 15 June.}
+\label{fig:noiselev}
 \end{figure}
 
 \bibliographystyle{../SSAbib}
