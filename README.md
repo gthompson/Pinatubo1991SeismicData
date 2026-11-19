@@ -55,8 +55,9 @@ Pinatubo1991SeismicData/
 ├── CONFIGURATION.md           # Input/output locations and the UTC time basis
 ├── RESULTS_LAYOUT.md          # External output layout
 ├── environment.yml
+├── run_notebooks.py           # Runs the numbered notebooks in order (conversion, analysis, paper figures)
 │
-├── 10_conversion/             # Conversion notebooks, steps 10–69 (see NOTEBOOKS_README.md)
+├── 10_conversion/             # Conversion notebooks, steps 10–72 (see NOTEBOOKS_README.md)
 │   ├── conversion_config.json # data_top, output_root, time_basis, clock_regimes
 │   ├── clock_regimes.csv      # Clock rule per data stream and period
 │   ├── TIMING_AND_CLOCKS.md   # Evidence for the clock rules
@@ -110,6 +111,20 @@ inputs and products is in [10_conversion/NOTEBOOKS_README.md](10_conversion/NOTE
   picks (P) and hypocentre (H) survive, and export it to QuakeML, SEISAN REA and Antelope CSS3.0.
 - **60–69 BOB.** Unpack and convert the BOB monitoring products and summarise their coverage.
 - **70–71 Network metadata.** Rebuild the network history and StationXML once every dataset is on UTC, then validate them.
+
+- **72 Clock anchors.** Check absolute time against regional and teleseismic arrivals.
+
+The analysis notebooks in `20_analysis` (00–60) then measure noise and event windows on the
+UTC archive, and `papers/SRL/make_figures.ipynb` makes the paper figures. To run everything in
+order, executing each notebook in place:
+
+```bash
+python run_notebooks.py --figures
+```
+
+`--dry-run` lists the notebooks; `--stage`, `--from`, `--to` and `--skip` select a subset; the
+run stops at the first failing notebook unless `--keep-going` is given. A log and a CSV summary
+are written to `run_logs/` beside the conversion output root.
 
 Every time is converted to UTC where it is read. Each acquisition PC had its own clock,
 switched between Philippine time and GMT during 1991; the rules are in
