@@ -14,6 +14,28 @@ Banfill, R. (2003).
 \newblock Banfill Software Engineering.
 \newblock \url{https://banfill.net/?page_id=16}.
 
+\bibitem[\protect\citeauthoryear{Harlow, Power, Laguerta, Ambubuyog, White, and
+  Hoblitt}{Harlow et~al.}{1996}]{Harlow_1996}
+Harlow, D.~H., J.~A. Power, E.~P. Laguerta, G.~Ambubuyog, R.~A. White, and
+  R.~P. Hoblitt (1996).
+\newblock Precursory seismicity and forecasting of the {June} 15, 1991,
+  eruption of {Mount Pinatubo}.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  285--305.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
+
+\bibitem[\protect\citeauthoryear{Hoblitt, Mori, and Power}{Hoblitt
+  et~al.}{1996}]{Hoblitt_1996}
+Hoblitt, R.~P., J.~Mori, and J.~A. Power (1996).
+\newblock Computer visualization of earthquake hypocenters.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  383--386.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
+
 \bibitem[\protect\citeauthoryear{Lee and Lahr}{Lee and Lahr}{1975}]{Lee_1975}
 Lee, W. H.~K. and J.~C. Lahr (1975).
 \newblock {HYPO71} (revised): A computer program for determining hypocenter,
@@ -54,6 +76,17 @@ McChesney, P.~J. (1999).
 \newblock Open-File Report 99-361, U.S. Geological Survey, doi:
   \refdoi{10.3133/ofr99361}.
 
+\bibitem[\protect\citeauthoryear{Mori, Eberhart-Phillips, and Harlow}{Mori
+  et~al.}{1996}]{Mori_1996b}
+Mori, J., D.~Eberhart-Phillips, and D.~H. Harlow (1996).
+\newblock Three-dimensional velocity structure at {Mount Pinatubo}: Resolving
+  magma bodies and earthquake hypocenters.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  371--382.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
+
 \bibitem[\protect\citeauthoryear{Murray}{Murray}{1990}]{Murray_1990}
 Murray, T.~L. (1990).
 \newblock A user's guide to the {PC}-based time-series data-management and
@@ -75,6 +108,18 @@ Murray, T.~L., J.~A. Power, G.~Davidson, and J.~N. Marso (1996).
   analysis system.
 \newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
   Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  225--232.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
+
+\bibitem[\protect\citeauthoryear{Power, Murray, Marso, and Laguerta}{Power
+  et~al.}{1996}]{Power_1996}
+Power, J.~A., T.~L. Murray, J.~N. Marso, and E.~P. Laguerta (1996).
+\newblock Preliminary observations of seismicity at {Mount Pinatubo} by use of
+  the {Seismic Spectral Amplitude Measurement (SSAM)} system, {May} 13--{June}
+  18, 1991.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  269--280.
   Philippine Institute of Volcanology and Seismology and University of
   Washington Press.
 \newblock VERIFY pages.

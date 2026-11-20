@@ -45,6 +45,16 @@ Havskov, J. and L.~Ottem{\"o}ller (1999).
 \newblock {\em Seismol. Res. Lett.\/}~{\bf 70\/}(5), 532--534, doi:
   \refdoi{10.1785/gssrl.70.5.532}.
 
+\bibitem[\protect\citeauthoryear{Hoblitt, Mori, and Power}{Hoblitt
+  et~al.}{1996}]{Hoblitt_1996}
+Hoblitt, R.~P., J.~Mori, and J.~A. Power (1996).
+\newblock Computer visualization of earthquake hypocenters.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  383--386.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
+
 \bibitem[\protect\citeauthoryear{{International Seismological
   Centre}}{{International Seismological Centre}}{2024}]{ISC_2024}
 {International Seismological Centre} (2024).
@@ -91,6 +101,29 @@ Lockhart, A.~B., S.~Marcial, G.~Ambubuyog, E.~P. Laguerta, and J.~A. Power
   {Mount Pinatubo} telemetered seismic network.
 \newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
   Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  215--223.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
+
+\bibitem[\protect\citeauthoryear{Mori, Eberhart-Phillips, and Harlow}{Mori
+  et~al.}{1996}]{Mori_1996b}
+Mori, J., D.~Eberhart-Phillips, and D.~H. Harlow (1996).
+\newblock Three-dimensional velocity structure at {Mount Pinatubo}: Resolving
+  magma bodies and earthquake hypocenters.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  371--382.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
+
+\bibitem[\protect\citeauthoryear{Mori, White, Harlow, Okubo, Power, Hoblitt,
+  Laguerta, Lanuza, and Bautista}{Mori et~al.}{1996}]{Mori_1996a}
+Mori, J., R.~A. White, D.~H. Harlow, P.~Okubo, J.~A. Power, R.~P. Hoblitt,
+  E.~P. Laguerta, A.~Lanuza, and B.~C. Bautista (1996).
+\newblock Volcanic earthquakes following the 1991 climactic eruption of {Mount
+  Pinatubo}: Strong seismicity during a waning eruption.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  339--350.
   Philippine Institute of Volcanology and Seismology and University of
   Washington Press.
 \newblock VERIFY pages.
@@ -223,6 +256,16 @@ Welch, P.~D. (1967).
   spectra: A method based on time averaging over short, modified periodograms.
 \newblock {\em IEEE Trans. Audio Electroacoust.\/}~{\bf 15\/}(2), 70--73, doi:
   \refdoi{10.1109/TAU.1967.1161901}.
+
+\bibitem[\protect\citeauthoryear{White}{White}{1996}]{White_1996}
+White, R.~A. (1996).
+\newblock Precursory deep long-period earthquakes at {Mount Pinatubo}:
+  Spatio-temporal link to a basalt trigger.
+\newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  307--327.
+  Philippine Institute of Volcanology and Seismology and University of
+  Washington Press.
+\newblock VERIFY pages.
 
 \bibitem[\protect\citeauthoryear{Wolfe and Hoblitt}{Wolfe and
   Hoblitt}{1996}]{Wolfe_1996}
