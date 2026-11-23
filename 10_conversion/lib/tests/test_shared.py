@@ -53,10 +53,10 @@ class SharedTests(unittest.TestCase):
                 exec(compile(source, str(notebook), 'exec'), namespace)
         s23 = types.SimpleNamespace(**namespace)
         s51 = _load_pipeline_notebook('51_event_numbers_in_complete_windows.ipynb')
-        s52 = _load_pipeline_notebook('52_build_seisan_rea_catalog.ipynb')
+        s80 = _load_pipeline_notebook('80_build_seisan_rea_catalog.ipynb')
         s50 = _load_pipeline_notebook('50_build_obspy_catalog.ipynb')
         self.assertIs(s23.to_dt,s32.to_dt);self.assertIs(s23.ensure_cols,s32.ensure_cols)
-        self.assertIs(s51.get_comment_value,s52.get_comment_value)
+        self.assertIs(s51.get_comment_value,s80.get_comment_value)
         self.assertIs(s50.associate_one_to_one_by_time,shared.associate_one_to_one_by_time)
 
 if __name__=='__main__':unittest.main()

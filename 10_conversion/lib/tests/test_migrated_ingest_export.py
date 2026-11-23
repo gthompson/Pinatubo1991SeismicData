@@ -35,7 +35,7 @@ for _cell in json.loads((Path(__file__).resolve().parents[2] / '43_associate_hyp
     if _cell['cell_type'] == 'code' and 'def run(' in _source:
         exec(compile(_source, '43_associate_hypocenters.ipynb', 'exec'), _ns_s43)
 s43 = types.SimpleNamespace(**_ns_s43)
-s52 = _load_pipeline_notebook('52_build_seisan_rea_catalog.ipynb')
+s80 = _load_pipeline_notebook('80_build_seisan_rea_catalog.ipynb')
 
 FIXTURES=Path(vdap.__file__).parents[1]/'tests/data/vdap'
 class PipelineMigrationTests(unittest.TestCase):
@@ -81,14 +81,14 @@ class PipelineMigrationTests(unittest.TestCase):
             catalog=Catalog(events=[real,pickonly]);source=tmp/'cat.pkl'
             with source.open('wb') as stream:pickle.dump(catalog,stream)
             before=source.read_bytes()
-            result=s52.run(catalog_pkl=source,rea_dir=tmp/'REA',collision='shift',write_select=True)
+            result=s80.run(catalog_pkl=source,rea_dir=tmp/'REA',collision='shift',write_select=True)
             self.assertFalse(result['failed']);self.assertEqual(len(result['written']),2)
             texts=[path.read_text() for path in result['written']]
             self.assertTrue(any('ORIGIN_STATUS:REAL' in text for text in texts))
             self.assertTrue(any('ORIGIN_STATUS:DERIVED' in text for text in texts))
             self.assertTrue(any('HYPOCENTER_PRESENT:False' in text for text in texts))
             self.assertEqual(source.read_bytes(),before)
-            again=s52.run(catalog_pkl=source,rea_dir=tmp/'REA',collision='shift',write_select=True)
+            again=s80.run(catalog_pkl=source,rea_dir=tmp/'REA',collision='shift',write_select=True)
             self.assertEqual(len(again['reused']),2,again)
             self.assertTrue(all(not path.name.endswith('_1') for path in again['reused']))
 
@@ -108,10 +108,32 @@ class PipelineMigrationTests(unittest.TestCase):
             self.assertEqual(first.preferred_depth_km,4.49)
             origins=pd.read_csv(tmp/'origins.csv')
             self.assertEqual(list(origins.origin_id[:3]),['hypo40_0','hypo40_1','pinaall_0'])
+            # With one origin per source, the second line at the same time forms its own event.
+            s43.run(hypo40=tmp/'a.csv',hypo41=tmp/'b.csv',time_tol=5.,dist_tol=15.,one_origin_per_source=True,
+                    out_event_csv=tmp/'events.csv',out_origin_csv=tmp/'origins.csv')
+            origins=pd.read_csv(tmp/'origins.csv')
+            self.assertEqual(list(origins.origin_id[:3]),['hypo40_0','pinaall_0','hypo40_1'])
+            self.assertEqual(list(origins.event_id[:3]),[1,1,2])
+
+    def test_step43_origin_priority_and_magnitude_sources(self):
+        with tempfile.TemporaryDirectory() as tmp,contextlib.redirect_stdout(io.StringIO()):
+            tmp=Path(tmp)
+            row=dict(origin_time='1991-07-03T08:45:35.87Z',latitude=15.15,longitude=120.3,depth_km=3.,source_file='f',source_line=1)
+            pd.DataFrame([dict(row,magnitude=1.0)]).to_csv(tmp/'a.csv',index=False)
+            pd.DataFrame([dict(row,magnitude=0.0)]).to_csv(tmp/'b.csv',index=False)
+            pd.DataFrame([dict(row,origin_time='1991-07-03T08:45:36.20Z',depth_km=5.,magnitude=1.8)]).to_csv(tmp/'c.csv',index=False)
+            s43.run(hypo40=tmp/'a.csv',hypo41=tmp/'b.csv',extra_sources={'brun':tmp/'c.csv'},time_tol=5.,dist_tol=15.,
+                    origin_priority=('brun','hypo40','pinaall'),preferred_magnitude_sources=('pinaall','hypo40'),
+                    out_event_csv=tmp/'events.csv',out_origin_csv=tmp/'origins.csv')
+            event=pd.read_csv(tmp/'events.csv').iloc[0]
+            self.assertEqual((event.preferred_origin_source,event.preferred_depth_km),('brun',5.))
+            # PINAALL's 0.00 is missing, and BRUN's magnitude is never preferred: Pinatubo_all.sum's is.
+            self.assertEqual((event.preferred_magnitude_source,event.preferred_magnitude),('hypo40',1.0))
+            self.assertEqual(event.sources,'hypo40+pinaall+brun')
 
     def test_rea_presence_flags_follow_step50(self):
         # Step 50 counts a step-32 pick container as picks even when no pick object survives;
-        # step 52 must then agree with EVENT_CLASS and report the picks written separately.
+        # step 80 must then agree with EVENT_CLASS and report the picks written separately.
         with tempfile.TemporaryDirectory() as tmp,contextlib.redirect_stdout(io.StringIO()):
             tmp=Path(tmp);time=UTCDateTime('1991-06-03T12:00:00')
             event=Event(resource_id=ResourceIdentifier('smi:local/test/w_p'),
@@ -120,26 +142,26 @@ class PipelineMigrationTests(unittest.TestCase):
                                   Comment(text='picks_present:True'),Comment(text='hypocenter_present:False')])
             source=tmp/'cat.pkl'
             with source.open('wb') as stream:pickle.dump(Catalog(events=[event]),stream)
-            result=s52.run(catalog_pkl=source,rea_dir=tmp/'REA',collision='shift')
+            result=s80.run(catalog_pkl=source,rea_dir=tmp/'REA',collision='shift')
             text=result['written'][0].read_text()
             self.assertIn('EVENT_CLASS:W_P ',text)
             self.assertIn('PICKS_PRESENT:True ',text)
             self.assertIn('N_PICKS:0 ',text)
 
     def test_rea_diagnostics_class_labels(self):
-        s53 = _load_pipeline_notebook('53_seisan_rea_diagnostics.ipynb')
+        s81 = _load_pipeline_notebook('81_seisan_rea_diagnostics.ipynb')
         line=lambda text:(' '+text).ljust(79)+'3'
-        self.assertEqual(s53.get_event_class([line('event_class:W_P'),line('EVENT_CLASS:W_P_H')]),'W_P_H')
-        self.assertEqual(s53.get_event_class([line('EVENT_CLASS:W+P')]),'W_P')
-        self.assertEqual(s53.get_event_class([line('EVENT_CLASS:H')]),'H_ONLY')
-        self.assertIsNone(s53.get_event_class([line('event_class:W_P')]))
+        self.assertEqual(s81.get_event_class([line('event_class:W_P'),line('EVENT_CLASS:W_P_H')]),'W_P_H')
+        self.assertEqual(s81.get_event_class([line('EVENT_CLASS:W+P')]),'W_P')
+        self.assertEqual(s81.get_event_class([line('EVENT_CLASS:H')]),'H_ONLY')
+        self.assertIsNone(s81.get_event_class([line('event_class:W_P')]))
         with tempfile.TemporaryDirectory() as tmp,contextlib.redirect_stdout(io.StringIO()):
             tmp=Path(tmp);rea=tmp/'REA'/'1991'/'06';rea.mkdir(parents=True)
             for i,label in enumerate(['W_P_H','W_ONLY','H_ONLY']):
                 (rea/f'03-1200-0{i}L.S199106').write_text('\n'.join([' 1991  6 3 1200 0'+str(i)+'.0 L'.ljust(79)+'1',line('EVENT_CLASS:'+label)])+'\n')
             import matplotlib; matplotlib.use('Agg')
-            s53.run(rea_dir=tmp/'REA',out_dir=tmp/'out')
-            table=pd.read_csv(tmp/'out'/'53_daily_counts.csv')
+            s81.run(rea_dir=tmp/'REA',out_dir=tmp/'out')
+            table=pd.read_csv(tmp/'out'/'81_daily_counts.csv')
             self.assertTrue({'W_P_H','W_ONLY','H_ONLY'} <= set(table.columns))
             self.assertEqual(table.loc[0,['wave','picks','hypo']].tolist(),[2,1,2])
 

@@ -83,12 +83,17 @@ def pipeline_paths(data_top=None, *, output_root=None, config_file=None):
     p['SUMMARY_FILE_41'] = f"{p['LEGACY_HYPO_DIR']}/PINAALL.DAT"
     p['SUMMARY_FILE_41_INDEX'] = f"{p['TMP_DIR']}/41_summary_file_index.csv"
     p['SUMMARY_FILE_41_ERR'] = f"{p['TMP_DIR']}/41_summary_file_unparsed_lines.txt"
+    # Later solutions (step 40): HYPOELLIPSE 1992-93 (GOLD), HYPOELLIPSE 2001 (BRUN), Jones et al. (2001) locations (PEPI).
+    for key, name in (('GOLD', 'GOLD.SUM'), ('BRUN', 'b-run.sum'), ('PEPI', 'PinatuboRelocs.rtf')):
+        p[f'{key}_FILE'] = f"{p['LEGACY_HYPO_DIR']}/{name}"
+        p[f'{key}_INDEX'] = f"{p['TMP_DIR']}/40_{key.lower()}_index.csv"
+        p[f'{key}_ERR'] = f"{p['TMP_DIR']}/40_{key.lower()}_rejected_lines.csv"
+    p['RELOC_QC_DIR'] = f"{p['QC_DIR']}/step47_hypocenter_source_comparison"
     p['COMPARE_PREFIX'] = f"{p['TMP_DIR']}/42_pinaalldat_vs_pinatuboallsum"
     p['HYPO71_EVENT_INDEX'] = f"{p['TMP_DIR']}/43_hypo71_event_index.csv"
     p['HYPO71_ORIGIN_INDEX'] = f"{p['TMP_DIR']}/43_hypo71_origin_index.csv"
     p['TIME_TOL_S'] = '5.0'
     p['DIST_TOL_KM'] = '15.0'
-    p['PREFERRED_SOURCE'] = 'hypo40'
     p['HYPO_QC_DIR'] = f"{p['QC_DIR']}/step44_hypo71_diagnostics"
     p['CATALOG_PREFIX'] = f"{p['FAIR_META_DIR']}/50_pin_catalog"
     p['QUAKEML_ALL'] = f"{p['CATALOG_PREFIX']}.xml"
@@ -97,5 +102,5 @@ def pipeline_paths(data_top=None, *, output_root=None, config_file=None):
     p['FAIR_REA_DIR'] = f"{p['FAIR_TOP']}/SEISAN/REA"
     p['DEFAULT_AUTHOR'] = 'GT__'
     p['DEFAULT_EVTYPE'] = 'L'
-    p['SEISAN_DIAG_DIR'] = f"{p['QC_DIR']}/step53_seisan_rea_diagnostics"
+    p['SEISAN_DIAG_DIR'] = f"{p['QC_DIR']}/step81_seisan_rea_diagnostics"
     return p

@@ -106,8 +106,35 @@ class PinatuboClockTests(unittest.TestCase):
     def test_every_stream_has_rules(self):
         self.assertEqual(regimes().streams, {'waveform', 'pick_individual', 'pick_monthly', 'hypo_pinaall',
                                              'hypo_allsum', 'tandy_rsam', 'ssam', 'sleepy_tilt', 'ricky_lahar',
-                                             'cab_hourly_counts'})
+                                             'cab_hourly_counts', 'hypo_gold', 'hypo_brun', 'hypo_pepi'})
 
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class RelocationClockTests(unittest.TestCase):
+    """GOLD and PEPI follow the hypocentre (W) rules, BRUN the monthly-pick (H) rules; records the rules
+    cannot place are matched to a HYPO71 origin."""
+
+    def test_streams_and_matching(self):
+        import pandas as pd
+        from lib.clock import apply_relocation_clock
+        config = {"time_basis": "utc"}
+        ref = pd.DataFrame(dict(origin_time=['1991-05-26T01:40:38', '1991-06-01T00:17:18'], latitude=[15.14, 15.15],
+                                longitude=[120.35, 120.33], clock_status=['resolved_by_pinaall_line_218', 'resolved'],
+                                clock_uncertainty_s=[25.0, 25.0], source_file=['PINAALL.DAT', 'PINAALL.DAT'],
+                                source_line=[218, 300]))
+        brun = pd.DataFrame(dict(origin_time=['1991-06-01T07:17:18.15', '1991-05-26T08:40:38.3'],
+                                 latitude=[15.15, 15.141], longitude=[120.33, 120.351]))
+        out = apply_relocation_clock(brun, 'brun', config, ref)
+        self.assertEqual(list(out.origin_time), ['1991-06-01T00:17:18.150000', '1991-05-26T01:40:38.300000'])
+        self.assertEqual(out.clock_regime.iloc[0], 'H_UTC_PDT_until_switch')
+        self.assertEqual(out.clock_regime.iloc[1], 'H_UTC_seq_matched')  # repeated 26 May window: matched
+        self.assertEqual(out.clock_status.iloc[1], 'resolved_by_PINAALL.DAT_line_218')
+        gold = pd.DataFrame(dict(origin_time=['1991-05-20T12:00:00', '1991-05-26T05:00:00'],
+                                 latitude=[15.1, 15.1], longitude=[120.3, 120.3]))
+        out = apply_relocation_clock(gold, 'gold', config, ref)
+        self.assertEqual(out.origin_time.iloc[0], '1991-05-20T04:00:00')  # W on PHT: -8 h
+        self.assertTrue(pd.isna(out.origin_time.iloc[1]))               # no HYPO71 match: left unplaced
+        self.assertEqual(out.clock_status.iloc[1], 'ambiguous_no_match')

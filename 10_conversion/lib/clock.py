@@ -11,7 +11,9 @@ where it reads them and keeps the raw value next to the corrected one:
 - step 20: individual PHA picks, stream ``pick_individual`` (sequence = event ID)
 - step 21: monthly PHA picks, stream ``pick_monthly`` (sequence = file:line)
 - step 40: hypocenters, streams ``hypo_pinaall`` (sequence = line) and
-  ``hypo_allsum`` (repeated 26 May window resolved by matching PINAALL.DAT)
+  ``hypo_allsum`` (repeated 26 May window resolved by matching PINAALL.DAT), and
+  the later solutions ``hypo_gold``, ``hypo_brun``, ``hypo_pepi``
+  (``apply_relocation_clock``; unplaced records matched to HYPO71)
 - steps 61-62: RSAM and EVNT labels (stream ``tandy_rsam``, the Tandy Model 100
   RSAM PC) and SSAM labels (stream ``ssam``, MDETECT on WILLIE)
 - steps 63-67: tilt (stream ``sleepy_tilt``, SLEEPY), rain and mudflow
@@ -176,6 +178,57 @@ def apply_hypocenter_clock(pinaall: pd.DataFrame, allsum: pd.DataFrame, config,
                             f"resolved_by_waveform_{files.event_id.iloc[0]}")
     return pinaall, allsum
 
+
+# Later solutions read in step 40 (source label -> clock-table stream).
+RELOCATION_STREAMS = {"gold": "hypo_gold", "brun": "hypo_brun", "pepi": "hypo_pepi"}
+
+
+def apply_relocation_clock(frame: pd.DataFrame, source: str, config, reference: pd.DataFrame,
+                           *, time_tol_s: float = 2.0, deg_tol: float = 0.1) -> pd.DataFrame:
+    """Convert ``origin_time`` of a GOLD, BRUN or PEPI index (step 40) to UTC.
+
+    The stream's rules apply first. These files carry no sequence key, so a
+    record in the repeated 26 May window is ``ambiguous``, and a BRUN record
+    between 10 and 20 June (no monthly-pick rule) is ``unresolved``. Each such
+    record tries the offsets its candidate rules give (all of the stream's
+    offsets when no rule applies) and takes the one offset that puts it within
+    ``time_tol_s`` and ``deg_tol`` (latitude and longitude) of a resolved
+    HYPO71 origin in ``reference`` (UTC). The regime gets ``_matched``, and
+    ``clock_status`` names the reference origin. Records that match no offset,
+    or more than one, keep an empty time.
+    """
+    if not utc_enabled(config):
+        return frame
+    table = _regimes(config)
+    stream = RELOCATION_STREAMS[source]
+    out = table.apply(frame, stream, "origin_time")
+    ref = reference[reference.clock_status.astype(str).str.startswith("resol")].copy()
+    ref["_t"] = pd.to_datetime(ref.origin_time, format="ISO8601")
+    ref = ref.sort_values("_t").reset_index(drop=True)
+    rules = [r for r in table.rows if stream in r["streams"]]
+    tol = pd.Timedelta(seconds=time_tol_s)
+    for idx in out.index[out.clock_status.isin(["ambiguous", "unresolved"])]:
+        raw = pd.Timestamp(out.at[idx, "raw_origin_time"])
+        names = set(str(out.at[idx, "clock_regime"]).split("|"))
+        options = [r for r in rules if r["regime"] in names] or rules
+        hits = {}
+        for r in options:
+            t = raw + pd.Timedelta(seconds=r["offset_s"])
+            lo, hi = ref._t.searchsorted(t - tol), ref._t.searchsorted(t + tol, side="right")
+            near = ref.iloc[lo:hi]
+            near = near[((near.latitude - out.at[idx, "latitude"]).abs() <= deg_tol) &
+                        ((near.longitude - out.at[idx, "longitude"]).abs() <= deg_tol)]
+            if len(near):
+                hits.setdefault(r["offset_s"], (r, near.iloc[0]))
+        if len(hits) != 1:
+            out.at[idx, "clock_status"] = out.at[idx, "clock_status"] + ("_no_match" if not hits else "_several_matches")
+            continue
+        offset, (r, near) = next(iter(hits.items()))
+        out.at[idx, "origin_time"] = (raw + pd.Timedelta(seconds=offset)).isoformat()
+        out.loc[idx, ["clock_regime", "clock_offset_s", "clock_uncertainty_s", "clock_confidence", "clock_status"]] = [
+            r["regime"] + "_matched", offset, near.clock_uncertainty_s, "high",
+            f"resolved_by_{near.source_file}_line_{int(near.source_line)}"]
+    return out
 
 def apply_bob_clock(frame: pd.DataFrame, config, product: str) -> pd.DataFrame:
     """Convert BOB ``recorded_time`` labels to UTC where a clock rule exists.

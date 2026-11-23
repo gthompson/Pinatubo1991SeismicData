@@ -19,7 +19,7 @@ from obspy.core.event import Catalog, Event, Origin, Pick, Comment, WaveformStre
 _exports = _load_pipeline_notebook('50_build_obspy_catalog.ipynb')
 EVENT_CLASS_FLAGS = _exports.EVENT_CLASS_FLAGS
 export_classified_catalog = _exports.export_classified_catalog
-export_antelope_css3 = _load_pipeline_notebook('54_export_antelope_css3.ipynb').export_antelope_css3
+export_antelope_css3 = _load_pipeline_notebook('82_export_antelope_css3.ipynb').export_antelope_css3
 
 class ExportSemanticsTests(unittest.TestCase):
     def catalog(self):
@@ -60,7 +60,7 @@ class ExportSemanticsTests(unittest.TestCase):
                 pass
         db = DB()
         api = SimpleNamespace(
-            dbcreate=lambda path, schema: Path(path).write_text('schema ' + schema),
+            dbcreate=lambda path, schema, dbpath=None: Path(path).write_text('schema ' + schema),
             dbopen=lambda *args: db,
         )
         return db, patch.dict('sys.modules', {'antelope': SimpleNamespace(datascope=api)})
@@ -125,7 +125,7 @@ class ExportSemanticsTests(unittest.TestCase):
 class InventoryCSSExportTests(unittest.TestCase):
     def test_real_obspy_inventory_export_and_source_preservation(self):
         from obspy.core.inventory import Inventory, Network, Station, Channel, Site
-        exporter = _load_pipeline_notebook('54_export_antelope_css3.ipynb').export_stationxml_css
+        exporter = _load_pipeline_notebook('82_export_antelope_css3.ipynb').export_stationxml_css
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             channel = Channel('EHZ', '', 15., 120., 720., 12., azimuth=0., dip=-90.,
