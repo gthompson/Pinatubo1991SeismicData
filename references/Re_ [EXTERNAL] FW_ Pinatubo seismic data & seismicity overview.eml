@@ -1,0 +1,2061 @@
+Received: from SA1PR08MB7101.namprd08.prod.outlook.com (2603:10b6:806:18b::15)
+ by CH3PR08MB9346.namprd08.prod.outlook.com with HTTPS; Wed, 3 Dec 2025
+ 21:13:47 +0000
+Received: from SA9PR13CA0011.namprd13.prod.outlook.com (2603:10b6:806:21::16)
+ by SA1PR08MB7101.namprd08.prod.outlook.com (2603:10b6:806:18b::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9388.10; Wed, 3 Dec
+ 2025 21:13:42 +0000
+Received: from SN1PEPF00026367.namprd02.prod.outlook.com
+ (2603:10b6:806:21:cafe::f9) by SA9PR13CA0011.outlook.office365.com
+ (2603:10b6:806:21::16) with Microsoft SMTP Server (version=TLS1_3,
+ cipher=TLS_AES_256_GCM_SHA384) id 15.20.9388.9 via Frontend Transport; Wed, 3
+ Dec 2025 21:12:57 +0000
+Authentication-Results: spf=pass (sender IP is 74.6.128.208)
+ smtp.mailfrom=att.net; dkim=pass (signature was verified)
+ header.d=att.net;dmarc=bestguesspass action=none
+ header.from=att.net;compauth=pass reason=109
+Received-SPF: Pass (protection.outlook.com: domain of att.net designates
+ 74.6.128.208 as permitted sender) receiver=protection.outlook.com;
+ client-ip=74.6.128.208; helo=sonic320-27.consmr.mail.bf2.yahoo.com; pr=C
+Received: from sonic320-27.consmr.mail.bf2.yahoo.com (74.6.128.208) by
+ SN1PEPF00026367.mail.protection.outlook.com (10.167.241.132) with Microsoft
+ SMTP Server (version=TLS1_3, cipher=TLS_AES_256_GCM_SHA384) id 15.20.9388.8
+ via Frontend Transport; Wed, 3 Dec 2025 21:13:40 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=att.net; s=s1024; t=1764796419; bh=BtY8xLHKyRb0OYnYmj3wXf4jeL1KNcdDsckkCwwffp8=; h=Date:From:To:In-Reply-To:References:Subject:From:Subject:Reply-To; b=4M45kex0G4aCL3Kv6WzFfBTGIDmH7hM0vYyuIQkZXaCpzSIFYd68XAV2W0jCE1RyxF04TWn8fEajcnMJ9UccB2ZWmaI090sLfxUIsQxz9yPt2MSZk5KYusc4jBjo3AtXd0qj6g4W2MZPHKl4PBRPH9WFkbWkNKQKrHfmEbKEgUY=
+X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1764796419; bh=qUn3652kd7gkTSrSSwxs3IHxyNW3QGCadEKwDVJF4MC=; h=X-Sonic-MF:Date:From:To:Subject:From:Subject; b=jbAqKHm16FjnDTpQroj9wi8LyS+dqDNr9XV+vqWz08oXgvrIYLfj1UD6yFLw81r1QMYNRRJDeuAjiSk0EwCLhZdP1utRegexu7TkpWulZPwYzDWzHQwldOoUINjhxJHVSrrbe9T1gh/M7t+VZ/ZoV3kPdIq80eFOjbmsge0rt1PhMc8zymP+5RhasVWD9dtZpRWeBS6EN4B+GxXKlJnwPOs4Xev1yO3AZkXSOjhhLvmp3inaA1SICD64iaMjkZDmttaCqce6TTHJKqUQwvwY+Hn1z4wVmUDAD7/I75ZHkdcP0LrF3owFIO+0rp2Yz9r7i/L+6eolmK57eIZD25q7yw==
+X-YMail-OSG: JTumY4UVM1l8JpvetFBKmpxNaNMImRa4S9Vy2LbP8jVG98uDm8yikxRrUs7Qfik
+ 3dOVmDZMB0kNuP6GacwRhKosny0IzWxQyHm_Ncz2QB5IjFKBBeWrc65Dg8zZaXNBMQoO12IfhSDD
+ kVbCeTvJSX6U2rwOhF0_kuK.ej8zxb1dif4FZ3_7EUj4y62EnI808oaRR1KKyK67xv6IkT0OHZCK
+ 1lPBb6oUE9EFWQfojxhk84qVgXY7Cb6O3vvUNu9xmXlJMqzcXzG.LfEmSoduMWuowkaP9t7O1JAr
+ 9PjGf7RyXIH71TDoRawhXoXgAdXf5oEGJYYfwEZymMVgszVlwlavXMFqdStZUZZ4HtKtY.lugfgR
+ h0dPHjXkTW.PXjah966LipzjCkO8nU1Bb1PTi9Jhig2vuNVAf5weYIWtbd.XGwAMr_4rkkhTw07W
+ FnCAcXNoeI_m18onYC0OPKYMPVBMid4b9YqZhD4zPEpIB_.SEHM0.94Sbf4OcFQR9sZVPNbtnFRl
+ 14EswxznvUEwdlM.y6b1Y4NSA7ZMubmThCyI3XhPPRcFpSo0XUkCgT_q.iE_rQrbqa4MPGMK1eP.
+ v9zibqqnlcOOpqe196O4wtNCYf_pe8QBGVlQdulWw03yi7QY8NDOY02t8OV6tJiuBVhrd6ud8ibk
+ usLhjcu9fOHv9mTdTV_4__YjQxEzLacHgGI_tb6W3f_oEb8Pf4mVuQ4V3XqPqSJdu227JTWA5jpG
+ n.lYAuIMGsc4IUAsrQoxQVGMvLMXAeZHMp7FnSJ69tVYQs8Mx2uq.68gLUCA96oMWOoLi4ky.dvA
+ v7REgZIjHyIbkNtQGG1F5BfyhB8GovEFbCJbpl6.x72BB_.7tdZL9BRYhDCs5.3pgzArQKfUjMo3
+ cmnXz2_lEV8397PSQaHPKSsFeofAfBcTquUsaupNyQ4UQ7l8aBhOP1TB8gMHvnK3mySJ5qGTBXGC
+ ywaJz26RNoTxYnXyjyQT5sNZPbSo_khw5JcvteJGNyVpM4kJTPQ.OTgWvIbzPl64fpCV_EDOHA0H
+ XSGKUdMMd3NXn6f_l5o9HZf_.ivG.9XN1mxE8a9DbdaGWRW5VBvSnWFnlSF2VnARxG8_WWQ2ej9T
+ Gvi9veRioCQRKHGGkfXQjH6v81GdbV0Jx6.SUxt1.RdnWIHehHxdM4K9ftViVkHDwYmpyfpNmBCU
+ fIiOHkr.mkAkGon5RuXJKz2m4mVuLVRxKNpHEifYjbWkLf6Pr_N2xBNnsNKhCKoZ0q0tfDzrTG.L
+ BF0PdV2ikREiuRksz7qZYMMPo0aZ6gISJyeBp9p5wjVqrD_pF9Iii6jeSI7oViVFJQr8__X2WEcS
+ 3wHekRQLeNCgN4fSQ4Aw7.tfD8Z7XjiPlGxrdEsRRahKzlGrF9uZv5MRsGi5ZmP1DPo.OHw0aac.
+ _RuTxLgZ0LyZ26J7.dGW2_rsLLCR.0mBj.1k.tirZ0iBE99Qn5XQA6z50BnZ.afQNTzicqAxa87Y
+ NSTk6.ixRBg6GohIA0Z14jeKalDV_ppOXnQjse_1WVecrU2IhP1dX18s9cZWFXaiVpTpcfRw0vVt
+ QrkprQHEsiG7omX9xrP.q2Ih9Th3.VmFUSTeqqmkBGimh07Gjn77cBfNGXXpma9OA267Fc7ykCJJ
+ EL2EuJi7I5JLTzkIEUE.GtDGS0SBxhGwm1gK0E8aN8_3Nt_A7e2GAl4RNeiNTKwSixFymunvhgSe
+ N5B.4sU93fm1LV4qr2o49ioXiOkQ_pwhnitd0QAIlRqDRNr6yM14PlW.13k35hWD_q1_Y8lGQqJT
+ BFgqDHK0V6NA4TxcXCFkNWnvaPbOXyhrU9Q0U.hntz8bfCiyYNh_kTunemf1QPfKe8Q3vD1mVIBn
+ F9idnFNzW50ogJEN3U1i5NRn_kl.Dgn7vEhTmgMOi5RoVYdIVe8KEfAJe7gZ.j1nmOGb42ndUSus
+ vZLhc_09AOxReFf2_S2GHlIoL2hLywESojHQQSCctIu1fcCySvcnUql_SqQskCTI.yrmWBaQ9Ecl
+ lbkKplDdTz.KxY2rSydfnfRZq1HArUCzEQhy920wFgJjV3FmVUKMRFcvZOBQu95FLqqzJIw64GVG
+ 20faSpvYW6IO5juDmfVaj.8BTQB20lhiwWuNC.SgHd4SSc3nPJvIPXoVGMOHip1x_THmuWG7R7qU
+ l7VwxRbyRwfsP__TLzSLm4jRFObX4fBpn6rnBartXZGjtoxv27KouI0rnsr3vVXHHjM9ge6nQfXA
+ _ekLL4vGEbyN1YKmrNQ--
+X-Sonic-MF: <murray-tom@att.net>
+X-Sonic-ID: 03540a70-3d3e-4df2-a1c9-c65fc23bd38c
+Received: from sonic.gate.mail.ne1.yahoo.com by sonic320.consmr.mail.bf2.yahoo.com with HTTP; Wed, 3 Dec 2025 21:13:39 +0000
+Date: Wed, 3 Dec 2025 21:13:37 +0000 (UTC)
+From: Thomas Murray <murray-tom@att.net>
+To: Glenn Thompson <thompsong@usf.edu>
+Message-ID: <876004020.1967257.1764796417468@mail.yahoo.com>
+In-Reply-To: <CH3PR08MB9346510A9DDF50CEB39FBFEBBBD9A@CH3PR08MB9346.namprd08.prod.outlook.com>
+References: <BN7PR08MB429093E52AB3FE31E4FB5B4DBBDA2@BN7PR08MB4290.namprd08.prod.outlook.com> <CAMVRW7bv+iB-+sc3asSr3YH3xM2CEAfZYmLLd4my5u2goENgKA@mail.gmail.com> <BN7PR08MB429031B845EFDA78375B9B10BBAF2@BN7PR08MB4290.namprd08.prod.outlook.com> <CAFYbRwpXK1orikJ_vKijUUPKZUzFpWgUTjonr=LUbPEmPF+Zgw@mail.gmail.com> <BN7PR08MB42907E6CD2C62B4660E58E5EBBAA2@BN7PR08MB4290.namprd08.prod.outlook.com> <CO6PR09MB7640E468D57F72B389DD3525A0B72@CO6PR09MB7640.namprd09.prod.outlook.com> <284801774.294691.1744340482750@mail.yahoo.com> <BN7PR08MB4290B636E10B7485B69AA970BBB62@BN7PR08MB4290.namprd08.prod.outlook.com> <120529807.944457.1744665262162@mail.yahoo.com> <1844909671.944766.1744666370235@mail.yahoo.com> <BN7PR08MB429066A9FADCBC688D598201BBB32@BN7PR08MB4290.namprd08.prod.outlook.com> <BN7PR08MB42909FB4433C7ADFCE69C752BBB22@BN7PR08MB4290.namprd08.prod.outlook.com> <588449250.1376763.1744821411543@mail.yahoo.com> <BN7PR08MB429019184888245DE38103ADBBBD2@BN7PR08MB4290.namprd08.prod.outlook.com> <12918
+ 48083.1496421.1744858049608@mail.yahoo.com> <CH3PR08MB934681542E1478E2C30A00B4BBD7A@CH3PR08MB9346.namprd08.prod.outlook.com> <CH3PR08MB9346902F85594EF5C9B4AEA0BBD8A@CH3PR08MB9346.namprd08.prod.outlook.com> <368864758.98984.1764786063085@mail.yahoo.com> <CH3PR08MB9346510A9DDF50CEB39FBFEBBBD9A@CH3PR08MB9346.namprd08.prod.outlook.com>
+Subject: Re: [EXTERNAL] FW: Pinatubo seismic data & seismicity overview
+Content-Type: multipart/alternative;
+	boundary="----=_Part_1967256_1388989729.1764796417459"
+X-Mailer: WebService/1.1.24794 YMailNorrin
+Content-Length: 98186
+Return-Path: murray-tom@att.net
+X-MS-Exchange-Organization-ExpirationStartTime: 03 Dec 2025 21:13:40.2621
+ (UTC)
+X-MS-Exchange-Organization-ExpirationStartTimeReason: OriginalSubmit
+X-MS-Exchange-Organization-ExpirationInterval: 1:00:00:00.0000000
+X-MS-Exchange-Organization-ExpirationIntervalReason: OriginalSubmit
+X-MS-Exchange-Organization-Network-Message-Id: a86c57c9-9bf6-439a-d956-08de32b0d503
+X-EOPAttributedMessage: 0
+X-EOPTenantAttributedMessage: 741bf7de-e2e5-46df-8d67-82607df9deaa:0
+X-MS-Exchange-Organization-MessageDirectionality: Incoming
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SN1PEPF00026367:EE_|SA1PR08MB7101:EE_|CH3PR08MB9346:EE_
+X-MS-Exchange-Organization-AuthSource: SN1PEPF00026367.namprd02.prod.outlook.com
+X-MS-Exchange-Organization-AuthAs: Anonymous
+X-MS-Office365-Filtering-Correlation-Id: a86c57c9-9bf6-439a-d956-08de32b0d503
+X-MS-Exchange-AtpMessageProperties: SA|SL
+X-MS-Exchange-Organization-SCL: 1
+X-Microsoft-Antispam: BCL:0;ARA:13230040|7093399015|7053199007|13003099007|8096899003;
+X-Forefront-Antispam-Report: CIP:74.6.128.208;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:sonic320-27.consmr.mail.bf2.yahoo.com;PTR:sonic320-27.consmr.mail.bf2.yahoo.com;CAT:NONE;SFS:(13230040)(7093399015)(7053199007)(13003099007)(8096899003);DIR:INB;
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 03 Dec 2025 21:13:40.0932
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: a86c57c9-9bf6-439a-d956-08de32b0d503
+X-MS-Exchange-CrossTenant-Id: 741bf7de-e2e5-46df-8d67-82607df9deaa
+X-MS-Exchange-CrossTenant-AuthSource: SN1PEPF00026367.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: Internet
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR08MB7101
+X-MS-Exchange-Transport-EndToEndLatency: 00:00:06.9205042
+X-MS-Exchange-Processed-By-BccFoldering: 15.20.9388.009
+X-Microsoft-Antispam-Mailbox-Delivery:
+	ucf:0;jmr:0;auth:0;dest:I;ENG:(910005)(944506478)(944626604)(920097)(930097)(140003)(1420198);
+X-Microsoft-Antispam-Message-Info:
+	=?utf-8?B?eC9OSWk3VlhkbXM5K203RlJNTjFSaHhITktRdXE4dUhxaFg5Z0pteEI4T0Ex?=
+ =?utf-8?B?WnQ4M0JsbW1IZkFUM3dwMStSd1FaWnNwa3RaaFZDTEpsQ2tFMldETTdGOEJI?=
+ =?utf-8?B?R2ovVm1BeXBNYjBNZ0lGTEhydTdLQkF5Z0l3ZGhHRGpRRTdYSlFKVnZ1N3Zx?=
+ =?utf-8?B?TUk5bTlyUTQrdHRkZWRPdjlTQzllOHB2dE1XdmNXemtaL29USlVnK2Z3ZlJi?=
+ =?utf-8?B?MisvcVg3SkR1UEorcWoyWE5qVnlqa3JhTkROc1hQQVdpTDl4YzdvcEFKSlRD?=
+ =?utf-8?B?Y0JEU0szbHBwRyt6TWx3WjFjVlkxNCtVWUNtTm1JdWEzL0czMGIvQmxlMnJK?=
+ =?utf-8?B?eXhmbGRGVVAxRDl6bFRUWmxBSEszMGxxZVJCR2NONm45VngxUmN1RG5CYXBz?=
+ =?utf-8?B?eFBPQVMxUUxxZUhOSWkwSFc0ekFMZ2tqdGZPajhsSElJb2ZHNVRVOENNRFY2?=
+ =?utf-8?B?V2JNR0M0eHFBSTNheitpbTVzQXdnVmtRVi92SkhnblJQdG1TWXUxc25rcWlV?=
+ =?utf-8?B?UFJiK04wUExOOGNqUkl5NjlXQXRkQUJLcFl0b0owVWNoM1B2MWNnaDQzMjFk?=
+ =?utf-8?B?YlJtMWpYVjAwZ3k4ajg0Y2ZvR3JLWG1pVDVsait3bG5mTUo5RG9ORjk0MlFT?=
+ =?utf-8?B?Znk2Q0o4TmxnSGh1RW1sTjlVb1pBUXFSQUJyZ0hDVFV3QUNuM0FkT2YzaDdU?=
+ =?utf-8?B?WE42UWtwbUk3YkJIZ0RzTzBwSHVDMEFXbTJGem9ONGRCRnowNVZsd21teGVS?=
+ =?utf-8?B?OHlKaXEwRjBkZFZEWjRZQ0RtNVJoakhXWE5paGphVVJRVHVUVUwzRGFQS3M2?=
+ =?utf-8?B?VE5FOGxlM0tXRXg1ZHM1MEY0ZjdUYnpFc1YzRzBQTWd1V1ZyeXBpdlZhbTU4?=
+ =?utf-8?B?eEJXenN6aFovSWo1dkJYVkU2bVRWMUMwQnlwQUlBYWlubXZUVWJ6SUpVMVNI?=
+ =?utf-8?B?S3J1cW11czh5QzBSblZXUmUyWG1DR2pxTzVqd1E2Um9Bc2dwb0lzN0NiNWg5?=
+ =?utf-8?B?L05uNHozNC96bFBkbWRSVEJScWttZlp1bE84ZS9YSm1lUmtiN3lMaHZ0MmhT?=
+ =?utf-8?B?NCsrYUQyaWQwalVnNkQwUHAzVTgwczMrVExNRFZGb2JjMXVZUkswcTdjdFFM?=
+ =?utf-8?B?OVI5SlRaeVhpcjlZOWJRV0F6OGJpak5kcTlkZlJVREJGVnBPa0dYN1NjSzMr?=
+ =?utf-8?B?MldzdUY4T0Q4eU5Cbk5GcjM0SVh4SFRYc3FQL2dzU0RUVlIzOW5hSHBuUWp2?=
+ =?utf-8?B?NzlwTmxwQ2RVb3VZTGhpT3dyYVFtRFB2ZWM1WStKMGdXeWE4SHRrcDlMZ2JD?=
+ =?utf-8?B?Wi9MNTAxTFlubndLMkF3dHlTdmNkQ2RmYTVyQVhHcWNmMUNrelhXZlVZaTRk?=
+ =?utf-8?B?N2gvbnFsVWtGOXo0MkZLVS9NYVlFeFFwK2w5L29oL2tjSjQwNUc1REZGa0VF?=
+ =?utf-8?B?OEJ1NHRiU25zNWwrRFA3WjdBQVNvQmNVODI4dXllbzgvT0I0Z0NacUZYQitP?=
+ =?utf-8?B?WEloRUp2S0hHaTBldS9XaTk1MGRRRVVLdjByTDdsS3JCdXVkaGwrVm5VRFpk?=
+ =?utf-8?B?ck5OcGxldm91V0UrcHdrUzE3YUlBbVczdmE2SUdxc1R1dHNCcDV1VjNBS2JP?=
+ =?utf-8?B?c3VqK2d3Nmc4aUdubkZIaFdTeW9kcGFxbEM3cEplbjRrd1U0a240elo0OGll?=
+ =?utf-8?B?dldMTHgxbWE2ckRaTXdDWTlCUzZUbm53ZytkckczQmplZUIxY3ozK1NpemJB?=
+ =?utf-8?B?dTA4QWx1WU5TTDZiVWhDbUlIMExsK2ZFYmFUUzl1MlJyeituTzJsdVFpcmJj?=
+ =?utf-8?B?bFBpbnNwVExMK1FCelM3UWt6ajk4UVltSnlNYlZMVFVIV2VuWDBkdFRidXhD?=
+ =?utf-8?B?K3VtbHg3L3lsc2MwN0l6L0NVTzlYR3g4RWV2OTE4U0JEOENRam9tZHJNWURK?=
+ =?utf-8?B?Vnk5ajBZbWp4c1F0Qm9GNFZmTk16QStVem82YWlPYUVzV29LanUyd21aVmRa?=
+ =?utf-8?B?SlZ6ZlgxSk5XL2M1VkJ0K3Y4SDNkZS8yNExTN1RFQ1hKZGI3NjhhcllKdTc0?=
+ =?utf-8?B?ZUNpbVROOG4rY2xLZVlnWFNLaXBqeHMvd1pENGd5QTVqQ3NFVGJnR1VhMU5J?=
+ =?utf-8?B?Uk9xdG9YcWUyZVpqdnVkNzF1eGlrR0JDWmszM2RlbW9yRk9WZDNXbU02WUZj?=
+ =?utf-8?B?d3dZQUsxeWZEMGFDSkpaU3FPb3RJL1ZQb3IwOGFjOTQ4YTBQWjdxYm9EMmR1?=
+ =?utf-8?B?QjJoOXo2Q1pOcnI2STJXV3REQlQvQ0Q2WlVtWTFWWjU5QndobXl4V1d3eUd2?=
+ =?utf-8?B?SjhjZlFhVVFyZWtGd1YySDRBK2FPZFd4V1VuMDhsVXQ3RXBaU2pFNU1IWmE3?=
+ =?utf-8?B?V2tXSkIzTk5nRHpLMFV1UVdwOGNOS1pYWDg1R0RXaTgzaEcrUzBWSit6WnNC?=
+ =?utf-8?B?b0tiNFNsM1dwempxNGowUlZGeFd4K0R2UElOQ2tHV1NBK0pLRnRJaGczUVI5?=
+ =?utf-8?B?M3pGdHV4dWtWZ3I2dDBOYzhBbHEyRW84Z0hqQmtMZ3lRdTlLNE1xY1FzOEJl?=
+ =?utf-8?B?ZCtqWkdiUnZXL1VOc3JVK2c0TEU0ZFVPaGxncE1LWFl4VmNVRWw4K0lKdnQy?=
+ =?utf-8?B?aHJJbjNNRFMrdXBwaWlLYmdkclE1QUR3ZUg2cXcrdDA0aWZzbkVuRlJFR1BP?=
+ =?utf-8?B?SEorNXBmb2dTd1FsTXFuNm5tQ2xCUDk5WldKY01DZHlhWldhVHBrZFd6WWh2?=
+ =?utf-8?B?OFMza1NCQkVrQ09Fa2RhSjA5cTFIdFIxc1dxa0h5US9OaXp4blBsM3R2dVhH?=
+ =?utf-8?B?NjlTYjduYTNvN1F4KzE5b25ybnpjbkJselhrS1hzU1E0K0ZWWEJBSEtEeG91?=
+ =?utf-8?B?YXQ0bXU3NU9xNU9rbFY2QTNZVmttZnVtYWplc3NuS0NVSkMxaUM5QkpxREI3?=
+ =?utf-8?B?WHMrcmdDOWlmRWlHSGlKMHF0Vm9OZi80aE55N1NSQWVHMzYzMitBV2c1ZnQ1?=
+ =?utf-8?B?YlpjcE1hcmwzTjRRYjBUODIrTkFua0JIeWlJbmlRTndzMy9senJLVkRnNTRE?=
+ =?utf-8?B?eGI1ZGdoZzBXQXRjU25tSjF4VnFXSU9EMDdWSFVXL1UzRm90aUVyOSt2a1g0?=
+ =?utf-8?B?TkJGU3hXRDVkV09xUFVPQ2tBcGVoc3p3MGo4RGVReVQxZmxHbkQ0OWMwKzhS?=
+ =?utf-8?B?TVZKV1BGdGFlOEJZYWtjWEMzV2pUMlhIV1dSanpPM3RIUWx5SXRyR3pMT3Vo?=
+ =?utf-8?Q?orF/gy8qG3UlJyPMw0UshS3eb0=3D?=
+MIME-Version: 1.0
+
+------=_Part_1967256_1388989729.1764796417459
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Very good. I'll call you at (813) 894-0077 Friday at 11 am Pacific time unl=
+ess otherwise directed.
+
+Tom Murray
+907-301-2859
+
+On Wednesday, December 3, 2025 at 10:40:50 AM PST, Glenn Thompson <thompson=
+g@usf.edu> wrote:
+
+
+Great, thanks Tom! How about 11am PST/2 pm EST on Friday?
+I=E2=80=99ll try to watch that Pinatubo documentary again beforehand too!
+(813) 894-0077 iPhone
+
+From: Thomas Murray <murray-tom@att.net>
+Date: Wednesday, December 3, 2025 at 1:21=E2=80=AFPM
+To: Glenn Thompson <thompsong@usf.edu>
+Subject: Re: [EXTERNAL] FW: Pinatubo seismic data & seismicity overview
+
+Good timing. I watched In the Path of a Killer Volcano last night in prepar=
+ation for a talk about scientists working with communities to develop solut=
+ions to their problems, not just reports.
+
+Before chatting, I will look through what you sent and find what I have to =
+try to reactivate some gray matter that hasn't been accessed in a long time=
+.
+
+I should be available most of Friday, Saturday afternoon, and Monday mornin=
+g. I prefer 10:30 am at the earliest in all cases since I am a creature of =
+routine in the morning.
+
+I'm in San Franciso, so Pacific time zone.
+
+Tom
+907-301-2859
+
+On Tuesday, December 2, 2025 at 12:52:04 PM PST, Glenn Thompson <thompsong@=
+usf.edu> wrote:
+
+
+Hi Tom,
+
+Below is the directory tree I put together from re-organizing files that yo=
+u, Randy, and JP gave me. The whole archive is only 12 GB currently, as an =
+Earthscope Assembled Dataset. It=E2=80=99s =E2=80=9Crestricted=E2=80=9D cur=
+rently, as I=E2=80=99m working with JP to get permission from PHIVOLCS to m=
+ake the data open.
+
+The LEGACY folder is the original data formats. FAIR is converted - just wa=
+veforms converted to MiniSEED so far, but I did convert phase picks and hyp=
+ocenters to QuakeML too. I plan to convert RSAM to MiniSEED: I think channe=
+l UHZ is correct for 60-s data, and RHZ for 600-s data. SSAM might be best =
+as HDF5. Irregular time series just as timestamped rows in CSV?
+
+I wonder if you=E2=80=99d be willing to have a phone call? I=E2=80=99d real=
+ly like to pick your brain about the development of the VDAP Mobile Monitor=
+ing System, and components like RSAM, BOB, XDETECT/MDETECT etc., and what r=
+elationship they have to the IASPEI tools by Willie Lee and others. And I w=
+onder if you have the source code for any of those - and Glowworm?
+
+Incidentally, I just had a call with Robert Banfill, who co-authored some o=
+f the SUDS library. We=E2=80=99re going to work on a direct Linux/Mac multi=
+plexed SUDS to MiniSEED converter with IRIG-E time correction. I wonder abo=
+ut converting/replicating some of your codes too, and publishing them in th=
+e Journal of Open Source Software - I could do the work, if you are willing=
+ to guide. Just a thought.
+
+
+ASSEMBLED-25-028-THOMPSON-PINATUBO1991
+
+=E2=94=9C=E2=94=80=E2=94=80 FAIR
+
+=E2=94=82   =E2=94=94=E2=94=80=E2=94=80 SEISAN
+
+=E2=94=82       =E2=94=94=E2=94=80=E2=94=80 WAV
+
+=E2=94=82           =E2=94=94=E2=94=80=E2=94=80 1991
+
+=E2=94=82               =E2=94=9C=E2=94=80=E2=94=80 05
+
+=E2=94=82               =E2=94=9C=E2=94=80=E2=94=80 06
+
+=E2=94=82               =E2=94=9C=E2=94=80=E2=94=80 07
+
+=E2=94=82               =E2=94=9C=E2=94=80=E2=94=80 08
+
+=E2=94=82               =E2=94=9C=E2=94=80=E2=94=80 09
+
+=E2=94=82               =E2=94=9C=E2=94=80=E2=94=80 10
+
+=E2=94=82               =E2=94=9C=E2=94=80=E2=94=80 11
+
+=E2=94=82               =E2=94=94=E2=94=80=E2=94=80 12
+
+=E2=94=94=E2=94=80=E2=94=80 LEGACY
+
+    =E2=94=9C=E2=94=80=E2=94=80 BOB
+
+    =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 COSPEC
+
+    =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 COUNTS
+
+    =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 DATA
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 CABZ
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 PIEZ
+
+    =E2=94=82   =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 RDNZ
+
+    =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 MUDFLOW
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 ABAC
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 BALF
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 GUMA
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 LSAC
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 MARL
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 PASI
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 PROGS
+
+    =E2=94=82   =E2=94=82   =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 MUDDAT
+
+    =E2=94=82   =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 USAC
+
+    =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 RAD_FREQ
+
+    =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 RAIN
+
+    =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 RSAM
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 EVNT
+
+    =E2=94=82   =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 RSAM
+
+    =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 SSAM
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 BUG1
+
+    =E2=94=82   =E2=94=82   =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 TEMP
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 BUR1
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 CAB1
+
+    =E2=94=82   =E2=94=82   =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 TEMP
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 DON1
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 FNG1
+
+    =E2=94=82   =E2=94=82   =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 TEMP
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 PI21
+
+    =E2=94=82   =E2=94=82   =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 TEMP
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 PPE1
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 PPO1
+
+    =E2=94=82   =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 QAD1
+
+    =E2=94=82   =E2=94=82   =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 TEMP
+
+    =E2=94=82   =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 UBO1
+
+    =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 TIDES
+
+    =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 TILT
+
+    =E2=94=82       =E2=94=9C=E2=94=80=E2=94=80 PPO_
+
+    =E2=94=82       =E2=94=94=E2=94=80=E2=94=80 UBO_
+
+    =E2=94=9C=E2=94=80=E2=94=80 EVENT_METADATA
+
+    =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 HYPOCENTERS
+
+    =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 MONTHLY_PHA
+
+    =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 PHA
+
+    =E2=94=82       =E2=94=9C=E2=94=80=E2=94=80 910603
+
+    =E2=94=82       =E2=94=94=E2=94=80=E2=94=80 910610
+
+    =E2=94=9C=E2=94=80=E2=94=80 HELICORDERS
+
+    =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 PIN_DRUM2
+
+    =E2=94=9C=E2=94=80=E2=94=80 STATION_METADATA
+
+    =E2=94=94=E2=94=80=E2=94=80 WAVEFORM_DATA
+
+        =E2=94=94=E2=94=80=E2=94=80 SUDS
+
+            =E2=94=9C=E2=94=80=E2=94=80 199105
+
+            =E2=94=9C=E2=94=80=E2=94=80 199106
+
+            =E2=94=9C=E2=94=80=E2=94=80 199107
+
+            =E2=94=9C=E2=94=80=E2=94=80 199108
+
+            =E2=94=9C=E2=94=80=E2=94=80 199109
+
+            =E2=94=9C=E2=94=80=E2=94=80 199110
+
+            =E2=94=9C=E2=94=80=E2=94=80 199111
+
+            =E2=94=94=E2=94=80=E2=94=80 199112
+
+From: Glenn Thompson <thompsong@usf.edu>
+Date: Wednesday, November 19, 2025 at 2:13=E2=80=AFPM
+To: Thomas Murray <murray-tom@att.net>
+Subject: Re: [EXTERNAL] FW: Pinatubo seismic data & seismicity overview
+
+Hi Tom,
+Sorry, I got swamped with other project for the past 7 months, but now retu=
+rning to this. Hoping to just publish a simple paper on the data archive an=
+d conversion under FAIR principles for now, along with the codes I wrote to=
+ complete the exercise.
+Let me know if you want to co-author. I appreciate you are retired, but sin=
+ce you inspired so much of my work and you know so much about the Pinatubo =
+setup, I=E2=80=99d be happy to have you on-board.
+I=E2=80=99m not sure how to coordinate this effort with PHIVOLCS. JP was or=
+iginally going to provide that interface and let me know, but he=E2=80=99s =
+retired now too. And so did Andy during this project, so I have no informat=
+ion on instrument responses either.
+Cheers,
+Glenn
+
+From: Thomas Murray <murray-tom@att.net>
+Date: Wednesday, April 16, 2025 at 10:48=E2=80=AFPM
+To: Glenn Thompson <thompsong@usf.edu>
+Subject: Re: [EXTERNAL] FW: Pinatubo seismic data & seismicity overview
+
+I just checked Fire and Mud. The Pinatubo RSAM was still the Model 100 vers=
+ion.  From the USGS openb-file report on the Model 100 version
+
+"At the beginning of each minute, a call to the data-acquisition sub-progra=
+m causes the Model 100/102 to digitize 125 samples for each seismic input a=
+t a rate of about 50 samples/second/input and return the sums of the digiti=
+zed values."
+
+So the event data would have been the RSAM average taken over about 2.5 sec=
+onds (125 samples/(50 samples/second)). I think you understand that everyth=
+ing is approximate because of the limitations of the Model 100. You couldn'=
+t sample the data in background like I was able to when I converted to the =
+PC-based RSAM.  I recall that I got to 50 samples/second/input by just expe=
+riementing with a simple loop interation delay between taking a sample unti=
+l it seemed to be close to the desired 50 sps /input channel.
+
+So the Model 100 would grab 125 samples, halt digitizing for a bit to proce=
+ss the data and then go back for another 125 samples. The RSAM openfile est=
+imates that over a minute less than 15% of the time (~9 seconds/minute) was=
+ devoted to processing and transferring the data for BOB storage. Not sampl=
+ing during that 9 seconds was another reason for the classical earthquake s=
+eismologists to initially dismiss RSAM.
+
+When I went to the PC-based RSAM I think I went to 100 samples/second, but =
+would have to double-check that.
+
+
+On Wednesday, April 16, 2025 at 09:54:09 AM PDT, Glenn Thompson <thompsong@=
+usf.edu> wrote:
+
+
+
+Thanks for the explanation of RSAM EVNT files Tom!
+
+I thought RSAM did 2.56s averages (8 bits at 100 Hz), but heck, you wrote i=
+t, so I guess it is 5.12s.
+
+I think at Montserrat we also had RSAM TRIG files (as well as EVNT files).
+
+
+
+To me, the most fascinating parts of the RSAM system were the real-time bar=
+graphs (2.56s, 60s,
+
+
+
+From: Thomas Murray <murray-tom@att.net>
+Date: Wednesday, April 16, 2025 at 12:36=E2=80=AFPM
+To: Glenn Thompson <thompsong@usf.edu>
+Subject: Re: [EXTERNAL] FW: Pinatubo seismic data & seismicity overview
+
+RSAM Event algorithm:  I'm a little hazy on the details, but it is akin to =
+an STA/LTA but instead uses maybe 5-second RSAM values for the "average". I=
+f the RSAM values being collected every 5.12? seconds are of a series R(1),=
+ R(2), R(3), R(4) etc it compares not the current value not to the immediat=
+ely preceding value, but the value before that (comparing R(4) with R(2) fo=
+r instance).  This is done because if an event arrived sometime in the R(3)=
+ time period it would have an unknown mix of pre-event and event data. R(2)=
+ would be the clean pre-event arrival average and R(4) the post event arriv=
+al average.
+
+
+
+And there are no cross-station comparison.  It is designed to be run on a s=
+ingle station, like one doing event counts from a paper seismiogram.
+
+
+
+I recall...
+
+
+
+The zip files do unzip from what I've seen so far.  I don't know if a probl=
+em developed in zipping the zipped files (it shouldn't).
+
+
+
+You can try to unzip them on a PC.  Just let me know if you want me to unzi=
+p them before packaging them to upload to your dropbox.
+
+
+
+
+
+On Tuesday, April 15, 2025 at 01:42:56 PM PDT, Glenn Thompson <thompsong@us=
+f.edu> wrote:
+
+
+
+
+
+Hi Tom,
+
+
+
+Thanks for the data upload! This is great!
+
+
+
+I converted the 10-minute RSAM data to CSV files, and also made some simple=
+ plots just as a quick check so see what time range each RSAM binary has po=
+pulated data for. Having the RSAM data is a huge boost.
+
+I also translated the legacy station/component names to SEED format.
+
+Plots attached in a zip file =E2=80=93 hopefully it gets through the email =
+filter (just 244 kB).
+
+
+
+Great to have the RSAM EVNT data too. If I understand correctly, these data=
+ come from an STA/LTA detector running on each channel? Not aggregated (ass=
+ociated) into events across the network, but I could always do that.
+
+
+
+The TILT data (in the archive in separate zip files) did not uncompress suc=
+cessfully, but I=E2=80=99ve only tried on a Mac so far. Might have more luc=
+k on my Windows PC at the office.
+
+
+
+The SSAM folder has some binary files, and also some zip files =E2=80=93 an=
+d those zip files also do not uncompress. I wrote something to translate SS=
+AM data before, but I think those were .FFT files. So it might take some wo=
+rk to figure out the SSAM binary format.
+
+
+
+I see QUAKES, RAIN, MUDFLOW and COSPEC data too. It=E2=80=99ll take a while=
+ to parse through the whole archive and figure out what everything is, and =
+make some first order plots.
+
+
+
+Cheers,
+
+Glenn
+
+
+
+From: Glenn Thompson <thompsong@usf.edu>
+Date: Monday, April 14, 2025 at 6:48=E2=80=AFPM
+To: Thomas Murray <murray-tom@att.net>
+Subject: Re: [EXTERNAL] FW: Pinatubo seismic data & seismicity overview
+
+Hi Tom,
+
+Thanks very much for all your efforts to hunt these data down =E2=80=93 and=
+ to look after them all this time!
+
+Can you upload to this link: https://www.dropbox.com/request/3Sy7fJjoEFgAZd=
+aHI6Mr ?
+You don=E2=80=99t need to have Dropbox installed, or have an account, it sh=
+ould just allow you to upload. But let me know if you run into any issues.
+
+Thanks!
+
+Glenn
+
+
+
+Get Outlook for iOS<https://aka.ms/o0ukef>
+
+________________________________
+
+From: Thomas Murray <murray-tom@att.net>
+Sent: Monday, April 14, 2025 5:32:50 PM
+To: Glenn Thompson <thompsong@usf.edu>
+Subject: Re: [EXTERNAL] FW: Pinatubo seismic data & seismicity overview
+
+
+
+You don't often get email from murray-tom@att.net. Learn why this is import=
+ant<https://aka.ms/LearnAboutSenderIdentification>
+
+My email to you with the zip attachment bounced back - it appears the probl=
+em is that your system security does not like zip files sent as attachments=
+.
+
+
+
+Suggestions?
+
+
+
+Tom
+
+
+
+On Monday, April 14, 2025 at 02:14:20 PM PDT, Thomas Murray <murray-tom@att=
+.net> wrote:
+
+
+
+
+
+Found the files  (I was getting nervous and finally had to do a search thou=
+gh. Who knew it would be under aaa/travel/temp? Error! Filename not specifi=
+ed.)
+
+
+
+I've attempted to attach a 7MB zip file with all the Bob data from Pinatubo=
+.  It's about 30M unzipped. I hope that Fire and Mud has all the meta-data =
+you will need.  Let me know if there is a problem with the zip file.
+
+
+
+I'm not up for being a co-author on anything but can assist with specific q=
+uestions if needed.
+
+
+
+Good luck with your efforts.  Let me know how it all ends up.
+
+
+
+- Tom
+
+
+
+On Friday, April 11, 2025 at 05:40:16 AM PDT, Glenn Thompson <thompsong@usf=
+.edu> wrote:
+
+
+
+
+
+Hi Tom,
+
+Thanks so much=E2=80=94this is really encouraging news. I'm grateful that y=
+ou=E2=80=99re willing to check your archives this weekend. If any of the RS=
+AM, tilt, or SSAM data turns up, it=E2=80=99ll be a big step forward in hel=
+ping us remaster the Pinatubo dataset for long-term preservation and reuse.
+
+As part of a broader effort, I=E2=80=99m also setting up a legacy PC with s=
+upport for older software and for reading older media=E2=80=94Zip drives, D=
+DS DAT tapes, and even 5.25" and 3.5" floppies=E2=80=94so we can access and=
+ convert whatever formats may be out there.
+
+Regarding the instrument response: no worries if details on the gains are l=
+ost. We can always estimate average combined gains and site effects statist=
+ically by comparing network-wide amplitudes for a suite of well-located eve=
+nts.
+
+Would you be interested in co-authoring the data paper with John Power and =
+me? We'd be happy to have your input and historical insights. Either way, w=
+e=E2=80=99ll be sure to acknowledge your contribution to the dataset and th=
+is recovery effort.
+
+And yes, I completely hear you on the political situation. The impacts on s=
+cience, jobs, our allies, and the economy are weakening the USA. It is part=
+icularly sad to see the attacks on USAID. At the university, we=E2=80=99re =
+bracing for major funding cuts across the board=E2=80=94grim stuff. Wishing=
+ you and your part of the world continued stability.
+
+Wishing you a good weekend,
+Glennilto:thompsong@usf.edu<mailto:thompsong@usf.edu>)
+
+[EXTERNAL EMAIL] DO NOT CLICK links or attachments unless you recognize the=
+ sender and know the content is safe.
+
+[EXTERNAL EMAIL] DO NOT CLICK links or attachments unless you recognize the=
+ sender and know the content is safe.
+
+[EXTERNAL EMAIL] DO NOT CLICK links or attachments unless you recognize the=
+ sender and know the content is safe.
+
+[EXTERNAL EMAIL] DO NOT CLICK links or attachments unless you recognize the=
+ sender and know the content is safe.
+
+[EXTERNAL EMAIL] DO NOT CLICK links or attachments unless you recognize the=
+ sender and know the content is safe.
+
+------=_Part_1967256_1388989729.1764796417459
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html><head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dutf-8"></=
+head>
+<body>
+<div class=3D"ydpff2a897fyahoo-style-wrap" style=3D"font-family:Helvetica N=
+eue, Helvetica, Arial, sans-serif;font-size:16px;">
+<div></div>
+<div dir=3D"ltr" data-setdir=3D"false">Very good. I'll call you at&nbsp;<sp=
+an><span style=3D"color: rgb(0, 0, 0); font-family: Aptos, Arial, Helvetica=
+, sans-serif; font-size: 16px;">(813) 894-0077 Friday at 11 am Pacific time=
+ unless otherwise directed.</span></span></div>
+<div dir=3D"ltr" data-setdir=3D"false"><span><span style=3D"color: rgb(0, 0=
+, 0); font-family: Aptos, Arial, Helvetica, sans-serif; font-size: 16px;"><=
+br>
+</span></span></div>
+<div dir=3D"ltr" data-setdir=3D"false"><span><span style=3D"color: rgb(0, 0=
+, 0); font-family: Aptos, Arial, Helvetica, sans-serif; font-size: 16px;">T=
+om Murray</span></span></div>
+<div dir=3D"ltr" data-setdir=3D"false"><span><span style=3D"color: rgb(0, 0=
+, 0); font-family: Aptos, Arial, Helvetica, sans-serif; font-size: 16px;">9=
+07-301-2859</span></span></div>
+<div><br>
+</div>
+</div>
+<div id=3D"ydp6a1bf750yahoo_quoted_5035362160" class=3D"ydp6a1bf750yahoo_qu=
+oted">
+<div style=3D"font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;fo=
+nt-size:13px;color:#26282a;">
+<div>On Wednesday, December 3, 2025 at 10:40:50 AM PST, Glenn Thompson &lt;=
+thompsong@usf.edu&gt; wrote:
+</div>
+<div><br>
+</div>
+<div><br>
+</div>
+<div>
+<div id=3D"ydp6a1bf750yiv0940122886">
+<div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);">
+Great, thanks Tom! How about 11am PST/2 pm EST on Friday?</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);">
+I=E2=80=99ll try to watch that Pinatubo documentary again beforehand too!</=
+div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);">
+(813) 894-0077 iPhone</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);">
+<br clear=3D"none">
+</div>
+<div id=3D"ydp6a1bf750yiv0940122886mail-editor-reference-message-container"=
+>
+<div dir=3D"ltr" class=3D"ydp6a1bf750yiv0940122886ms-outlook-mobile-referen=
+ce-message ydp6a1bf750yiv0940122886skipProofing">
+</div>
+<div id=3D"ydp6a1bf750yiv0940122886yqt14642" class=3D"ydp6a1bf750yiv0940122=
+886yqt7872715392">
+<div style=3D"text-align:left;padding:3pt 0in 0in;border-width:1pt medium m=
+edium;border-style:solid none none;border-color:rgb(181, 196, 223) currentc=
+olor currentcolor;font-family:Aptos;font-size:12pt;color:black;" class=3D"y=
+dp6a1bf750yiv0940122886ms-outlook-mobile-reference-message ydp6a1bf750yiv09=
+40122886skipProofing">
+<b>From: </b>Thomas Murray &lt;murray-tom@att.net&gt;<br clear=3D"none">
+<b>Date: </b>Wednesday, December 3, 2025 at 1:21=E2=80=AFPM<br clear=3D"non=
+e">
+<b>To: </b>Glenn Thompson &lt;thompsong@usf.edu&gt;<br clear=3D"none">
+<b>Subject: </b>Re: [EXTERNAL] FW: Pinatubo seismic data &amp; seismicity o=
+verview<br clear=3D"none">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydpf470f4dbyahoo-style-wrap">
+Good timing. I watched <i>In the Path of a Killer Volcano</i>&nbsp;last nig=
+ht in preparation for a talk about scientists working with communities to d=
+evelop solutions to their problems, not just reports.&nbsp;</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydpf470f4dbyahoo-style-wrap">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydpf470f4dbyahoo-style-wrap">
+Before chatting, I will look through what you sent and find what I have to =
+try to reactivate some gray matter that hasn't been accessed in a long time=
+.&nbsp;</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydpf470f4dbyahoo-style-wrap">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydpf470f4dbyahoo-style-wrap">
+I should be available most of Friday, Saturday afternoon, and Monday mornin=
+g. I prefer 10:30 am at the earliest in all cases since I am a creature of =
+routine in the morning.</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydpf470f4dbyahoo-style-wrap">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydpf470f4dbyahoo-style-wrap">
+I'm in San Franciso, so Pacific time zone.&nbsp;</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydpf470f4dbyahoo-style-wrap">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydpf470f4dbyahoo-style-wrap">
+Tom</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydpf470f4dbyahoo-style-wrap">
+907-301-2859</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydpf470f4dbyahoo-style-wrap">
+<br clear=3D"none">
+</div>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yahoo_quoted_5291710384" clas=
+s=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yahoo_quoted">
+<div style=3D"font-family:Helvetica, Arial, sans-serif;font-size:13px;color=
+:rgb(38, 40, 42);">
+On Tuesday, December 2, 2025 at 12:52:04 PM PST, Glenn Thompson &lt;thompso=
+ng@usf.edu&gt; wrote:</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:13px;color:rgb(38, 40, 42);">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:13px;color:rgb(38, 40, 42);">
+<br clear=3D"none">
+</div>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206">
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);">
+Hi Tom,</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);">
+Below is the directory tree I put together from re-organizing files that yo=
+u, Randy, and JP gave me. The whole archive is only 12 GB currently, as an =
+Earthscope Assembled Dataset. It=E2=80=99s =E2=80=9Crestricted=E2=80=9D cur=
+rently, as I=E2=80=99m working with JP to get permission from PHIVOLCS
+ to make the data open.</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);">
+The LEGACY folder is the original data formats. FAIR is converted - just wa=
+veforms converted to MiniSEED so far, but I did convert phase picks and hyp=
+ocenters to QuakeML too. I plan to convert RSAM to MiniSEED: I think channe=
+l UHZ is correct for 60-s data,
+ and RHZ for 600-s data. SSAM might be best as HDF5. Irregular time series =
+just as timestamped rows in CSV?</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);">
+<b>I wonder if you=E2=80=99d be willing to have a phone call? </b>I=E2=80=
+=99d really like to pick your brain about the development of the VDAP Mobil=
+e Monitoring System, and components like RSAM, BOB, XDETECT/MDETECT etc., a=
+nd what relationship they have to the IASPEI tools
+ by Willie Lee and others. And I wonder if you have the source code for any=
+ of those - and Glowworm?&nbsp;</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);">
+Incidentally, I just had a call with Robert Banfill, who co-authored some o=
+f the SUDS library. We=E2=80=99re going to work on a direct Linux/Mac multi=
+plexed SUDS to MiniSEED converter with IRIG-E time correction. I wonder abo=
+ut converting/replicating some of your codes
+ too, and publishing them in the Journal of Open Source Software - I could =
+do the work, if you are willing to guide. Just a thought.</div>
+<div dir=3D"ltr" style=3D"text-align:left;text-indent:0px;font-family:Aptos=
+, Arial, Helvetica, sans-serif;font-size:12pt;color:rgb(0, 0, 0);" class=3D=
+"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile-referenc=
+e-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProofing">
+<br clear=3D"none">
+</div>
+<p dir=3D"ltr" style=3D"text-align:left;text-indent:0px;line-height:normal;=
+margin:0px;" class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-ou=
+tlook-mobile-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv063853=
+3206skipProofing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">ASSEMB=
+LED-25-028-THOMPSON-PINATUBO1991</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">=E2=94=
+=9C=E2=94=80=E2=94=80 FAIR</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">=E2=94=
+=82&nbsp;&nbsp; =E2=94=94=E2=94=80=E2=94=80 SEISAN</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">=E2=94=
+=82&nbsp;&nbsp; &nbsp; &nbsp; =E2=94=94=E2=94=80=E2=94=80 WAV</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">=E2=94=
+=82&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=94=E2=94=80=E2=94=80 199=
+1</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">=E2=94=
+=82&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=
+=80=E2=94=80 05</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">=E2=94=
+=82&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=
+=80=E2=94=80 06</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">=E2=94=
+=82&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=
+=80=E2=94=80 07</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">=E2=94=
+=82&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=
+=80=E2=94=80 08</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">=E2=94=
+=82&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=
+=80=E2=94=80 09</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">=E2=94=
+=82&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=
+=80=E2=94=80 10</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">=E2=94=
+=82&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=
+=80=E2=94=80 11</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">=E2=94=
+=82&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=94=E2=94=
+=80=E2=94=80 12</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">=E2=94=
+=94=E2=94=80=E2=94=80 LEGACY</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=9C=E2=94=80=E2=94=80 BOB</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=94=80 COSPEC</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=94=80 COUNTS</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=94=80 DATA</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 CABZ</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 PIEZ</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=94=E2=94=80=E2=
+=94=80 RDNZ</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=94=80 MUDFLOW</span></p=
+>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 ABAC</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 BALF</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 GUMA</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 LSAC</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 MARL</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 PASI</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 PROGS</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =
+=E2=94=94=E2=94=80=E2=94=80 MUDDAT</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=94=E2=94=80=E2=
+=94=80 USAC</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=94=80 RAD_FREQ</span></=
+p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=94=80 RAIN</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=94=80 RSAM</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 EVNT</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=94=E2=94=80=E2=
+=94=80 RSAM</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=94=80 SSAM</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 BUG1</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =
+=E2=94=94=E2=94=80=E2=94=80 TEMP</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 BUR1</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 CAB1</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =
+=E2=94=94=E2=94=80=E2=94=80 TEMP</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 DON1</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 FNG1</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =
+=E2=94=94=E2=94=80=E2=94=80 TEMP</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 PI21</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =
+=E2=94=94=E2=94=80=E2=94=80 TEMP</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 PPE1</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 PPO1</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=
+=94=80 QAD1</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =
+=E2=94=94=E2=94=80=E2=94=80 TEMP</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=94=E2=94=80=E2=
+=94=80 UBO1</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=94=80 TIDES</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=94=E2=94=80=E2=94=80 TILT</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=80=E2=94=80 PPO=
+_</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; &nbsp; &nbsp; =E2=94=94=E2=94=80=E2=94=80 UBO=
+_</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=9C=E2=94=80=E2=94=80 EVENT_METADATA</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=94=80 HYPOCENTERS</span=
+></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=9C=E2=94=80=E2=94=80 MONTHLY_PHA</span=
+></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=94=E2=94=80=E2=94=80 PHA</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=80=E2=94=80 910=
+603</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; &nbsp; &nbsp; =E2=94=94=E2=94=80=E2=94=80 910=
+610</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=9C=E2=94=80=E2=94=80 HELICORDERS</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=82&nbsp;&nbsp; =E2=94=94=E2=94=80=E2=94=80 PIN_DRUM2</span><=
+/p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=9C=E2=94=80=E2=94=80 STATION_METADATA</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; =E2=94=94=E2=94=80=E2=94=80 WAVEFORM_DATA</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; &nbsp; &nbsp; =E2=94=94=E2=94=80=E2=94=80 SUDS</span></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=80=E2=94=80 199105</spa=
+n></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=80=E2=94=80 199106</spa=
+n></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=80=E2=94=80 199107</spa=
+n></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=80=E2=94=80 199108</spa=
+n></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=80=E2=94=80 199109</spa=
+n></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=80=E2=94=80 199110</spa=
+n></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=9C=E2=94=80=E2=94=80 199111</spa=
+n></p>
+<p style=3D"text-align:left;text-indent:0px;line-height:normal;margin:0px;"=
+ class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile=
+-reference-message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProo=
+fing">
+<span style=3D"font-family:Menlo;font-size:11px;color:rgb(0, 0, 0);">&nbsp;=
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; =E2=94=94=E2=94=80=E2=94=80 199112</spa=
+n></p>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);">
+<br clear=3D"none">
+</div>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206mail-editor-refe=
+rence-message-container">
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206yqt97158" class=
+=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206yqt0345587426">
+<div style=3D"text-align:left;padding:3pt 0in 0in;border-width:1pt medium m=
+edium;border-style:solid none none;border-color:rgb(181, 196, 223) currentc=
+olor currentcolor;font-family:Aptos;font-size:12pt;color:black;" class=3D"y=
+dp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile-reference-=
+message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProofing">
+<b>From: </b>Glenn Thompson &lt;thompsong@usf.edu&gt;<br clear=3D"none">
+<b>Date: </b>Wednesday, November 19, 2025 at 2:13=E2=80=AFPM<br clear=3D"no=
+ne">
+<b>To: </b>Thomas Murray &lt;murray-tom@att.net&gt;<br clear=3D"none">
+<b>Subject: </b>Re: [EXTERNAL] FW: Pinatubo seismic data &amp; seismicity o=
+verview<br clear=3D"none">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);" class=3D"ydp6a1bf750yiv0940122886ydp1446=
+a2c4yiv0638533206ms-outlook-mobile-reference-message ydp6a1bf750yiv09401228=
+86ydp1446a2c4yiv0638533206skipProofing">
+Hi Tom,</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);" class=3D"ydp6a1bf750yiv0940122886ydp1446=
+a2c4yiv0638533206ms-outlook-mobile-reference-message ydp6a1bf750yiv09401228=
+86ydp1446a2c4yiv0638533206skipProofing">
+Sorry, I got swamped with other project for the past 7 months, but now retu=
+rning to this. Hoping to just publish a simple paper on the data archive an=
+d conversion under FAIR principles for now, along with the codes I wrote to=
+ complete the exercise.&nbsp;</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);" class=3D"ydp6a1bf750yiv0940122886ydp1446=
+a2c4yiv0638533206ms-outlook-mobile-reference-message ydp6a1bf750yiv09401228=
+86ydp1446a2c4yiv0638533206skipProofing">
+Let me know if you want to co-author. I appreciate you are retired, but sin=
+ce you inspired so much of my work and you know so much about the Pinatubo =
+setup, I=E2=80=99d be happy to have you on-board.</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);" class=3D"ydp6a1bf750yiv0940122886ydp1446=
+a2c4yiv0638533206ms-outlook-mobile-reference-message ydp6a1bf750yiv09401228=
+86ydp1446a2c4yiv0638533206skipProofing">
+I=E2=80=99m not sure how to coordinate this effort with PHIVOLCS. JP was or=
+iginally going to provide that interface and let me know, but he=E2=80=99s =
+retired now too. And so did Andy during this project, so I have no informat=
+ion on instrument responses either.</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);" class=3D"ydp6a1bf750yiv0940122886ydp1446=
+a2c4yiv0638533206ms-outlook-mobile-reference-message ydp6a1bf750yiv09401228=
+86ydp1446a2c4yiv0638533206skipProofing">
+Cheers,</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);" class=3D"ydp6a1bf750yiv0940122886ydp1446=
+a2c4yiv0638533206ms-outlook-mobile-reference-message ydp6a1bf750yiv09401228=
+86ydp1446a2c4yiv0638533206skipProofing">
+Glenn</div>
+<div dir=3D"ltr" style=3D"font-family:Aptos, Arial, Helvetica, sans-serif;f=
+ont-size:12pt;color:rgb(0, 0, 0);" class=3D"ydp6a1bf750yiv0940122886ydp1446=
+a2c4yiv0638533206ms-outlook-mobile-reference-message ydp6a1bf750yiv09401228=
+86ydp1446a2c4yiv0638533206skipProofing">
+<br clear=3D"none">
+</div>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206mail-editor-refe=
+rence-message-container">
+<div style=3D"text-align:left;padding:3pt 0in 0in;border-width:1pt medium m=
+edium;border-style:solid none none;border-color:rgb(181, 196, 223) currentc=
+olor currentcolor;font-family:Aptos;font-size:12pt;color:black;" class=3D"y=
+dp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile-reference-=
+message ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProofing">
+<b>From: </b>Thomas Murray &lt;murray-tom@att.net&gt;<br clear=3D"none">
+<b>Date: </b>Wednesday, April 16, 2025 at 10:48=E2=80=AFPM<br clear=3D"none=
+">
+<b>To: </b>Glenn Thompson &lt;thompsong@usf.edu&gt;<br clear=3D"none">
+<b>Subject: </b>Re: [EXTERNAL] FW: Pinatubo seismic data &amp; seismicity o=
+verview<br clear=3D"none">
+<br clear=3D"none">
+</div>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydp23bce303yiv39=
+47432043">
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydp23bce3=
+03yiv3947432043ydp994f9837yahoo-style-wrap">
+I just checked Fire and Mud. The Pinatubo RSAM was still the Model 100 vers=
+ion.&nbsp; From the USGS openb-file report on the Model 100 version&nbsp;</=
+div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydp23bce3=
+03yiv3947432043ydp994f9837yahoo-style-wrap">
+<br clear=3D"none">
+</div>
+</div>
+<div dir=3D"ltr" style=3D"margin-right:0px;margin-left:40px;font-family:Hel=
+vetica, Arial, sans-serif;font-size:16px;" class=3D"ydp6a1bf750yiv094012288=
+6ydp1446a2c4yiv0638533206ydp23bce303yiv3947432043ydp994f9837yahoo-style-wra=
+p">
+&quot;At the beginning of each minute, a call to the data-acquisition sub-p=
+rogram causes the Model 100/102 to digitize 125 samples for each seismic in=
+put at a rate of about 50 samples/second/input and return the sums of the d=
+igitized values.&quot;</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydp23bce3=
+03yiv3947432043ydp994f9837yahoo-style-wrap">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydp23bce3=
+03yiv3947432043ydp994f9837yahoo-style-wrap">
+So the event data would have been the RSAM average taken over about 2.5 sec=
+onds (125 samples/(50 samples/second)). I think you understand that everyth=
+ing is approximate because of the limitations of the Model 100. You couldn'=
+t sample the data in background
+ like I was able to when I converted to the PC-based RSAM.&nbsp; I recall t=
+hat I got to 50 samples/second/input by just experiementing with a simple l=
+oop interation delay between taking a sample until it seemed to be close to=
+ the desired 50 sps /input channel.</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydp23bce3=
+03yiv3947432043ydp994f9837yahoo-style-wrap">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydp23bce3=
+03yiv3947432043ydp994f9837yahoo-style-wrap">
+So the Model 100 would grab 125 samples, halt digitizing for a bit to proce=
+ss the data and then go back for another 125 samples. The RSAM openfile est=
+imates that over a minute less than 15% of the time (~9 seconds/minute) was=
+ devoted to processing and transferring
+ the data for BOB storage. Not sampling during that 9 seconds was another r=
+eason for the classical earthquake seismologists to initially dismiss RSAM.=
+&nbsp; &nbsp;</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydp23bce3=
+03yiv3947432043ydp994f9837yahoo-style-wrap">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydp23bce3=
+03yiv3947432043ydp994f9837yahoo-style-wrap">
+When I went to the PC-based RSAM I think I went to 100 samples/second, but =
+would have to double-check that.</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:16px;" class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydp23bce3=
+03yiv3947432043ydp994f9837yahoo-style-wrap">
+<br clear=3D"none">
+<br clear=3D"none">
+</div>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043yqt74814" class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206=
+ydpa046c48fyiv3947432043yqt6918583841">
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyahoo_quoted_5640015400" class=3D"ydp6a1bf750yiv09401228=
+86ydp1446a2c4yiv0638533206ydpa046c48fyiv3947432043ydpc1c4cb3cyahoo_quoted">
+<div style=3D"font-family:Helvetica, Arial, sans-serif;font-size:13px;color=
+:rgb(38, 40, 42);">
+On Wednesday, April 16, 2025 at 09:54:09 AM PDT, Glenn Thompson &lt;thompso=
+ng@usf.edu&gt; wrote:</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:13px;color:rgb(38, 40, 42);">
+<br clear=3D"none">
+</div>
+<div dir=3D"ltr" style=3D"font-family:Helvetica, Arial, sans-serif;font-siz=
+e:13px;color:rgb(38, 40, 42);">
+<br clear=3D"none">
+</div>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824">
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:11pt;">Thanks for the explanation of RSAM EVNT fil=
+es Tom!</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:11pt;">I thought RSAM did 2.56s averages (8 bits a=
+t 100 Hz), but heck, you wrote it, so I guess it is 5.12s.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:11pt;">I think at Montserrat we also had RSAM TRIG=
+ files (as well as EVNT files).</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:11pt;">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:11pt;">To me, the most fascinating parts of the RS=
+AM system were the real-time bargraphs (2.56s, 60s,</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:11pt;">&nbsp;</span></p>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824mail-editor-reference-message-container">
+<div style=3D"padding:3pt 0in 0in;border-width:1pt medium medium;border-sty=
+le:solid none none;border-color:rgb(181, 196, 223) currentcolor currentcolo=
+r;">
+<p style=3D"margin-bottom:12pt;" class=3D"ydp6a1bf750yiv0940122886ydp1446a2=
+c4yiv0638533206ydpa046c48fyiv3947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:12pt;color:black;"><b>From: </b>Thomas Murray &lt;=
+murray-tom@att.net&gt;<br clear=3D"none">
+<b>Date: </b>Wednesday, April 16, 2025 at 12:36</span><span style=3D"font-f=
+amily:sans-serif;font-size:12pt;color:black;">=E2=80=AF</span><span style=
+=3D"font-size:12pt;color:black;">PM<br clear=3D"none">
+<b>To: </b>Glenn Thompson &lt;thompsong@usf.edu&gt;<br clear=3D"none">
+<b>Subject: </b>Re: [EXTERNAL] FW: Pinatubo seismic data &amp; seismicity o=
+verview</span></p>
+</div>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:12pt;">RSAM Event algorithm:&nbsp; I'm a little ha=
+zy on the details, but it is akin to an STA/LTA but instead uses maybe 5-se=
+cond RSAM values for the &quot;average&quot;. If the RSAM values being coll=
+ected every 5.12? seconds are of a series R(1), R(2),
+ R(3), R(4) etc it compares not the current value not to the immediately pr=
+eceding value, but the value before that (comparing R(4) with R(2) for inst=
+ance).&nbsp; This is done because if an event arrived sometime in the R(3) =
+time period it would have an unknown
+ mix of pre-event and event data. R(2) would be the clean pre-event arrival=
+ average and R(4) the post event arrival average.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:12pt;">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:12pt;">And there are no cross-station comparison.&=
+nbsp; It is designed to be run on a single station, like one doing event co=
+unts from a paper seismiogram.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:12pt;">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:12pt;">I recall...</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:12pt;">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:12pt;">The zip files do unzip from what I've seen =
+so far.&nbsp; I don't know if a problem developed in zipping the zipped fil=
+es (it shouldn't).&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:12pt;">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:12pt;">You can try to unzip them on a PC.&nbsp; Ju=
+st let me know if you want me to unzip them before packaging them to upload=
+ to your dropbox.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:12pt;">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"font-size:12pt;">&nbsp;</span></p>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yahoo_quoted_5783727789">
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"color:rgb(38, 40, 42);">On Tuesday, April 15, 2025 at 01:42:=
+56 PM PDT, Glenn Thompson &lt;thompsong@usf.edu&gt; wrote:</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824MsoNormal">
+<span style=3D"color:rgb(38, 40, 42);">&nbsp;</span></p>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131">
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">Hi Tom,</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">Thanks for the data u=
+pload! This is great!</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">I converted the 10-mi=
+nute RSAM data to CSV files, and also made some simple plots just as a quic=
+k check so see what time range each RSAM binary has populated data for. Hav=
+ing the RSAM data is a huge boost.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">I also translated the=
+ legacy station/component names to SEED format.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">Plots attached in a z=
+ip file =E2=80=93 hopefully it gets through the email filter (just 244 kB).=
+</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">Great to have the RSA=
+M EVNT data too. If I understand correctly, these data come from an STA/LTA=
+ detector running on each channel? Not aggregated (associated) into events =
+across the network, but I could always
+ do that.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">The TILT data (in the=
+ archive in separate zip files) did not uncompress successfully, but I=E2=
+=80=99ve only tried on a Mac so far. Might have more luck on my Windows PC =
+at the office.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">The SSAM folder has s=
+ome binary files, and also some zip files =E2=80=93 and those zip files als=
+o do not uncompress. I wrote something to translate SSAM data before, but I=
+ think those were .FFT files. So it might
+ take some work to figure out the SSAM binary format.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);"><i>&nbsp;</i></span><=
+/p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">I see QUAKES, RAIN, M=
+UDFLOW and COSPEC data too. It=E2=80=99ll take a while to parse through the=
+ whole archive and figure out what everything is, and make some first order=
+ plots.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">Cheers,</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">Glenn</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:11pt;color:rgb(38, 40, 42);">&nbsp;</span></p>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131yqt49318">
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131mail-editor-referen=
+ce-message-container">
+<div style=3D"padding:3pt 0in 0in;border-width:1pt medium medium;border-sty=
+le:solid none none;border-color:rgb(181, 196, 223) currentcolor currentcolo=
+r;">
+<p style=3D"margin-bottom:12pt;" class=3D"ydp6a1bf750yiv0940122886ydp1446a2=
+c4yiv0638533206ydpa046c48fyiv3947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3y=
+iv5969160131msonormal">
+<span style=3D"color:black;"><b>From: </b>Glenn Thompson &lt;thompsong@usf.=
+edu&gt;<br clear=3D"none">
+<b>Date: </b>Monday, April 14, 2025 at 6:48</span><span style=3D"font-famil=
+y:sans-serif;color:black;">=E2=80=AF</span><span style=3D"color:black;">PM<=
+br clear=3D"none">
+<b>To: </b>Thomas Murray &lt;murray-tom@att.net&gt;<br clear=3D"none">
+<b>Subject: </b>Re: [EXTERNAL] FW: Pinatubo seismic data &amp; seismicity o=
+verview</span></p>
+</div>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">Hi Tom,</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">Thanks very much for all your effort=
+s to hunt these data down =E2=80=93 and to look after them all this time!</=
+span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">Can you upload to this link: <a shap=
+e=3D"rect" href=3D"https://www.dropbox.com/request/3Sy7fJjoEFgAZdaHI6Mr" st=
+yle=3D"margin-top:0px;margin-bottom:0px;" rel=3D"nofollow" target=3D"_blank=
+">
+https://www.dropbox.com/request/3Sy7fJjoEFgAZdaHI6Mr</a>&nbsp;?<br clear=3D=
+"none">
+You don=E2=80=99t need to have Dropbox installed, or have an account, it sh=
+ould just allow you to upload. But let me know if you run into any issues.<=
+/span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">Thanks!</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">Glenn</span></p>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131ms-outlook-mobile-b=
+ody-separator-line">
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">&nbsp;</span></p>
+</div>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131ms-outlook-mobile-s=
+ignature">
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">Get <a shape=3D"rect" href=3D"https:=
+//nam04.safelinks.protection.outlook.com/?url=3Dhttps%3A%2F%2Faka.ms%2Fo0uk=
+ef&amp;data=3D05%7C02%7Cthompsong%40usf.edu%7Ca86c57c99bf6439ad95608de32b0d=
+503%7C741bf7dee2e546df8d6782607df9deaa%7C0%7C0%7C639003932272603933%7CUnkno=
+wn%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMi=
+IsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&amp;sdata=3DjDJf4wu2IR0GXAz=
+oW8MWTqzkWUVvxrJbc7VJSQV69KY%3D&amp;reserved=3D0" originalsrc=3D"https://ak=
+a.ms/o0ukef" style=3D"margin-top:0px;margin-bottom:0px;" rel=3D"nofollow" t=
+arget=3D"_blank">
+Outlook for iOS</a></span></p>
+</div>
+<hr align=3D"center" dir=3D"ltr" style=3D"width:100%;">
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131divRplyFwdMsg">
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-family:sans-serif;font-size:11pt;color:black;"><b>From:=
+</b>&nbsp;Thomas Murray &lt;murray-tom@att.net&gt;<br clear=3D"none">
+<b>Sent:</b>&nbsp;Monday, April 14, 2025 5:32:50 PM<br clear=3D"none">
+<b>To:</b>&nbsp;Glenn Thompson &lt;thompsong@usf.edu&gt;<br clear=3D"none">
+<b>Subject:</b>&nbsp;Re: [EXTERNAL] FW: Pinatubo seismic data &amp; seismic=
+ity overview</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">&nbsp;</span></p>
+</div>
+<table align=3D"left" cellspacing=3D"0" cellpadding=3D"0" style=3D"backgrou=
+nd-color: revert; display: table; width: 100%; table-layout: fixed; color: =
+revert; border-collapse: collapse;" class=3D"ydp6a1bf750yiv0940122886ydp144=
+6a2c4yiv0638533206ydpa046c48fyiv3947432043ydpc1c4cb3cyiv5911277824MsoNormal=
+Table">
+<tbody>
+<tr style=3D"background-color:revert;">
+<td colspan=3D"1" rowspan=3D"1" style=3D"background-color:rgb(166, 166, 166=
+);padding:2px;color:revert;width:0px;" class=3D"ydp6a1bf750yiv0940122886ydp=
+1446a2c4yiv0638533206ydpa046c48fyiv3947432043ydpc1c4cb3cyiv5911277824MsoNor=
+malTable">
+</td>
+<td colspan=3D"1" rowspan=3D"1" style=3D"text-align:left;background-color:r=
+gb(234, 234, 234);padding:15px;width:100%;" class=3D"ydp6a1bf750yiv09401228=
+86ydp1446a2c4yiv0638533206ydpa046c48fyiv3947432043ydpc1c4cb3cyiv5911277824M=
+soNormalTable">
+<p style=3D"text-align:left;" class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4y=
+iv0638533206ydpa046c48fyiv3947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5=
+969160131msonormal">
+<span style=3D"font-family:sans-serif;font-size:12px;color:black;">You don'=
+t often get email from murray-tom@att.net.
+<a shape=3D"rect" href=3D"https://aka.ms/LearnAboutSenderIdentification" st=
+yle=3D"margin-top:0px;margin-bottom:0px;" rel=3D"nofollow" target=3D"_blank=
+">
+Learn why this is important</a></span></p>
+</td>
+<td colspan=3D"1" rowspan=3D"1" style=3D"text-align:left;background-color:r=
+gb(234, 234, 234);padding:5px;width:75px;" class=3D"ydp6a1bf750yiv094012288=
+6ydp1446a2c4yiv0638533206ydpa046c48fyiv3947432043ydpc1c4cb3cyiv5911277824Ms=
+oNormalTable">
+</td>
+</tr>
+</tbody>
+</table>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">My email to you with the zip attachm=
+ent bounced back - it appears the problem is that your system security does=
+ not like zip files sent as attachments.&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">Suggestions?</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">Tom</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">&nbsp;</span></p>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131x_ydpb5bb7620yahoo_=
+quoted_5586405750">
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:10pt;color:rgb(38, 40, 42);">On Monday, April 14, =
+2025 at 02:14:20 PM PDT, Thomas Murray &lt;murray-tom@att.net&gt; wrote:</s=
+pan></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:10pt;color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:10pt;color:rgb(38, 40, 42);">&nbsp;</span></p>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131x_ydpb5bb7620yiv996=
+0329489">
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">Found the files </span><span style=
+=3D"color:black;">&nbsp;(I was getting nervous and finally had to do a sear=
+ch though. Who knew it would be under aaa/travel/temp?
+</span><span style=3D"color:rgb(38, 40, 42);"><b>Error! Filename not specif=
+ied.</b></span><span style=3D"color:black;">)</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">I've attempted to attach a 7MB zip f=
+ile with all the Bob data from Pinatubo.&nbsp; It's about 30M unzipped. I h=
+ope that Fire and Mud has all the meta-data you will need.&nbsp; Let me kno=
+w if there is a problem with the zip file.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">I'm not up for being a co-author on =
+anything but can assist with specific questions if needed.&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">Good luck with your efforts.&nbsp; L=
+et me know how it all ends up.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">- Tom</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"color:rgb(38, 40, 42);">&nbsp;</span></p>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131x_ydpb5bb7620yiv996=
+0329489yqt32411">
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131x_ydpb5bb7620yiv996=
+0329489ydp2a0b618byahoo_quoted_5460016548">
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:10pt;color:rgb(38, 40, 42);">On Friday, April 11, =
+2025 at 05:40:16 AM PDT, Glenn Thompson &lt;thompsong@usf.edu&gt; wrote:</s=
+pan></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:10pt;color:rgb(38, 40, 42);">&nbsp;</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131msonormal">
+<span style=3D"font-size:10pt;color:rgb(38, 40, 42);">&nbsp;</span></p>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131x_ydpb5bb7620yiv996=
+0329489ydp2a0b618byiv8513831340">
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131xydpb5bb7620yiv996=
+0329489ydp2a0b618byiv8513831340msonormal">
+<span style=3D"color:black;">Hi Tom,</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131xydpb5bb7620yiv996=
+0329489ydp2a0b618byiv8513831340msonormal">
+<span style=3D"color:black;">Thanks so much=E2=80=94this is really encourag=
+ing news. I'm grateful that you=E2=80=99re willing to check your archives t=
+his weekend. If any of the RSAM, tilt, or SSAM data turns up, it=E2=80=99ll=
+ be a big step forward in helping us remaster the Pinatubo
+ dataset for long-term preservation and reuse.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131xydpb5bb7620yiv996=
+0329489ydp2a0b618byiv8513831340msonormal">
+<span style=3D"color:black;">As part of a broader effort, I=E2=80=99m also =
+setting up a legacy PC with support for older software and for reading olde=
+r media=E2=80=94Zip drives, DDS DAT tapes, and even 5.25&quot; and 3.5&quot=
+; floppies=E2=80=94so we can access and convert whatever formats may
+ be out there.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131xydpb5bb7620yiv996=
+0329489ydp2a0b618byiv8513831340msonormal">
+<span style=3D"color:black;">Regarding the instrument response: no worries =
+if details on the gains are lost. We can always estimate average combined g=
+ains and site effects statistically by comparing network-wide amplitudes fo=
+r a suite of well-located events.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131xydpb5bb7620yiv996=
+0329489ydp2a0b618byiv8513831340msonormal">
+<span style=3D"color:black;">Would you be interested in co-authoring the da=
+ta paper with John Power and me? We'd be happy to have your input and histo=
+rical insights. Either way, we=E2=80=99ll be sure to acknowledge your contr=
+ibution to the dataset and this recovery effort.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131xydpb5bb7620yiv996=
+0329489ydp2a0b618byiv8513831340msonormal">
+<span style=3D"color:black;">And yes, I completely hear you on the politica=
+l situation. The impacts on science, jobs, our allies, and the economy are =
+weakening the USA. It is particularly sad to see the attacks on USAID. At t=
+he university, we=E2=80=99re bracing for major
+ funding cuts across the board=E2=80=94grim stuff. Wishing you and your par=
+t of the world continued stability.</span></p>
+<p class=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv3=
+947432043ydpc1c4cb3cyiv5911277824ydpd5b01fd3yiv5969160131xydpb5bb7620yiv996=
+0329489ydp2a0b618byiv8513831340msonormal">
+<span style=3D"color:black;">Wishing you a good weekend,<br clear=3D"none">
+Glenn</span><span style=3D"font-size:11pt;color:rgb(38, 40, 42);"><a shape=
+=3D"rect" href=3D"mailto:thompsong@usf.edu" style=3D"margin-top:0px;margin-=
+bottom:0px;" rel=3D"nofollow" target=3D"_blank">ilto:thompsong@usf.edu</a>)=
+</span></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div style=3D"padding:12pt;border-width:1pt;border-style:solid;border-color=
+:rgb(255, 202, 202);">
+<p style=3D"background-color:rgb(255, 202, 202);"><span style=3D"font-size:=
+10pt;color:black;"><b>[EXTERNAL EMAIL]</b>&nbsp;DO NOT CLICK links or attac=
+hments unless you recognize the sender and know the content is safe.</span>=
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id=3D"ydp6a1bf750yiv0940122886ydp1446a2c4yiv0638533206ydpa046c48fyiv39=
+47432043ydpc1c4cb3cyiv5911277824yqtfd68661" class=3D"ydp6a1bf750yiv09401228=
+86ydp1446a2c4yiv0638533206ydpa046c48fyiv3947432043ydpc1c4cb3cyiv5911277824y=
+qt9964997384">
+<div style=3D"background-color:rgb(255, 202, 202);padding:12pt;border-width=
+:1pt;border-style:solid;border-color:rgb(255, 202, 202);">
+<p style=3D"background-color:rgb(255, 202, 202);padding:0in;border-width:me=
+dium;border-style:none;border-color:currentcolor;">
+<span style=3D"color:black;"><b>[EXTERNAL EMAIL]</b> </span><span style=3D"=
+font-size:10pt;color:black;">DO NOT CLICK links or attachments unless you r=
+ecognize the sender and know the content is safe.</span></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p style=3D"background-color:rgb(255, 202, 202);padding:1em;border-width:1p=
+x;border-style:solid;border-color:rgb(255, 202, 202);" class=3D"ydp6a1bf750=
+yiv0940122886ydp1446a2c4yiv0638533206ms-outlook-mobile-reference-message yd=
+p6a1bf750yiv0940122886ydp1446a2c4yiv0638533206skipProofing">
+<span style=3D"font-size:12pt;color:black;"><b>[EXTERNAL EMAIL]</b></span> =
+<span style=3D"font-size:10pt;color:black;">
+DO NOT CLICK links or attachments unless you recognize the sender and know =
+the content is safe.</span></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p style=3D"background-color:rgb(255, 202, 202);padding:1em;border-width:1p=
+x;border-style:solid;border-color:rgb(255, 202, 202);" class=3D"ydp6a1bf750=
+yiv0940122886ms-outlook-mobile-reference-message ydp6a1bf750yiv0940122886sk=
+ipProofing">
+<span style=3D"font-size:12pt;color:black;"><b>[EXTERNAL EMAIL]</b></span> =
+<span style=3D"font-size:10pt;color:black;">
+DO NOT CLICK links or attachments unless you recognize the sender and know =
+the content is safe.</span></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p style=3D"border:1px; border-style:solid; border-color: #FFCACA; backgrou=
+nd-color: #FFCACA; padding: 1em;">
+<span style=3D"font-size:12.0pt;color:black;"><b>[EXTERNAL EMAIL]</span></b=
+> <span style=3D"font-size:10.0pt;color:black">
+DO NOT CLICK links or attachments unless you recognize the sender and know =
+the content is safe.</span></p>
+</body>
+</html>
+
+------=_Part_1967256_1388989729.1764796417459--
