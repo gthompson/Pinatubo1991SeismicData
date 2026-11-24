@@ -36,7 +36,8 @@ Harlow, D.~H., J.~A. Power, E.~P. Laguerta, G.~Ambubuyog, R.~A. White, and
   Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  285--305.
   Philippine Institute of Volcanology and Seismology and University of
   Washington Press.
-\newblock VERIFY pages.
+\newblock VERIFY pages: Jones (2001) cites 285--305; a different source gives
+  285--306.
 
 \bibitem[\protect\citeauthoryear{Havskov and Ottem{\"o}ller}{Havskov and
   Ottem{\"o}ller}{1999}]{Havskov_1999}
@@ -50,10 +51,10 @@ Havskov, J. and L.~Ottem{\"o}ller (1999).
 Hoblitt, R.~P., J.~Mori, and J.~A. Power (1996).
 \newblock Computer visualization of earthquake hypocenters.
 \newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
-  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  383--386.
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  383--385.
   Philippine Institute of Volcanology and Seismology and University of
   Washington Press.
-\newblock VERIFY pages.
+\newblock VERIFY pages: Jones (2001) cites 383--385; check against book.
 
 \bibitem[\protect\citeauthoryear{{International Seismological
   Centre}}{{International Seismological Centre}}{2024}]{ISC_2024}
@@ -111,7 +112,6 @@ Lockhart, A.~B., S.~Marcial, G.~Ambubuyog, E.~P. Laguerta, and J.~A. Power
   Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  215--223.
   Philippine Institute of Volcanology and Seismology and University of
   Washington Press.
-\newblock VERIFY pages.
 
 \bibitem[\protect\citeauthoryear{McChesney}{McChesney}{1999}]{McChesney_1999}
 McChesney, P.~J. (1999).
@@ -128,7 +128,8 @@ Mori, J., D.~Eberhart-Phillips, and D.~H. Harlow (1996).
   Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  371--382.
   Philippine Institute of Volcanology and Seismology and University of
   Washington Press.
-\newblock VERIFY pages.
+\newblock Pages per Jones (2001): 371--382; Ramos (1999) cites 339--350 —
+  probable error in Ramos.
 
 \bibitem[\protect\citeauthoryear{Mori, White, Harlow, Okubo, Power, Hoblitt,
   Laguerta, Lanuza, and Bautista}{Mori et~al.}{1996}]{Mori_1996a}
@@ -140,7 +141,6 @@ Mori, J., R.~A. White, D.~H. Harlow, P.~Okubo, J.~A. Power, R.~P. Hoblitt,
   Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  339--350.
   Philippine Institute of Volcanology and Seismology and University of
   Washington Press.
-\newblock VERIFY pages.
 
 \bibitem[\protect\citeauthoryear{Murray}{Murray}{1990}]{Murray_1990}
 Murray, T.~L. (1990).
@@ -165,7 +165,6 @@ Murray, T.~L., J.~A. Power, G.~Davidson, and J.~N. Marso (1996).
   Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  225--232.
   Philippine Institute of Volcanology and Seismology and University of
   Washington Press.
-\newblock VERIFY pages.
 
 \bibitem[\protect\citeauthoryear{Newhall and Punongbayan}{Newhall and
   Punongbayan}{1996}]{Newhall_1996}
@@ -194,6 +193,14 @@ Power, J.~A., T.~L. Murray, J.~N. Marso, and E.~P. Laguerta (1996).
   Philippine Institute of Volcanology and Seismology and University of
   Washington Press.
 \newblock VERIFY pages.
+
+\bibitem[\protect\citeauthoryear{Ramos, Hamburger, Pavlis, and Laguerta}{Ramos
+  et~al.}{1999}]{Ramos_1999}
+Ramos, E.~G., M.~W. Hamburger, G.~L. Pavlis, and E.~P. Laguerta (1999).
+\newblock The low-frequency earthquake swarms at {Mount Pinatubo},
+  {Philippines}: Implications for magma dynamics.
+\newblock {\em J. Volcanol. Geotherm. Res.\/}~{\bf 92}, 295--320, doi:
+  \refdoi{10.1016/S0377-0273(99)00091-8}.
 
 \bibitem[\protect\citeauthoryear{Rogers and Stephens}{Rogers and
   Stephens}{1995}]{Rogers_1995}
@@ -276,10 +283,9 @@ White, R.~A. (1996).
 \newblock Precursory deep long-period earthquakes at {Mount Pinatubo}:
   Spatio-temporal link to a basalt trigger.
 \newblock In C.~G. Newhall and R.~S. Punongbayan (Eds.), {\em Fire and Mud:
-  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  307--327.
+  Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  307--328.
   Philippine Institute of Volcanology and Seismology and University of
   Washington Press.
-\newblock VERIFY pages.
 
 \bibitem[\protect\citeauthoryear{Wolfe and Hoblitt}{Wolfe and
   Hoblitt}{1996}]{Wolfe_1996}
@@ -289,6 +295,5 @@ Wolfe, E.~W. and R.~P. Hoblitt (1996).
   Eruptions and Lahars of {Mount Pinatubo}, {Philippines}}, pp.\  3--20.
   Philippine Institute of Volcanology and Seismology and University of
   Washington Press.
-\newblock VERIFY pages.
 
 \end{thebibliography}
