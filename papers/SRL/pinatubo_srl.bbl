@@ -113,6 +113,12 @@ Lockhart, A.~B., S.~Marcial, G.~Ambubuyog, E.~P. Laguerta, and J.~A. Power
   Washington Press.
 \newblock VERIFY pages.
 
+\bibitem[\protect\citeauthoryear{McChesney}{McChesney}{1999}]{McChesney_1999}
+McChesney, P.~J. (1999).
+\newblock {McVCO} handbook 1999.
+\newblock Open-File Report 99-361, U.S. Geological Survey, doi:
+  \refdoi{10.3133/ofr99361}.
+
 \bibitem[\protect\citeauthoryear{Mori, Eberhart-Phillips, and Harlow}{Mori
   et~al.}{1996}]{Mori_1996b}
 Mori, J., D.~Eberhart-Phillips, and D.~H. Harlow (1996).

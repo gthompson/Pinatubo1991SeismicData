@@ -1,0 +1,29 @@
+{
+  "status": "DRAFT nominal values for the unrecorded telemetry and acquisition electronics. Values documented for the equipment types used, not calibrations of the 1991 units.",
+  "reference_frequency_hz": 5.0,
+  "stages": {
+    "preamp_zero_attenuation_gain_db": {
+      "value": 90.0,
+      "uncertainty_db": 6.0,
+      "units": "dB (V/V) before the station attenuator",
+      "basis": "McChesney (1999, USGS OFR 99-361): 'the USGS J502 has an unattenuated gain of 90 dB'; an 18 dB attenuator setting gives 72 dB. The Pinatubo VCO boards were CVO designs (T.L. Murray) on the J502 circuit (Lockhart et al., 1996), so the J502 value is assumed; the boards themselves were not measured. Lockhart's 'standard gain of 62-74 dB' for later CVO boards corresponds to 16-28 dB attenuation on this scale, consistent with the 18-36 dB settings of Appendix 1. The uncertainty is a judgement for an unmeasured custom board."
+    },
+    "vco_hz_per_v": {
+      "value": 28.395061728395063,
+      "units": "Hz/V",
+      "basis": "McChesney (1999): 'The J502 and J512 produced by the USGS use 115 Hz / 4.05 V'."
+    },
+    "discriminator_v_per_hz": {
+      "value": 0.035217391304347826,
+      "units": "V/Hz",
+      "basis": "USGS J101 and J110 discriminators (Lockhart et al., 1996); their scale is not documented for Pinatubo. McChesney (1999) states that the VCO amplifier test-point signal has approximately the same amplitude as the discriminator output, i.e. discriminators matched to the 115 Hz / 4.05 V deviation; the inverse, 4.05 V / 115 Hz, is used, so VCO and discriminator together are 1 V/V."
+    },
+    "adc_counts_per_v": {
+      "value": 819.2,
+      "units": "counts/V",
+      "basis": "Data Translation DT2821 on WILLIE (Murray et al., 1996, citing Ellis, 1989): 12-bit, +/-10 V input range with programmable gains 1, 2, 4 and 8. The SUDS StationComp records of the archive give 'atod gain = 4' on seismic inputs, i.e. +/-2.5 V full scale: 4096 counts / 5 V. The DT2821 range and gain set are from the board's specification, not from a Pinatubo document."
+    }
+  },
+  "omitted": "Discriminator output filter and DT2821 anti-alias filter transfer functions are unknown and are not modelled; the passband is assumed flat at the 5 Hz reference frequency.",
+  "check": "Lockhart et al. (1996): station gains were set so that ambient noise was 100 mV peak-to-peak at the VCO input; McChesney (1999) gives 50-100 mV as usual. With VCO and discriminator at 1 V/V and the ADC above that is 82 counts peak-to-peak. Step 70 compares this with the recorded pre-trigger noise in the first days of each documented epoch. The check tests the VCO-to-counts part of the chain, not the sensor or preamplifier gain."
+}
