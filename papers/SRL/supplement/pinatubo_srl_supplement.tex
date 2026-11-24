@@ -151,6 +151,52 @@ Figure~3 of the main article shows coverage by data type. Figures~\ref{fig:wfch}
 \label{fig:bobother}
 \end{figure}
 
+\section{Station metadata and nominal responses}\label{sec:stationxml}
+
+Step 70 of the main article writes the network history as StationXML on UTC. This section records how it is built, in most detail for the period to 16 June 1991, while the pre-eruption network was in place; Table~\ref{tab:responseepochs} lists every channel epoch that begins before 17 June.
+
+\subsection{Sources and epoch bounds}
+
+The primary source is the field synopsis of \citet{Lockhart_1996}, Appendix~1, which gives for each station the installation date, site, sensor type and VCO attenuation, and later changes. Its dates are Philippine time (UTC$+$8). A date-only entry becomes local midnight, 16:00~UTC on the previous day, and an epoch ending on a given day ends at the start of the next local day; timed entries are converted exactly, so the change at CAB from 30 to 24~dB attenuation at 12:45 local time on 5 May starts a new epoch at 04:45~UTC. The appendix gives L-4 seismometers everywhere, replaced at PPO on 12 May by a three-component L-22D (Z at 24~dB, N and E at 30~dB; Z reset to 30~dB on 30 May). Helicorder notes compiled in 2025 instead describe L-1 sensors at PIE and UBO and a three-component L-22 at CAB; the field synopsis is kept and the disagreement is listed in a conflict register. The GRN attenuation was never written down; \citet{Lockhart_1996} report 24~dB inferred after the eruption from VCO calibration pulses on the seismograms, an analysis that also corroborated the relative settings at UBO, PIE and LIL. Coordinates come from the selected pre-eruption station table, with the alternatives kept in the StationXML comments; CAB differs by about 1.25~km and BUR by about 280~m between sources, which does not by itself show that either station moved.
+
+Where the archive and the documents disagree, the archive sets the epoch and the difference is recorded. UBO recorded from 12:10~UTC on 30 April, before its documented installation on 1 May (local), so its epoch starts with that record. The documented ends follow the loss of each station in the climactic phase: UBO's signal was lost at 22:00 local time on 11 June (14:00~UTC); BUR and the PPO components went with the Bunker Hill link on 11 June; PIE, BUG and GRN end with 15 June (local). CAB and BUG continue after the eruption with unknown sensors, and their 16:00~UTC transitions on 15 June are conventions rather than documented changes. Several labels continue in the waveform headers after the documented end (BUR to 21 June, PIE, PPO and UBO to 22 June, GRN to 25 June); those traces get epochs of their own with the sensor marked unknown, and no response. The temporary Lily Hill station of late April left no surviving waveforms.
+
+\begin{table}[htbp]
+\centering\scriptsize
+\caption{Channel epochs beginning before 17 June 1991. Tilt channels have no seismic response. Gain is the nominal VCO amplifier gain (90~dB less the attenuation); sensitivity is the nominal count response at 5~Hz (Table~\ref{tab:stages}), also given as ground displacement per count at 5~Hz (the CSS3.0 \texttt{ncalib} at \texttt{ncalper} 0.2~s). Noise is the median peak-to-peak amplitude, in counts, of the first 5~s of up to 60 records in the first three days of the epoch, with the number of records; Lockhart's setting of 100~mV at the VCO input corresponds to 82 counts. Epochs without a documented sensor have no response.}\label{tab:responseepochs}
+\input{tables/response_epochs.tex}
+\end{table}
+
+\subsection{Nominal response from ground velocity to counts}
+
+The digitized signal passed through the seismometer, the amplifier and VCO at the station, the radio path, a discriminator at PVO and WILLIE's digitizer. None of these units was calibrated in a record that survives, so each stage takes a value documented for its equipment type (Table~\ref{tab:stages}; \file{10\_conversion/nominal\_electronics.json}). The VCO boards were designed at CVO on the circuit of the USGS J502 \citep{Lockhart_1996}, for which \citet{McChesney_1999} gives an unattenuated gain of 90~dB, from which the attenuator setting is subtracted (18~dB gives 72~dB), and a deviation of 115~Hz per 4.05~V. The J101 and J110 discriminators are taken to invert that deviation, since \citet{McChesney_1999} notes that the signal at the VCO amplifier output and the discriminator output have about the same amplitude; VCO and discriminator together are then 1~V/V. WILLIE digitized with a Data Translation DT2821 \citep{Murray_1996}, a 12-bit board with a $\pm$10~V range and input gains of 1, 2, 4 and 8; the SUDS channel descriptors record a gain of 4 on the seismic inputs, a $\pm$2.5~V range and 819.2~counts/V. The overall sensitivity at 5~Hz is therefore
+\[
+S = S_\mathrm{sensor}\times10^{(90-A)/20}\times819.2\ \mathrm{counts\,(m/s)^{-1}},
+\]
+with $A$ the attenuation in dB: $5.6\times10^{8}$ counts per m/s for an L-4 at 18~dB. The discriminator output filter and the digitizer's anti-alias filter are unknown and not modelled, so the model is meant for the passband around 1--10~Hz. The J502 gain is a property of the USGS instrument, not a measurement of the CVO boards, and we attach $\pm$6~dB to it.
+
+\begin{table}[htbp]
+\centering\scriptsize
+\caption{Stages of the nominal count response and their sources.}\label{tab:stages}
+\begin{tabular}{>{\raggedright}p{2.2cm}>{\raggedright}p{3.6cm}>{\raggedright\arraybackslash}p{9.6cm}}
+\toprule
+Stage & Value & Source and status\\
+\midrule
+Seismometer & L-4C: 1~Hz, damping 0.7, 170.9~V/(m/s); L-22D: 2~Hz, damping 0.707, 88~V/(m/s) & Sensor type from \citet{Lockhart_1996}; L-4C sensitivity for a 5500~$\Omega$ coil with an 8905~$\Omega$ damping shunt (manufacturer's data), L-22D a nominal EarthScope model. Coils, shunts and serial numbers not recorded.\\
+Amplifier and attenuator & $90-A$~dB & J502 unattenuated gain \citep{McChesney_1999}; $A$ from \citet{Lockhart_1996}, Appendix 1. Assumed for the CVO boards built on the J502 circuit.\\
+VCO & 115~Hz per 4.05~V (28.4~Hz/V) & J502 and J512 deviation \citep{McChesney_1999}.\\
+Discriminator & 4.05~V per 115~Hz & J101 and J110 \citep{Lockhart_1996}; scale assumed to invert the VCO deviation \citep{McChesney_1999}. Output filter not modelled.\\
+Digitizer & 819.2~counts/V ($\pm$2.5~V, 12 bits) & DT2821 \citep{Murray_1996}; input gain 4 from the SUDS channel descriptors; range from the board specification.\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The model can be checked in one place. Station gains were set so that ambient noise was 100~mV peak to peak at the VCO input \citep{Lockhart_1996}, which the model turns into 82~counts. In the first days of each documented epoch the recorded pre-trigger noise has medians of 37--159~counts (Table~\ref{tab:responseepochs}), a median ratio to the prediction of 1.4, and shows no relation to attenuation settings that range over 18~dB, as expected if each station's gain was set to give the same noise at the VCO. The check constrains the VCO, discriminator and digitizer together, not the seismometer or amplifier gain. The low values at PPO after the change to the L-22D (37--59~counts) may reflect the sensor model, the site, or a setting that was not recorded.
+
+\subsection{Files}
+
+Step 70 writes three StationXML files with the same stations, channels and epochs: \file{pinatubo\_\allowbreak provisional.xml}, without responses; \file{pinatubo\_\allowbreak nominal\_\allowbreak voltage\_\allowbreak models.xml}, with the seismometer and attenuator only (output in volts); and \file{pinatubo\_\allowbreak nominal\_\allowbreak count\_\allowbreak models.xml}, with the full nominal response for the 13 documented pre-eruption epochs (output in counts). Every response carries comments naming each assumed value. Where one epoch ends as the next begins, a \texttt{\_selection\_safe} copy of each file ends the earlier epoch one microsecond before, so that a time on the boundary selects one epoch. The CSS3.0 waveform database of step 82 takes its station tables from the selection-safe count model: \texttt{site}, \texttt{sitechan}, and the calibration relations \texttt{instrument} (one row per distinct nominal response, with \texttt{ncalib} in nm per count at \texttt{ncalper}) and \texttt{sensor} (one row per channel epoch, with \texttt{calratio}~1), so that \texttt{calib} = \texttt{ncalib} $\times$ \texttt{calratio}. These relations are authoritative; the \texttt{calib} and \texttt{calper} of the 22,640 wfdisc rows they cover are copies for programs that read only the wfdisc. Better metadata (a measured gain, a resolved sensor) changes \file{nominal\_electronics.json} or the network-history inputs, and rerunning steps 70--82 rebuilds every product.
+
 Figure~\ref{fig:epochs} compares the channel epochs of the step 70 network history with the days on which each channel recorded, and Table~\ref{tab:step71} summarizes the step 71 checks on the StationXML built from them. Every archived trace falls inside an epoch of its channel; the epoch contacts listed are shared boundaries, where one epoch ends at the instant the next begins.
 
 \begin{figure}[htbp]
