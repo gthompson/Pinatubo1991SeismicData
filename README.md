@@ -56,6 +56,7 @@ Pinatubo1991SeismicData/
 ├── RESULTS_LAYOUT.md          # External output layout
 ├── environment.yml
 ├── run_notebooks.py           # Runs the numbered notebooks in order (conversion, analysis, paper figures)
+├── notebook_outputs.py        # Archives executed notebooks outside the repo and clears their outputs
 │
 ├── 10_conversion/             # Conversion notebooks, steps 10–72 (see NOTEBOOKS_README.md)
 │   ├── conversion_config.json # data_top, output_root, time_basis, clock_regimes
@@ -116,8 +117,7 @@ inputs and products is in [10_conversion/NOTEBOOKS_README.md](10_conversion/NOTE
 
 The analysis notebooks in `20_analysis` (00–60) then measure noise and event windows on the
 UTC archive, and `papers/SRL/make_figures.ipynb` and `papers/SRL/supplement/make_supplement.ipynb`
-make the paper and supplement figures. To run everything in
-order, executing each notebook in place:
+make the paper and supplement figures. To run everything in order:
 
 ```bash
 python run_notebooks.py --figures
@@ -126,6 +126,17 @@ python run_notebooks.py --figures
 `--dry-run` lists the notebooks; `--stage`, `--from`, `--to` and `--skip` select a subset; the
 run stops at the first failing notebook unless `--keep-going` is given. A log and a CSV summary
 are written to `run_logs/` beside the conversion output root.
+
+Notebooks are committed **without outputs**: executed notebooks can exceed GitHub's file-size
+limit (step 35 is over 100 MB). After each notebook runs, `run_notebooks.py` copies the executed
+version, with its outputs, to `executed_notebooks/<path in the repository>` beside `run_logs/`,
+then clears the outputs in the repository copy (`--keep-outputs` turns this off). To do the same
+by hand, and to make git refuse commits of notebooks that still have outputs:
+
+```bash
+python notebook_outputs.py strip            # every tracked notebook, or name some
+python notebook_outputs.py install-hook     # once per clone: pre-commit check
+```
 
 Every time is converted to UTC where it is read. Each acquisition PC had its own clock,
 switched between Philippine time and GMT during 1991; the rules are in

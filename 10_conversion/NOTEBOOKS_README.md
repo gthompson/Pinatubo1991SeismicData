@@ -6,7 +6,7 @@ The numbered notebooks in this folder turn the surviving 1991 PVO archive (DMX w
 
 - Use a kernel with the current FloVoPy checkout installed in editable mode, plus ObsPy, pandas, NumPy, Matplotlib and IPython (the `flovopy_asl` conda environment). Restart the kernel after changing FloVoPy.
 - Open Jupyter from this folder or the project root. Every notebook reads `conversion_config.json` through `lib.config.pipeline_paths`: inputs under `data_top`, outputs under `output_root` (currently `~/work/Pinatubo1991Processing/utc`). See [../CONFIGURATION.md](../CONFIGURATION.md).
-- Each notebook has a configuration cell (`SETTINGS`), a definitions cell tagged `pipeline_definitions` (functions only; tests load this cell), and a run cell. Run them top to bottom, in step order. Saved outputs in the committed notebooks come from the UTC run.
+- Each notebook has a configuration cell (`SETTINGS`), a definitions cell tagged `pipeline_definitions` (functions only; tests load this cell), and a run cell. Run them top to bottom, in step order. Notebooks are committed without outputs; the executed copy of each, from the latest run, is under `executed_notebooks/` beside the output root (see `notebook_outputs.py` in the project root).
 - Code generic to VDAP data lives in FloVoPy; Pinatubo choices stay in the notebooks and in `lib/` (see [FloVoPy and `lib/`](#flovopy-and-lib)).
 
 ## Clocks and UTC

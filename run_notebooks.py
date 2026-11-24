@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 """Run the numbered notebooks in 10_conversion/ and 20_analysis/ in order.
 
-Each notebook is executed in place (saved outputs are part of the record, see
-10_conversion/NOTEBOOKS_README.md) with its own folder as the working directory.
+Each notebook is executed with its own folder as the working directory. The executed
+copy, with its outputs, is then saved under <output base>/executed_notebooks/<path> and
+the repository copy is cleared of outputs (notebook_outputs.py), so committed notebooks
+stay small; --keep-outputs leaves the executed notebook in place instead.
 The run stops at the first failure unless --keep-going is given. A log and a
 CSV summary go to <conversion OUTPUT_ROOT>/../run_logs/.
 
@@ -23,6 +25,8 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+from notebook_outputs import strip
 
 ROOT = Path(__file__).resolve().parent
 STAGES = {"conversion": ROOT / "10_conversion", "analysis": ROOT / "20_analysis"}
@@ -93,6 +97,8 @@ def main() -> int:
     ap.add_argument("--timeout", type=int, default=-1, help="per-cell timeout in seconds (-1: none)")
     ap.add_argument("--keep-going", action="store_true", help="continue after a failing notebook")
     ap.add_argument("--dry-run", action="store_true", help="list the notebooks and exit")
+    ap.add_argument("--keep-outputs", action="store_true",
+                    help="leave outputs in the repository notebooks (default: archive the executed copy, then clear)")
     args = ap.parse_args()
 
     todo = plan(args)
@@ -120,6 +126,10 @@ def main() -> int:
             except Exception as exc:  # noqa: BLE001 - report any notebook failure
                 status, error = "failed", f"{type(exc).__name__}: {str(exc).strip().splitlines()[-1] if str(exc).strip() else ''}"
                 failed = True
+            if not args.keep_outputs:
+                _, copy = strip(path)
+                if copy is not None:
+                    print(f"executed copy: {copy}", flush=True)
             minutes = (time.time() - t0) / 60
             line = f"{started}  {status:6s}  {minutes:7.1f} min  {path.relative_to(ROOT)}  {error}"
             print(line, flush=True)
@@ -134,6 +144,9 @@ def main() -> int:
         w.writeheader()
         w.writerows(rows)
     print(f"\nLog: {text}\nSummary: {summary}")
+    if not args.keep_outputs:
+        from notebook_outputs import archive_dir
+        print(f"Executed notebooks: {archive_dir()}")
     return 1 if failed else 0
 
 
