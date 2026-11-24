@@ -277,3 +277,28 @@ TIME_POLICY = {
             "raw_* columns; COSPEC, daily PIE counts and radio maps keep their dates; rain and mudflow "
             "labels from 15 Nov 1991 are retained (unverified)"),
 }
+
+
+def annotate_waveform_clock(index: pd.DataFrame, config) -> pd.DataFrame:
+    """Attach nominal rule uncertainty without changing the converter callback API.
+
+    Only annotate a known waveform rule whose recorded offset agrees. These are
+    nominal absolute-clock allowances, not measured pick errors or confidence bounds.
+    """
+    out = index.copy()
+    out['clock_uncertainty_s'] = float('nan')
+    out['clock_uncertainty_status'] = 'recorded_time' if not utc_enabled(config) else 'unresolved_rule'
+    if not utc_enabled(config) or out.empty:
+        return out
+    rules = {r['regime']: r for r in _regimes(config).rows if 'waveform' in r['streams']}
+    for i, row in out.iterrows():
+        rule = rules.get(row.get('clock_regime'))
+        if rule is None:
+            continue
+        offset = pd.to_numeric(row.get('clock_offset_s'), errors='coerce')
+        if pd.isna(offset) or abs(float(offset) - rule['offset_s']) > 1e-6:
+            out.at[i, 'clock_uncertainty_status'] = 'rule_offset_mismatch'
+            continue
+        out.at[i, 'clock_uncertainty_s'] = rule['uncertainty_s']
+        out.at[i, 'clock_uncertainty_status'] = 'nominal_rule_allowance'
+    return out

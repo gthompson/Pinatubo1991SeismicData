@@ -167,7 +167,7 @@ def associate_hypocenters(df_evt, df_map, df_hypo, *, max_first_arrival_s=10.0, 
         mp = df_map[['event_id', 'pick_time'] + (['phase'] if 'phase' in df_map else [])].copy()
         mp['_t'] = to_dt(mp['pick_time'])
         mp = mp.dropna(subset=['_t'])
-        is_p = mp['phase'].astype('string').fillna('').str.upper().str.startswith('P') if 'phase' in mp else False
+        is_p = mp['phase'].astype('string').fillna('').str.upper().str.startswith('P') if 'phase' in mp else pd.Series(False, index=mp.index)
         first = mp[is_p].groupby('event_id')['_t'].min().combine_first(mp.groupby('event_id')['_t'].min())
         first = first[first.index.isin(set(evt['event_id']))].sort_values()
         fv, fid = _ns(first), first.index.to_numpy()
